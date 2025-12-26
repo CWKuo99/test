@@ -1,0 +1,531 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { Play, Pause, RotateCcw, ChevronRight, ChevronDown, BookOpen, Microscope, Atom, HelpCircle, Eye, Layers } from 'lucide-react';
+
+const AtomicModelSimulation = () => {
+  const [activeModel, setActiveModel] = useState('dalton');
+  const [isPlaying, setIsPlaying] = useState(true);
+  const [showFailure, setShowFailure] = useState(false);
+  
+  // 量子模型：軌域選擇狀態
+  const [quantumOrbital, setQuantumOrbital] = useState('1s'); // 1s, 2s, 2p, 3s, 3p, 3d
+  
+  const canvasRef = useRef(null);
+  const requestRef = useRef();
+  
+  // 波耳模型專用狀態
+  const [bohrElectronState, setBohrElectronState] = useState({ orbit: 0, transition: null });
+
+  // 切換模型時重置
+  useEffect(() => {
+    setShowFailure(false);
+    if (activeModel === 'bohr') {
+        setBohrElectronState({ orbit: 0, transition: null });
+    }
+    // 切換到量子模型時預設 1s
+    if (activeModel === 'quantum') {
+        setQuantumOrbital('1s');
+    }
+  }, [activeModel]);
+
+  // 軌域資訊定義 (延伸學習)
+  const orbitalInfo = {
+      '1s': { name: '1s 軌域', desc: '基態，球形對稱，無節面。電子最靠近原子核。' },
+      '2s': { name: '2s 軌域', desc: '球形對稱，但在中間有一個「徑向節面」（白色空環），此處電子出現機率為 0。' },
+      '2p': { name: '2p 軌域', desc: '啞鈴形 (Dumbbell)，有兩個葉片。具有方向性，中間有一個通過原子核的節面。' },
+      '3s': { name: '3s 軌域', desc: '更大的球形，內部有兩個徑向節面（兩圈空環），層次分明。' },
+      '3p': { name: '3p 軌域', desc: '啞鈴形，但比 2p 更大，且葉片內部多了一個節面（像被切開一樣）。' },
+      '3d': { name: '3d 軌域', desc: '幸運草形 (Cloverleaf) 或 雙啞鈴形。有兩個節面通過原子核，展示更複雜的角動量分佈。' },
+  };
+
+  const models = {
+    dalton: {
+      id: 'dalton',
+      scientist: '道耳頓 (John Dalton)',
+      year: '1803',
+      title: '實心球體模型',
+      concept: '原子是物質的最小單位，像是一顆堅硬、不可分割的實心撞球。',
+      evidence: '【定比定律】與【倍比定律】。化學反應只是原子的重新排列，原子本身不會改變。',
+      failure: '無法解釋靜電現象（摩擦起電）與後來發現的次原子粒子（電子）。',
+      color: 'bg-stone-200 text-stone-900 border-stone-200'
+    },
+    thomson: {
+      id: 'thomson',
+      scientist: '湯木生 (J.J. Thomson)',
+      year: '1897',
+      title: '葡萄乾布丁模型',
+      concept: '原子是一個帶正電的均勻球體，帶負電的電子像葡萄乾一樣鑲嵌在其中。',
+      evidence: '【陰極射線管實驗】。發現帶負電的微粒（電子），且其質量遠小於氫原子，證明原子內部有結構。',
+      failure: '無法解釋拉塞福的α粒子散射實驗（大部分α粒子穿透，極少數大角度偏折）。',
+      color: 'bg-amber-100 text-amber-900 border-amber-200'
+    },
+    rutherford: {
+      id: 'rutherford',
+      scientist: '拉塞福 (Ernest Rutherford)',
+      year: '1911',
+      title: '行星繞日模型 (核型模型)',
+      concept: '原子大部分是中空的，正電荷集中在極小的「原子核」，電子在核外隨機繞行。',
+      evidence: '【α粒子散射實驗】。絕大多數α粒子直線通過金箔，極少數被彈回。',
+      failure: '根據古典電動力學，帶電粒子加速運動會輻射能量，導致軌道半徑縮小，最終墜入原子核；且無法解釋光譜不連續性。',
+      color: 'bg-blue-100 text-blue-900 border-blue-200'
+    },
+    bohr: {
+      id: 'bohr',
+      scientist: '波耳 (Niels Bohr)',
+      year: '1913',
+      title: '氫原子能階模型',
+      concept: '電子只能在特定的「軌道」（能階）上運行，在此穩定軌道上不會輻射能量。',
+      evidence: '【氫原子發射光譜】。氫原子的光譜是明線光譜，證明能量是量子化的。',
+      failure: '僅能完美解釋氫原子（單電子原子），無法解釋多電子原子光譜及光譜強度，且違反測不準原理。',
+      color: 'bg-purple-100 text-purple-900 border-purple-200'
+    },
+    quantum: {
+      id: 'quantum',
+      scientist: '海森堡 & 薛丁格',
+      year: '1926~',
+      title: '電子雲模型 (量子力學)',
+      concept: '電子不循固定軌道，而是以機率波存在。無法同時測知位置與動量（測不準原理），只能計算出現機率（電子雲）。',
+      evidence: '【雙狹縫實驗】、【薛丁格方程式】。能精確預測多電子原子行為與化學鍵。',
+      failure: '目前最完善的模型。但在極小尺度下與重力的統一（萬有理論）仍是物理學聖杯。',
+      color: 'bg-teal-100 text-teal-900 border-teal-200'
+    }
+  };
+
+  // 輔助函數：計算不同軌域的機率密度 (簡化版用於 2D 視覺化)
+  const getOrbitalProbability = (x, y, type) => {
+      // 將像素座標轉換為原子單位 (Atomic Units 比例縮放)
+      const scale = 25; 
+      const r = Math.sqrt(x*x + y*y) / scale;
+      // const theta = Math.atan2(y, x); // 用於極座標思考，但在 Cartesian 計算中直接用 x/r, y/r
+      
+      let psi = 0;
+
+      // 徑向波函數與角度波函數的簡化乘積
+      // 注意：這裡我們視覺化的是 XY 平面上的切面機率密度 (Probability Density)
+      switch(type) {
+          case '1s': 
+              // ψ ~ e^(-r)
+              psi = Math.exp(-r); 
+              break;
+          case '2s': 
+              // ψ ~ (2 - r) * e^(-r/2)
+              // 節面在 r=2 (scale=50px處)
+              psi = (2 - r) * Math.exp(-r/2);
+              break;
+          case '2p':
+              // ψ_2px ~ x * e^(-r/2)
+              // 啞鈴形沿 X 軸
+              psi = (x/scale) * Math.exp(-r/2);
+              break;
+          case '3s':
+              // ψ ~ (27 - 18r + 2r^2) * e^(-r/3)
+              // 兩個節面
+              psi = (27 - 18*r + 2*r*r) * Math.exp(-r/3);
+              break;
+          case '3p':
+              // ψ_3px ~ (6 - r) * x * e^(-r/3)
+              // 啞鈴形，但在 r=6 處有一個徑向節面切開
+              psi = (6 - r) * (x/scale) * Math.exp(-r/3);
+              break;
+          case '3d':
+              // ψ_3dxy ~ x * y * e^(-r/3)
+              // 幸運草形，節面在 x=0 和 y=0
+              psi = (x/scale) * (y/scale) * Math.exp(-r/3);
+              break;
+          default:
+              psi = 0;
+      }
+      
+      return psi * psi; // 機率密度 = ψ^2
+  };
+
+  const draw = (ctx, frameCount) => {
+    const width = ctx.canvas.width;
+    const height = ctx.canvas.height;
+    const centerX = width / 2;
+    const centerY = height / 2;
+
+    // 淡出效果而非全清空，製造殘影感 (僅對某些模型有效，這裡為了清晰度全清空)
+    ctx.clearRect(0, 0, width, height);
+
+    // 背景網格
+    ctx.strokeStyle = '#f1f5f9';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    for (let x = 0; x <= width; x += 40) { ctx.moveTo(x, 0); ctx.lineTo(x, height); }
+    for (let y = 0; y <= height; y += 40) { ctx.moveTo(0, y); ctx.lineTo(width, y); }
+    ctx.stroke();
+
+    switch (activeModel) {
+      case 'dalton':
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, 80, 0, 2 * Math.PI);
+        ctx.fillStyle = '#78716c'; 
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(centerX - 25, centerY - 25, 20, 0, 2 * Math.PI);
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+        ctx.fill();
+        ctx.fillStyle = '#44403c';
+        ctx.font = '16px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText("不可分割的實心球", centerX, centerY + 110);
+        break;
+
+      case 'thomson':
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, 100, 0, 2 * Math.PI);
+        ctx.fillStyle = 'rgba(252, 211, 77, 0.4)'; 
+        ctx.fill();
+        ctx.strokeStyle = '#f59e0b';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        // 正電荷符號
+        ctx.fillStyle = '#d97706';
+        ctx.font = '24px Arial';
+        ctx.textAlign = 'center';
+        [[0,0], [40,40], [-40,-40], [40,-40], [-40,40]].forEach(pos => {
+             ctx.fillText("+", centerX + pos[0], centerY + pos[1] + 8);
+        });
+
+        const electrons = [
+          {x: -30, y: -50}, {x: 40, y: -20}, {x: -50, y: 30}, 
+          {x: 20, y: 60}, {x: 60, y: 10}, {x: -20, y: 10}
+        ];
+        electrons.forEach((e, i) => {
+          const jitterX = Math.sin(frameCount * 0.1 + i) * 2;
+          const jitterY = Math.cos(frameCount * 0.1 + i) * 2;
+          ctx.beginPath();
+          ctx.arc(centerX + e.x + jitterX, centerY + e.y + jitterY, 8, 0, 2 * Math.PI);
+          ctx.fillStyle = '#2563eb';
+          ctx.fill();
+          ctx.fillStyle = 'white';
+          ctx.font = '12px Arial';
+          ctx.fillText("-", centerX + e.x + jitterX, centerY + e.y + jitterY + 4);
+        });
+        ctx.fillStyle = '#92400e';
+        ctx.font = '16px Arial';
+        ctx.fillText("葡萄乾布丁", centerX, centerY + 130);
+        break;
+
+      case 'rutherford':
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, 8, 0, 2 * Math.PI); // Smaller Nucleus
+        ctx.fillStyle = '#dc2626';
+        ctx.fill();
+        ctx.fillStyle = 'white';
+        ctx.font = '10px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText("+", centerX, centerY + 3);
+
+        const rutherfordOrbits = [
+          { rx: 80, ry: 30, angle: frameCount * 0.05, rot: 0 },
+          { rx: 80, ry: 30, angle: frameCount * 0.07 + 1, rot: Math.PI / 3 },
+          { rx: 80, ry: 30, angle: frameCount * 0.06 + 2, rot: -Math.PI / 3 }
+        ];
+
+        rutherfordOrbits.forEach(o => {
+          ctx.save();
+          ctx.translate(centerX, centerY);
+          ctx.rotate(o.rot);
+          ctx.beginPath();
+          ctx.ellipse(0, 0, o.rx, o.ry, 0, 0, 2 * Math.PI);
+          ctx.strokeStyle = 'rgba(37, 99, 235, 0.2)';
+          ctx.stroke();
+          const ex = o.rx * Math.cos(o.angle);
+          const ey = o.ry * Math.sin(o.angle);
+          ctx.beginPath();
+          ctx.arc(ex, ey, 5, 0, 2 * Math.PI);
+          ctx.fillStyle = '#2563eb';
+          ctx.fill();
+          ctx.restore();
+        });
+        
+        ctx.fillStyle = '#1e3a8a';
+        ctx.font = '16px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText("行星繞日 (不穩定)", centerX, centerY + 130);
+        break;
+
+      case 'bohr':
+        const r1 = 60;
+        const r2 = 120;
+        [r1, r2].forEach((r, idx) => {
+          ctx.beginPath();
+          ctx.arc(centerX, centerY, r, 0, 2 * Math.PI);
+          ctx.strokeStyle = idx === 0 ? '#9333ea' : '#a855f7';
+          ctx.setLineDash([5, 5]);
+          ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.fillStyle = '#6b21a8';
+          ctx.font = '12px Arial';
+          ctx.fillText(`n=${idx+1}`, centerX + r + 15, centerY);
+        });
+
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, 8, 0, 2 * Math.PI);
+        ctx.fillStyle = '#dc2626';
+        ctx.fill();
+
+        let targetR = bohrElectronState.orbit === 0 ? r1 : r2;
+        const angle = frameCount * 0.05;
+        const ex = centerX + targetR * Math.cos(angle);
+        const ey = centerY + targetR * Math.sin(angle);
+
+        ctx.beginPath();
+        ctx.arc(ex, ey, 6, 0, 2 * Math.PI);
+        ctx.fillStyle = '#2563eb';
+        ctx.fill();
+        
+        ctx.fillStyle = '#581c87';
+        ctx.font = '16px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText("能階躍遷", centerX, centerY + 150);
+        break;
+
+      case 'quantum':
+        // 原子核
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, 5, 0, 2 * Math.PI);
+        ctx.fillStyle = '#dc2626';
+        ctx.fill();
+
+        // 電子雲繪製 (Monte Carlo Rejection Sampling)
+        // 提高粒子數量與可見度
+        const pointsPerFrame = 800; 
+        const boxSize = 140; // 繪製範圍 +/- 140px
+
+        // 修改：顏色調深，增加對比度 (Dark Teal)
+        ctx.fillStyle = 'rgba(17, 94, 89, 0.7)'; 
+
+        for(let i=0; i<pointsPerFrame; i++) {
+            // 在 box 內隨機取點
+            const randX = (Math.random() - 0.5) * 2 * boxSize;
+            const randY = (Math.random() - 0.5) * 2 * boxSize;
+            
+            // 計算該點的機率密度 P
+            const prob = getOrbitalProbability(randX, randY, quantumOrbital);
+            
+            // 歸一化或放大機率以適應視覺 (heuristic scaling)
+            let visualScale = 1;
+            // 3 系列因為分布範圍廣，機率密度低，需大幅放大顯示
+            if (quantumOrbital.includes('3')) visualScale = 60; 
+            else if (quantumOrbital.includes('2')) visualScale = 18;
+            else visualScale = 2.5; // 1s 很集中
+
+            // 拒絕取樣
+            if (Math.random() < prob * visualScale) {
+                ctx.beginPath();
+                // 粒子稍小一點點，讓細節更清楚
+                ctx.fillRect(centerX + randX, centerY + randY, 1.3, 1.3);
+            }
+        }
+        
+        // 標示文字
+        ctx.fillStyle = '#134e4a';
+        ctx.font = '16px Arial';
+        ctx.textAlign = 'center';
+        // 畫在角落避免擋住軌域
+        ctx.fillText("機率密度分佈", centerX, centerY + 150);
+        break;
+    }
+  };
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    let frameCount = 0;
+    
+    const animate = () => {
+      frameCount++;
+      if (isPlaying) {
+        draw(ctx, frameCount);
+      }
+      requestRef.current = requestAnimationFrame(animate);
+    };
+    
+    requestRef.current = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(requestRef.current);
+  }, [activeModel, isPlaying, bohrElectronState, quantumOrbital]);
+
+  const toggleBohrOrbit = () => {
+    setBohrElectronState(prev => ({ ...prev, orbit: prev.orbit === 0 ? 1 : 0 }));
+  };
+
+  return (
+    <div className="flex flex-col w-full max-w-6xl mx-auto p-4 gap-6 font-sans">
+      
+      {/* 頂部標題 */}
+      <div className="text-center space-y-2">
+        <h1 className="text-3xl font-bold text-slate-800 flex items-center justify-center gap-2">
+          <Atom className="w-8 h-8 text-blue-600" />
+          原子模型的演進
+        </h1>
+        <p className="text-slate-500">從道耳頓到量子力學：證據如何推動理論的修正</p>
+      </div>
+
+      {/* 模型切換導航 */}
+      <div className="overflow-x-auto pb-2 scrollbar-hide">
+        <div className="flex justify-start md:justify-center gap-2 min-w-max bg-slate-50 p-2 rounded-xl">
+            {Object.keys(models).map((key) => (
+            <button
+                key={key}
+                onClick={() => setActiveModel(key)}
+                className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 whitespace-nowrap border
+                ${activeModel === key 
+                    ? `${models[key].color.split(' ')[0]} ${models[key].color.split(' ')[1]} ${models[key].color.split(' ')[2]} shadow-md transform scale-105` 
+                    : 'bg-white text-slate-600 border-transparent hover:bg-slate-100'}`}
+            >
+                {models[key].scientist}
+            </button>
+            ))}
+        </div>
+      </div>
+
+      <div className="grid lg:grid-cols-2 gap-6 items-start h-full">
+        
+        {/* 左側：模擬視窗 */}
+        <div className="flex flex-col gap-4">
+            <div className="bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden flex flex-col relative">
+                
+                {/* 模擬器控制列 */}
+                <div className="bg-slate-100 p-2 flex justify-between items-center border-b border-slate-200 z-10">
+                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider pl-2 flex items-center gap-1">
+                        <Eye size={14}/> Simulation View
+                    </span>
+                    <div className="flex gap-1">
+                        <button onClick={() => setIsPlaying(!isPlaying)} className="p-1 hover:bg-slate-200 rounded text-slate-600">
+                            {isPlaying ? <Pause size={18} /> : <Play size={18} />}
+                        </button>
+                        {activeModel === 'bohr' && (
+                            <button onClick={() => setBohrElectronState({orbit:0})} className="p-1 hover:bg-slate-200 rounded text-slate-600">
+                                <RotateCcw size={18} />
+                            </button>
+                        )}
+                    </div>
+                </div>
+                
+                {/* Canvas 畫布 */}
+                <div className="relative bg-white flex items-center justify-center p-4 h-[350px]">
+                    <canvas 
+                        ref={canvasRef} 
+                        width={350} 
+                        height={350}
+                        className="w-full max-w-[350px] aspect-square"
+                    />
+                    
+                    {/* 波耳互動層 */}
+                    {activeModel === 'bohr' && (
+                        <div className="absolute bottom-6 left-0 right-0 text-center">
+                            <button 
+                                onClick={toggleBohrOrbit}
+                                className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg transition-transform active:scale-95"
+                            >
+                                {bohrElectronState.orbit === 0 ? "給予能量 (躍遷 ↑)" : "釋放能量 (落回 ↓)"}
+                            </button>
+                        </div>
+                    )}
+
+                    {/* 量子互動層：軌域選擇器 (懸浮於畫布上方) */}
+                    {activeModel === 'quantum' && (
+                        <div className="absolute top-4 right-4 flex flex-col gap-1 bg-white/90 p-2 rounded-lg shadow-sm border border-slate-100 backdrop-blur-sm">
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 text-center">切換軌域</span>
+                            {['1s', '2s', '2p', '3s', '3p', '3d'].map(orb => (
+                                <button
+                                    key={orb}
+                                    onClick={() => setQuantumOrbital(orb)}
+                                    className={`text-xs px-2 py-1 rounded border transition-colors ${
+                                        quantumOrbital === orb 
+                                        ? 'bg-teal-600 text-white border-teal-600' 
+                                        : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                                    }`}
+                                >
+                                    {orb}
+                                </button>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* 量子模型延伸資訊 (僅在選中 Quantum 時顯示) */}
+            {activeModel === 'quantum' && (
+                <div className="bg-teal-50 border border-teal-200 rounded-xl p-4 animate-in slide-in-from-top-2">
+                    <h4 className="text-teal-900 font-bold flex items-center gap-2 mb-1">
+                        <Layers size={18} />
+                        延伸學習：{orbitalInfo[quantumOrbital].name}
+                    </h4>
+                    <p className="text-sm text-teal-800 leading-relaxed">
+                        {orbitalInfo[quantumOrbital].desc}
+                    </p>
+                    <div className="mt-2 text-xs text-teal-600 bg-white/50 p-2 rounded">
+                        <span className="font-bold">觀察重點：</span>
+                        {quantumOrbital.includes('s') && "注意圓形的節面（空環），這代表電子在該距離出現機率極低。"}
+                        {quantumOrbital.includes('p') && "注意啞鈴形狀的方向性，以及節面如何切過原點。"}
+                        {quantumOrbital.includes('d') && "注意複雜的花瓣形狀，這解釋了過渡金屬豐富的化學性質。"}
+                    </div>
+                </div>
+            )}
+        </div>
+
+        {/* 右側：知識說明區 */}
+        <div className={`rounded-xl shadow-lg border p-6 flex flex-col gap-5 h-full transition-colors duration-300 ${models[activeModel].color.split(' ')[0].replace('bg-', 'bg-opacity-20 ')} ${models[activeModel].color.split(' ')[2]}`}>
+            
+            <div>
+                <div className="text-sm font-bold opacity-70 mb-1">{models[activeModel].year}</div>
+                <h2 className="text-2xl font-bold mb-2 text-slate-900">{models[activeModel].title}</h2>
+                <div className="flex items-start gap-3 text-sm leading-relaxed mb-4 text-slate-800">
+                    <BookOpen size={20} className="mt-0.5 flex-shrink-0 opacity-70" />
+                    <p>{models[activeModel].concept}</p>
+                </div>
+            </div>
+
+            <div className="bg-white/70 p-4 rounded-lg backdrop-blur-sm border border-white/50">
+                <h3 className="font-bold flex items-center gap-2 mb-2 text-sm uppercase tracking-wide text-slate-700">
+                    <Microscope size={16} />
+                    關鍵證據 (Establishment)
+                </h3>
+                <p className="text-sm leading-relaxed text-slate-700">
+                    {models[activeModel].evidence}
+                </p>
+            </div>
+
+            <div className={`mt-auto bg-white rounded-lg border overflow-hidden transition-all duration-300 ${showFailure ? 'ring-2 ring-red-100 border-red-200' : 'border-slate-200 hover:border-red-200'}`}>
+                <button 
+                    onClick={() => setShowFailure(!showFailure)}
+                    className="w-full flex items-center justify-between p-4 text-left transition-colors hover:bg-slate-50"
+                >
+                    <div className="flex items-center gap-2">
+                        <HelpCircle size={18} className={`${showFailure ? 'text-red-500' : 'text-slate-400'}`} />
+                        <span className={`font-bold text-sm uppercase tracking-wide ${showFailure ? 'text-red-800' : 'text-slate-500'}`}>
+                            {showFailure ? "理論缺陷 (Failure)" : "思考：這個模型有什麼問題？"}
+                        </span>
+                    </div>
+                    {showFailure ? <ChevronDown size={18} className="text-slate-400"/> : <Eye size={18} className="text-blue-500 animate-pulse"/>}
+                </button>
+                
+                {showFailure && (
+                    <div className="p-4 pt-0 bg-red-50/30 animate-in slide-in-from-top-2 duration-300">
+                        <div className="h-px w-full bg-red-100 mb-3"></div>
+                        <div className="flex gap-3">
+                            <ChevronRight size={16} className="text-red-500 mt-1 flex-shrink-0" />
+                            <p className="text-sm text-red-900 leading-relaxed">
+                                {models[activeModel].failure}
+                            </p>
+                        </div>
+                    </div>
+                )}
+            </div>
+
+        </div>
+
+      </div>
+
+      <div className="text-center text-xs text-slate-400 mt-4 pb-4">
+        互動式科學史教學工具 | 專為資優教育設計 | 模擬內容經數學簡化以適應網頁效能
+      </div>
+    </div>
+  );
+};
+
+export default AtomicModelSimulation;
