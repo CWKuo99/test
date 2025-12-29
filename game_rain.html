@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>元素雨：雲端競技場</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&family=Roboto+Mono:wght@500&family=Press+Start+2P&display=swap');
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            overflow: hidden;
+            touch-action: none;
+            background-color: #0f172a; /* Slate 900 */
+            user-select: none; /* Prevent text selection */
+            -webkit-user-select: none;
+        }
+
+        #game-canvas {
+            display: block;
+            margin: 0 auto;
+            background: linear-gradient(to bottom, #0f172a, #1e293b);
+        }
+
+        .ui-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .interactive-layer {
+            pointer-events: auto;
+        }
+
+        .chemical-font {
+            font-family: 'Roboto Mono', monospace;
+        }
+        
+        /* Animations */
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        .animate-float {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .shake {
+            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-4px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(30, 41, 59, 0.5); }
+        ::-webkit-scrollbar-thumb { background: rgba(71, 85, 105, 0.8); border-radius: 3px; }
+        
+        /* Glass Effect */
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Virtual Buttons Styling */
+        .control-btn {
+            pointer-events: auto;
+            touch-action: none;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            transition: all 0.1s;
+            cursor: pointer;
+        }
+        .control-btn:active {
+            transform: translateY(-50%) scale(0.95); 
+            background-color: rgba(6, 182, 212, 0.4); 
+        }
+
+        /* Bar Chart Animations */
+        @keyframes grow-bar {
+            from { width: 0%; }
+            to { width: var(--target-width); }
+        }
+        .bar-fill {
+            animation: grow-bar 1s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="text-white h-screen w-screen flex flex-col items-center justify-center">
+
+    <!-- Game Canvas -->
+    <canvas id="game-canvas"></canvas>
+
+    <!-- UI Overlay: HUD -->
+    <div id="hud" class="ui-overlay hidden p-4">
+        <div class="flex justify-between items-start w-full max-w-2xl mx-auto">
+            <div class="bg-slate-800/80 p-3 rounded-lg border border-slate-600 backdrop-blur-sm shadow-lg">
+                <div class="text-xs text-slate-400">分數 SCORE</div>
+                <div id="score-display" class="text-2xl font-bold text-yellow-400 chemical-font">0</div>
+            </div>
+            
+            <!-- Target Display -->
+            <div class="flex flex-col items-center">
+                <div class="bg-blue-900/90 px-6 py-3 rounded-xl border-2 border-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.5)] transform scale-110">
+                    <div class="text-xs text-blue-200 text-center mb-1">請收集 Target</div>
+                    <div id="target-display" class="text-3xl font-bold text-white tracking-wider text-center">準備中...</div>
+                </div>
+            </div>
+
+            <div class="bg-slate-800/80 p-3 rounded-lg border border-slate-600 backdrop-blur-sm shadow-lg">
+                <div class="text-xs text-slate-400">生命 HP</div>
+                <div id="lives-display" class="text-2xl text-red-400 tracking-widest">❤️❤️❤️</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Touch Controls Overlay (Side Layout) -->
+    <div id="touch-controls" class="ui-overlay hidden z-40 pointer-events-none">
+        <!-- Left Button -->
+        <button id="btn-left" class="control-btn absolute left-4 top-1/2 -translate-y-1/2 w-24 h-24 md:w-32 md:h-32 bg-white/10 hover:bg-white/20 rounded-full border-2 border-white/30 backdrop-blur-md flex items-center justify-center text-white/80 shadow-lg">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-12 h-12">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+            </svg>
+        </button>
+        
+        <!-- Right Button -->
+        <button id="btn-right" class="control-btn absolute right-4 top-1/2 -translate-y-1/2 w-24 h-24 md:w-32 md:h-32 bg-white/10 hover:bg-white/20 rounded-full border-2 border-white/30 backdrop-blur-md flex items-center justify-center text-white/80 shadow-lg">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-12 h-12">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+            </svg>
+        </button>
+    </div>
+
+    <!-- Start Screen / Menu -->
+    <div id="menu-screen" class="absolute inset-0 z-50 flex items-center justify-center bg-slate-900/95 backdrop-blur-md interactive-layer overflow-y-auto">
+        <div class="max-w-6xl w-full p-4 flex flex-col lg:flex-row gap-8 items-center lg:items-start mt-8 lg:mt-0">
+            
+            <!-- Left: Game Menu -->
+            <div class="flex-1 w-full max-w-md text-center pt-8">
+                <h1 class="text-5xl font-bold mb-2 text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-600 animate-float">元素雨</h1>
+                <p class="text-slate-400 mb-6 text-lg tracking-wider font-mono">CLOUD BATTLE</p>
+                
+                <div class="space-y-4 mb-8">
+                    <button onclick="startGame('easy')" class="w-full py-4 bg-green-600 hover:bg-green-500 rounded-xl font-bold text-lg transition shadow-[0_4px_0_rgb(21,128,61)] active:shadow-none active:translate-y-1 flex items-center justify-center group relative overflow-hidden">
+                        <span class="mr-3 text-2xl">🌱</span>
+                        <div class="text-left">
+                            <div class="leading-none">初級 (Beginner)</div>
+                            <div class="text-xs font-normal opacity-90 mt-1">原子序 1-20</div>
+                        </div>
+                    </button>
+
+                    <button onclick="startGame('hard')" class="w-full py-4 bg-yellow-600 hover:bg-yellow-500 rounded-xl font-bold text-lg transition shadow-[0_4px_0_rgb(161,98,7)] active:shadow-none active:translate-y-1 flex items-center justify-center group relative overflow-hidden">
+                        <span class="mr-3 text-2xl">⚡</span>
+                        <div class="text-left">
+                            <div class="leading-none">進階 (Advanced)</div>
+                            <div class="text-xs font-normal opacity-90 mt-1">1-20 + 常見金屬</div>
+                        </div>
+                    </button>
+
+                    <button onclick="startGame('master')" class="w-full py-4 bg-red-600 hover:bg-red-500 rounded-xl font-bold text-lg transition shadow-[0_4px_0_rgb(185,28,28)] active:shadow-none active:translate-y-1 flex items-center justify-center group border-2 border-red-400 relative overflow-hidden">
+                        <span class="mr-3 text-2xl">🔥</span>
+                        <div class="text-left">
+                            <div class="leading-none">大師挑戰 (Master)</div>
+                            <div class="text-xs font-normal opacity-90 mt-1">全主族 + 3d過渡元素</div>
+                        </div>
+                    </button>
+                </div>
+                
+                <div class="text-slate-500 text-xs hidden lg:block">
+                    每接對一個元素 +30 分<br>
+                    每 150 分，下落速度提升 20%！
+                </div>
+            </div>
+
+            <!-- Right: Live Leaderboard (Chart View) -->
+            <div class="flex-1 w-full max-w-lg h-[600px] glass-panel rounded-xl p-1 flex flex-col shadow-2xl relative">
+                <div class="p-4 border-b border-white/10 flex justify-between items-center bg-slate-800/50 rounded-t-lg">
+                    <h3 class="text-yellow-400 font-bold flex items-center gap-2 text-lg">
+                        <span class="animate-pulse">🔴</span> 今日戰況 TOP 3
+                    </h3>
+                    <div class="text-xs text-slate-400" id="connection-status">連線中...</div>
+                </div>
+                
+                <div class="flex-1 overflow-y-auto p-4 space-y-6" id="leaderboard-container">
+                    <div class="text-slate-500 italic text-center py-20">等待挑戰者...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div id="game-over-screen" class="absolute inset-0 z-50 flex items-center justify-center bg-slate-900/95 backdrop-blur-md hidden interactive-layer">
+        <div class="max-w-md w-full p-8 text-center bg-slate-800 rounded-2xl border-2 border-slate-600 shadow-2xl relative overflow-hidden">
+            
+            <div class="mb-6">
+                <h2 class="text-4xl font-bold mb-2 text-white">GAME OVER</h2>
+                <div class="text-slate-400 text-sm">本次得分</div>
+                <div class="text-6xl font-bold mt-2 text-yellow-400 chemical-font drop-shadow-[0_0_10px_rgba(250,204,21,0.5)]" id="final-score">0</div>
+            </div>
+
+            <!-- Name Input Section -->
+            <div id="name-input-section" class="mb-6">
+                <p class="text-cyan-300 mb-2 text-sm animate-pulse">✨ 上傳分數到大螢幕 ✨</p>
+                <div class="flex gap-2 justify-center">
+                    <input type="text" id="player-name" placeholder="輸入你的名字/座號" maxlength="12" 
+                           class="bg-slate-900 border border-slate-600 rounded px-4 py-2 text-white text-center focus:outline-none focus:border-cyan-400 w-48 font-bold placeholder-slate-600" autocomplete="off">
+                    <button id="submit-btn" onclick="submitScore()" class="bg-cyan-600 hover:bg-cyan-500 text-white px-4 py-2 rounded font-bold transition flex items-center gap-2">
+                        上傳
+                    </button>
+                </div>
+                <p id="upload-status" class="text-xs text-slate-500 mt-2 h-4"></p>
+            </div>
+
+            <div class="flex justify-center gap-4">
+                <button onclick="location.reload()" class="px-8 py-3 bg-slate-700 hover:bg-slate-600 rounded-full font-bold text-lg transition flex items-center gap-2 border border-slate-500">
+                    <span>↺</span> 再次挑戰
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // --- Firebase Integration ---
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Config & Init
+        const firebaseConfig = JSON.parse(__firebase_config);
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'element-rain';
+        
+        let currentUser = null;
+
+        // Auth Flow
+        async function initAuth() {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                     await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                     await signInAnonymously(auth);
+                }
+            } catch (e) {
+                console.error("Auth error", e);
+                document.getElementById('connection-status').innerText = "連線異常";
+                document.getElementById('connection-status').classList.add('text-red-500');
+            }
+        }
+        
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = user;
+                document.getElementById('connection-status').innerText = "● 已連線";
+                document.getElementById('connection-status').classList.add('text-green-400');
+                startLeaderboardListener();
+            }
+        });
+
+        initAuth();
+
+        // --- Leaderboard Logic (Real-time & Bar Chart) ---
+        function startLeaderboardListener() {
+            if (!currentUser) return;
+            
+            const scoresRef = collection(db, 'artifacts', appId, 'public', 'data', 'scores');
+            
+            onSnapshot(scoresRef, (snapshot) => {
+                const scores = [];
+                const today = new Date().toDateString(); 
+
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    if (data.dateString === today) {
+                        scores.push(data);
+                    }
+                });
+
+                renderCategorizedLeaderboard(scores);
+            }, (error) => {
+                console.error("Sync error:", error);
+            });
+        }
+
+        function renderCategorizedLeaderboard(allScores) {
+            const container = document.getElementById('leaderboard-container');
+            
+            // Filter by Difficulty
+            const easyScores = allScores.filter(s => s.difficulty === 'easy').sort((a,b) => b.score - a.score).slice(0, 3);
+            const hardScores = allScores.filter(s => s.difficulty === 'hard').sort((a,b) => b.score - a.score).slice(0, 3);
+            const masterScores = allScores.filter(s => s.difficulty === 'master').sort((a,b) => b.score - a.score).slice(0, 3);
+
+            if (allScores.length === 0) {
+                container.innerHTML = '<div class="text-slate-500 italic text-center py-20">今日尚無紀錄<br>快來搶頭香！</div>';
+                return;
+            }
+
+            // Find global max for bar scaling (or max per category)
+            const maxScore = Math.max(...allScores.map(s => s.score), 100); // Min 100 to avoid div by zero
+
+            let html = '';
+
+            // Render Function for each section
+            const renderSection = (title, data, colorClass, icon) => {
+                let sectionHtml = `<div class="mb-4">
+                    <h4 class="text-sm font-bold text-slate-400 mb-2 flex items-center gap-2">
+                        <span class="text-lg">${icon}</span> ${title}
+                    </h4>`;
+                
+                if (data.length === 0) {
+                    sectionHtml += `<div class="text-xs text-slate-600 pl-8">暫無紀錄</div>`;
+                } else {
+                    sectionHtml += `<div class="space-y-2 pl-2 border-l-2 border-slate-700">`;
+                    data.forEach((entry, idx) => {
+                        const percent = Math.max((entry.score / maxScore) * 100, 5); // Min 5% width
+                        let rankColor = idx === 0 ? 'text-yellow-300' : (idx === 1 ? 'text-slate-300' : 'text-orange-400');
+                        
+                        sectionHtml += `
+                            <div class="relative py-1">
+                                <div class="flex justify-between items-end text-xs mb-1 px-1">
+                                    <span class="${rankColor} font-bold">#${idx+1} ${entry.name}</span>
+                                    <span class="font-mono text-cyan-300">${entry.score}</span>
+                                </div>
+                                <div class="h-2 bg-slate-700 rounded-full overflow-hidden">
+                                    <div class="h-full ${colorClass} bar-fill" style="--target-width: ${percent}%"></div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    sectionHtml += `</div>`;
+                }
+                sectionHtml += `</div>`;
+                return sectionHtml;
+            };
+
+            html += renderSection('初級 (Beginner)', easyScores, 'bg-green-500', '🌱');
+            html += renderSection('進階 (Advanced)', hardScores, 'bg-yellow-500', '⚡');
+            html += renderSection('大師 (Master)', masterScores, 'bg-red-500', '🔥');
+
+            container.innerHTML = html;
+        }
+
+        // Expose submit function
+        window.submitScore = async () => {
+            const input = document.getElementById('player-name');
+            const name = input.value.trim() || "無名氏";
+            const btn = document.getElementById('submit-btn');
+            const status = document.getElementById('upload-status');
+
+            if (!currentUser) {
+                status.innerText = "尚未連線，無法上傳";
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerText = "上傳中...";
+
+            try {
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'scores'), {
+                    name: name,
+                    score: window.gameState.score, 
+                    difficulty: window.gameState.difficulty,
+                    timestamp: Date.now(),
+                    dateString: new Date().toDateString(),
+                    uid: currentUser.uid
+                });
+                
+                status.innerText = "上傳成功！";
+                status.classList.add('text-green-400');
+                
+                setTimeout(() => location.reload(), 800);
+            } catch (e) {
+                console.error("Upload failed", e);
+                status.innerText = "上傳失敗，請稍後再試";
+                status.classList.add('text-red-400');
+                btn.disabled = false;
+                btn.innerText = "重試";
+            }
+        };
+
+        window.gameState = { score: 0, difficulty: 'easy' };
+    </script>
+
+    <script>
+        // --- Standard Game Logic (Non-Module) ---
+        
+        const elementDB = [
+            // Period 1-3
+            { z: 1, s: "H", n: "氫" }, { z: 2, s: "He", n: "氦" },
+            { z: 3, s: "Li", n: "鋰" }, { z: 4, s: "Be", n: "鈹" }, { z: 5, s: "B", n: "硼" }, { z: 6, s: "C", n: "碳" }, { z: 7, s: "N", n: "氮" }, { z: 8, s: "O", n: "氧" }, { z: 9, s: "F", n: "氟" }, { z: 10, s: "Ne", n: "氖" },
+            { z: 11, s: "Na", n: "鈉" }, { z: 12, s: "Mg", n: "鎂" }, { z: 13, s: "Al", n: "鋁" }, { z: 14, s: "Si", n: "矽" }, { z: 15, s: "P", n: "磷" }, { z: 16, s: "S", n: "硫" }, { z: 17, s: "Cl", n: "氯" }, { z: 18, s: "Ar", n: "氬" },
+            { z: 19, s: "K", n: "鉀" }, { z: 20, s: "Ca", n: "鈣" },
+            // Extra Main Group
+            { z: 31, s: "Ga", n: "鎵" }, { z: 32, s: "Ge", n: "鍺" }, { z: 33, s: "As", n: "砷" }, { z: 34, s: "Se", n: "硒" }, { z: 35, s: "Br", n: "溴" }, { z: 36, s: "Kr", n: "氪" },
+            { z: 37, s: "Rb", n: "銣" }, { z: 38, s: "Sr", n: "鍶" },
+            { z: 53, s: "I", n: "碘" }, { z: 54, s: "Xe", n: "氙" },
+            // Transition 21-30 & Others
+            { z: 21, s: "Sc", n: "鈧" }, { z: 22, s: "Ti", n: "鈦" }, { z: 23, s: "V", n: "釩" }, { z: 24, s: "Cr", n: "鉻" },
+            { z: 25, s: "Mn", n: "錳" }, { z: 26, s: "Fe", n: "鐵" }, { z: 27, s: "Co", n: "鈷" }, { z: 28, s: "Ni", n: "鎳" },
+            { z: 29, s: "Cu", n: "銅" }, { z: 30, s: "Zn", n: "鋅" },
+            { z: 47, s: "Ag", n: "銀" }, { z: 78, s: "Pt", n: "鉑" }, { z: 79, s: "Au", n: "金" }, { z: 80, s: "Hg", n: "汞" }
+        ];
+
+        const canvas = document.getElementById('game-canvas');
+        const ctx = canvas.getContext('2d');
+        let lastTime = 0;
+
+        const state = {
+            mode: 'menu', 
+            difficulty: 'easy',
+            score: 0,
+            lives: 3,
+            level: 1,
+            elementsPool: [],
+            currentTarget: null, 
+            player: { x: 0, y: 0, width: 70, height: 50, speed: 8, vx: 0 },
+            fallingObjects: [], 
+            particles: [],
+            spawnTimer: 0,
+            spawnInterval: 1200 
+        };
+
+        function getPoolByDifficulty(diff) {
+            const commonMetalsZ = [24, 25, 26, 27, 28, 29, 30, 47, 78, 79, 80];
+            if (diff === 'easy') return elementDB.filter(e => e.z <= 20);
+            if (diff === 'hard') return elementDB.filter(e => e.z <= 20 || commonMetalsZ.includes(e.z) || e.s === 'Br' || e.s === 'I');
+            const extraMetals = [47, 78, 79, 80];
+            if (diff === 'master') return elementDB.filter(e => {
+                if (extraMetals.includes(e.z)) return false;
+                return true;
+            });
+            return elementDB;
+        }
+
+        function setNewTarget() {
+            const el = state.elementsPool[Math.floor(Math.random() * state.elementsPool.length)];
+            state.currentTarget = el;
+            const targetDisplay = document.getElementById('target-display');
+            targetDisplay.innerText = el.n;
+            targetDisplay.parentElement.classList.remove('animate-pulse');
+            void targetDisplay.offsetWidth; 
+            targetDisplay.parentElement.classList.add('animate-pulse');
+        }
+
+        function spawnObject() {
+            let el;
+            if (Math.random() < 0.4 && state.currentTarget) el = state.currentTarget;
+            else el = state.elementsPool[Math.floor(Math.random() * state.elementsPool.length)];
+
+            const size = 50;
+            const x = Math.random() * (canvas.width - size);
+            
+            // Base speed logic
+            let baseSpeed = 2;
+            if (state.difficulty === 'hard') baseSpeed = 3;
+            if (state.difficulty === 'master') baseSpeed = 3.5;
+
+            // Updated Speed Logic: Increase 20% every 150 points
+            // Formula: base * (1 + (score/150)*0.2)
+            let speedBoostMultiplier = 1 + (Math.floor(state.score / 150) * 0.2);
+            
+            let speed = (baseSpeed * speedBoostMultiplier) * (0.8 + Math.random() * 0.4);
+
+            state.fallingObjects.push({
+                x: x, y: -60, size: size, speed: speed, element: el,
+                rotation: Math.random() * Math.PI, rotSpeed: (Math.random() - 0.5) * 0.05,
+                color: getRandomColor()
+            });
+        }
+
+        function getRandomColor() {
+            return ['#ef4444', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6', '#ec4899'][Math.floor(Math.random() * 6)];
+        }
+
+        function createParticles(x, y, color) {
+            for (let i = 0; i < 12; i++) {
+                state.particles.push({
+                    x: x, y: y, vx: (Math.random() - 0.5) * 12, vy: (Math.random() - 0.5) * 12, life: 1.0, color: color
+                });
+            }
+        }
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            state.player.y = canvas.height - 100;
+            state.player.x = canvas.width / 2 - state.player.width / 2;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        function startGame(difficulty) {
+            state.difficulty = difficulty;
+            state.elementsPool = getPoolByDifficulty(difficulty);
+            state.score = 0;
+            state.lives = 3;
+            state.level = 1;
+            state.fallingObjects = [];
+            state.particles = [];
+            state.mode = 'playing';
+            state.spawnInterval = difficulty === 'easy' ? 1200 : (difficulty === 'hard' ? 900 : 750);
+
+            // Sync with global window state for Firebase upload
+            window.gameState.difficulty = difficulty;
+            window.gameState.score = 0;
+
+            document.getElementById('menu-screen').classList.add('hidden');
+            document.getElementById('game-over-screen').classList.add('hidden');
+            document.getElementById('hud').classList.remove('hidden');
+            document.getElementById('touch-controls').classList.remove('hidden'); 
+            
+            updateHUD();
+            setNewTarget();
+            resize(); 
+            lastTime = performance.now();
+            requestAnimationFrame(gameLoop);
+        }
+
+        function updateHUD() {
+            document.getElementById('score-display').innerText = state.score;
+            document.getElementById('lives-display').innerText = '❤️'.repeat(Math.max(0, state.lives));
+            window.gameState.score = state.score; // Keep sync
+        }
+
+        function gameOver() {
+            state.mode = 'gameover';
+            document.getElementById('hud').classList.add('hidden');
+            document.getElementById('touch-controls').classList.add('hidden'); 
+            document.getElementById('game-over-screen').classList.remove('hidden');
+            document.getElementById('final-score').innerText = state.score;
+            
+            if (state.score > 0) setTimeout(() => document.getElementById('player-name').focus(), 100);
+        }
+
+        function gameLoop(timestamp) {
+            if (state.mode !== 'playing') return;
+            const dt = timestamp - lastTime;
+            lastTime = timestamp;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Player
+            state.player.x += state.player.vx;
+            if (state.player.x < 0) state.player.x = 0;
+            if (state.player.x + state.player.width > canvas.width) state.player.x = canvas.width - state.player.width;
+
+            ctx.save();
+            ctx.translate(state.player.x, state.player.y);
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+            ctx.strokeStyle = '#38bdf8';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(0, 0); ctx.lineTo(10, state.player.height); ctx.lineTo(state.player.width - 10, state.player.height); ctx.lineTo(state.player.width, 0);
+            ctx.stroke(); ctx.fill();
+            ctx.fillStyle = `rgba(56, 189, 248, ${0.5 + Math.random()*0.5})`;
+            ctx.fillRect(15, state.player.height - 8, state.player.width - 30, 4);
+            ctx.restore();
+
+            // Spawn
+            state.spawnTimer += dt;
+            if (state.spawnTimer > state.spawnInterval) {
+                spawnObject();
+                state.spawnTimer = 0;
+                if (state.spawnInterval > 400) state.spawnInterval -= 5;
+            }
+
+            // Objects
+            for (let i = state.fallingObjects.length - 1; i >= 0; i--) {
+                let obj = state.fallingObjects[i];
+                obj.y += obj.speed;
+                obj.rotation += obj.rotSpeed;
+
+                if (obj.y + obj.size > state.player.y && obj.y < state.player.y + state.player.height && obj.x + obj.size > state.player.x && obj.x < state.player.x + state.player.width) {
+                    if (obj.element.s === state.currentTarget.s) {
+                        // Fixed scoring: +30 points
+                        let points = 30;
+                        state.score += points;
+                        createParticles(obj.x + obj.size/2, obj.y + obj.size/2, '#4ade80');
+                        setNewTarget();
+                        if (state.score % 100 === 0) state.level++;
+                    } else {
+                        state.lives--;
+                        state.score = Math.max(0, state.score - 10);
+                        createParticles(obj.x + obj.size/2, obj.y + obj.size/2, '#ef4444');
+                        document.body.classList.add('shake');
+                        setTimeout(() => document.body.classList.remove('shake'), 500);
+                        if (state.lives <= 0) gameOver();
+                    }
+                    updateHUD();
+                    state.fallingObjects.splice(i, 1);
+                    continue;
+                }
+                if (obj.y > canvas.height) { state.fallingObjects.splice(i, 1); continue; }
+
+                ctx.save();
+                ctx.translate(obj.x + obj.size/2, obj.y + obj.size/2);
+                ctx.rotate(obj.rotation);
+                ctx.fillStyle = obj.color;
+                ctx.shadowBlur = 15; ctx.shadowColor = obj.color;
+                ctx.beginPath(); ctx.roundRect(-obj.size/2, -obj.size/2, obj.size, obj.size, 8); ctx.fill(); ctx.shadowBlur = 0;
+                ctx.fillStyle = '#ffffff'; ctx.font = 'bold 22px Roboto Mono'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.fillText(obj.element.s, 0, 0);
+                ctx.font = '10px Roboto Mono'; ctx.fillStyle = 'rgba(255,255,255,0.7)';
+                ctx.fillText(obj.element.z, -obj.size/3, -obj.size/3);
+                ctx.restore();
+            }
+
+            for (let i = state.particles.length - 1; i >= 0; i--) {
+                let p = state.particles[i];
+                p.x += p.vx; p.y += p.vy; p.life -= 0.05;
+                if (p.life <= 0) state.particles.splice(i, 1);
+                else {
+                    ctx.globalAlpha = p.life; ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1.0;
+                }
+            }
+            requestAnimationFrame(gameLoop);
+        }
+
+        // --- Controls System (Keyboard & Touch Buttons & Drag) ---
+        
+        // 1. Keyboard
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') state.player.vx = -state.player.speed;
+            if (e.key === 'ArrowRight') state.player.vx = state.player.speed;
+            if (state.mode === 'gameover' && e.key === 'Enter') submitScore();
+        });
+        window.addEventListener('keyup', (e) => { if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') state.player.vx = 0; });
+        
+        // 2. On-Screen Buttons Logic
+        const btnLeft = document.getElementById('btn-left');
+        const btnRight = document.getElementById('btn-right');
+        
+        function bindButton(btn, dir) {
+            const startMove = (e) => {
+                e.preventDefault(); 
+                e.stopPropagation(); 
+                state.player.vx = dir * state.player.speed;
+            };
+            const stopMove = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if ((dir === -1 && state.player.vx < 0) || (dir === 1 && state.player.vx > 0)) {
+                    state.player.vx = 0;
+                }
+            };
+            
+            btn.addEventListener('mousedown', startMove);
+            btn.addEventListener('touchstart', startMove);
+            
+            btn.addEventListener('mouseup', stopMove);
+            btn.addEventListener('mouseleave', stopMove);
+            btn.addEventListener('touchend', stopMove);
+        }
+        
+        bindButton(btnLeft, -1);
+        bindButton(btnRight, 1);
+
+        // 3. Global Drag Logic (Fallback)
+        let isTouching = false;
+        function handleTouch(x) {
+            const middle = window.innerWidth / 2;
+            state.player.vx = x < middle ? -state.player.speed : state.player.speed;
+        }
+        
+        window.addEventListener('touchstart', (e) => { 
+            if (e.target.closest('.control-btn')) return;
+            if(state.mode === 'playing') { 
+                isTouching = true; 
+                handleTouch(e.touches[0].clientX); 
+            } 
+        });
+        window.addEventListener('touchmove', (e) => { 
+            if (e.target.closest('.control-btn')) return;
+            if(isTouching && state.mode === 'playing') handleTouch(e.touches[0].clientX); 
+        });
+        window.addEventListener('touchend', (e) => { 
+             if (e.target.closest('.control-btn')) return;
+             isTouching = false; 
+             state.player.vx = 0; 
+        });
+        
+        window.addEventListener('mousedown', (e) => { 
+            if (e.target.closest('.control-btn') || e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT') return;
+            if (state.mode === 'playing') { isTouching = true; handleTouch(e.clientX); } 
+        });
+        window.addEventListener('mouseup', () => { 
+            if(!isTouching) return; 
+            isTouching = false; 
+            state.player.vx = 0; 
+        });
+
+    </script>
+</body>
+</html>
