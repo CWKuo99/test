@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>元素週期表射擊訓練</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #0f172a; /* Slate 900 */
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            user-select: none;
+        }
+        canvas {
+            display: block;
+            cursor: crosshair;
+        }
+        .ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .interactive-ui {
+            pointer-events: auto;
+        }
+        #start-screen {
+            background: rgba(15, 23, 42, 0.95);
+            z-index: 10;
+        }
+        #game-over-screen {
+            background: rgba(15, 23, 42, 0.95);
+            z-index: 20;
+        }
+        .hidden {
+            display: none !important;
+        }
+        .hud-panel {
+            background: rgba(30, 41, 59, 0.9);
+            border: 1px solid #334155;
+            backdrop-filter: blur(8px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+        }
+        /* Heart pulse animation */
+        @keyframes pulse-red {
+            0%, 100% { color: #f87171; transform: scale(1); }
+            50% { color: #ef4444; transform: scale(1.2); }
+        }
+        .low-health {
+            animation: pulse-red 1s infinite;
+        }
+        /* New Cycle Animation */
+        @keyframes flash-green {
+            0% { background-color: rgba(34, 197, 94, 0); }
+            50% { background-color: rgba(34, 197, 94, 0.3); }
+            100% { background-color: rgba(34, 197, 94, 0); }
+        }
+        .cycle-complete {
+            animation: flash-green 1s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <!-- Flash Overlay for Cycle Complete -->
+    <div id="flash-overlay" class="absolute top-0 left-0 w-full h-full pointer-events-none z-0"></div>
+
+    <!-- Start Screen -->
+    <div id="start-screen" class="ui-layer flex items-center justify-center">
+        <div class="text-center space-y-8 p-8 border border-slate-700 rounded-2xl bg-slate-800 shadow-2xl max-w-lg w-full">
+            <h1 class="text-4xl font-bold text-cyan-400 tracking-wider">元素狙擊手</h1>
+            <p class="text-slate-400">請選擇難度以開始訓練</p>
+            
+            <div class="space-y-4 interactive-ui">
+                <button onclick="game.startGame(1)" class="w-full py-4 px-6 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-bold text-lg transition transform hover:scale-105 shadow-lg border-b-4 border-emerald-800 active:border-b-0 active:translate-y-1">
+                    基礎訓練 <br><span class="text-sm font-normal opacity-80">(原子序 1-20)</span>
+                </button>
+                <button onclick="game.startGame(2)" class="w-full py-4 px-6 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold text-lg transition transform hover:scale-105 shadow-lg border-b-4 border-indigo-800 active:border-b-0 active:translate-y-1">
+                    進階挑戰 <br><span class="text-sm font-normal opacity-80">(主族 + 過渡元素 21-30)</span>
+                </button>
+            </div>
+            
+            <div class="text-left text-xs text-slate-500 mt-4 border-t border-slate-700 pt-4">
+                <p>規則：</p>
+                <ul class="list-disc pl-5 space-y-1">
+                    <li>每射中正確元素得 <span class="text-emerald-400">20分</span>。</li>
+                    <li>達到 <span class="text-yellow-400">100分</span> 時，標靶開始移動。</li>
+                    <li>每增加 100分，標靶速度提升 <span class="text-red-400">40%</span>。</li>
+                    <li><span class="text-cyan-400">完全學習模式</span>：題目在全部答對一輪前不會重複。</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div id="game-over-screen" class="ui-layer hidden flex items-center justify-center">
+        <div class="text-center space-y-8 p-8 border border-red-900/50 rounded-2xl bg-slate-800 shadow-2xl max-w-lg w-full">
+            <h1 class="text-4xl font-bold text-red-500 tracking-wider">任務結束</h1>
+            <div class="py-4">
+                <p class="text-slate-400 text-sm uppercase tracking-widest mb-2">最終得分</p>
+                <div class="text-6xl font-mono text-white font-bold" id="final-score">0</div>
+            </div>
+            
+            <div class="interactive-ui">
+                <button onclick="game.resetGame()" class="w-full py-4 px-6 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-bold text-lg transition transform hover:scale-105 shadow-lg border-b-4 border-slate-900 active:border-b-0 active:translate-y-1">
+                    返回主選單
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- HUD -->
+    <div id="game-ui" class="ui-layer hidden p-4">
+        <!-- Top Bar Area -->
+        <div class="flex justify-between items-start w-full relative z-20">
+            <!-- Left: Score -->
+            <div class="hud-panel rounded-lg p-3 text-white min-w-[140px] flex flex-col justify-center">
+                <div class="text-xs text-slate-400 uppercase tracking-widest font-semibold">SCORE</div>
+                <div class="text-3xl font-mono text-emerald-400 font-bold" id="score-display">0</div>
+            </div>
+            
+            <!-- Center: Target Prompt (Fixed & Protected Area) -->
+            <div class="hud-panel rounded-xl p-4 text-white text-center border-t-4 border-cyan-500 min-w-[320px] shadow-lg transform translate-y-2">
+                <div class="text-xs text-slate-400 mb-1 tracking-widest">CURRENT TARGET</div>
+                <div class="text-4xl font-bold mb-2 text-white" id="question-name">準備中...</div>
+                <div class="text-sm font-mono text-cyan-300 bg-slate-800/50 rounded px-2 py-1 inline-block">
+                    原子序: <span id="question-number" class="text-white">-</span>
+                </div>
+                <!-- Progress Indicator -->
+                <div class="mt-2 text-[10px] text-slate-500">
+                    CYCLE PROGRESS: <span id="cycle-count" class="text-cyan-400">0</span> LEFT
+                </div>
+            </div>
+
+            <!-- Right: Lives & Velocity -->
+            <div class="flex flex-col gap-2">
+                <!-- Lives Display -->
+                <div class="hud-panel rounded-lg p-3 text-white min-w-[140px] text-right">
+                    <div class="text-xs text-slate-400 uppercase tracking-widest font-semibold">LIVES</div>
+                    <div class="text-3xl font-bold text-red-400 flex justify-end items-center gap-2" id="lives-container">
+                        <span id="lives-display">5</span> <span class="text-2xl">❤</span>
+                    </div>
+                </div>
+                <!-- Velocity Display -->
+                <div class="hud-panel rounded-lg p-2 text-white min-w-[140px] text-right">
+                    <div class="text-[10px] text-slate-500 uppercase tracking-widest">VELOCITY</div>
+                    <div class="text-lg font-mono text-orange-400" id="speed-display">0%</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Bar -->
+        <div class="flex justify-center w-full pb-6 interactive-ui">
+             <button onclick="game.resetGame()" class="bg-red-900/40 hover:bg-red-900/80 text-red-200/60 hover:text-red-100 px-6 py-2 rounded-full border border-red-900/50 text-xs font-mono backdrop-blur-sm transition-all">
+                ABORT MISSION
+             </button>
+        </div>
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <script>
+        // 元素資料庫 (1-118)
+        const periodicTable = [
+            { z: 1, symbol: "H", name: "氫", group: 1 }, { z: 2, symbol: "He", name: "氦", group: 18 },
+            { z: 3, symbol: "Li", name: "鋰", group: 1 }, { z: 4, symbol: "Be", name: "鈹", group: 2 },
+            { z: 5, symbol: "B", name: "硼", group: 13 }, { z: 6, symbol: "C", name: "碳", group: 14 },
+            { z: 7, symbol: "N", name: "氮", group: 15 }, { z: 8, symbol: "O", name: "氧", group: 16 },
+            { z: 9, symbol: "F", name: "氟", group: 17 }, { z: 10, symbol: "Ne", name: "氖", group: 18 },
+            { z: 11, symbol: "Na", name: "鈉", group: 1 }, { z: 12, symbol: "Mg", name: "鎂", group: 2 },
+            { z: 13, symbol: "Al", name: "鋁", group: 13 }, { z: 14, symbol: "Si", name: "矽", group: 14 },
+            { z: 15, symbol: "P", name: "磷", group: 15 }, { z: 16, symbol: "S", name: "硫", group: 16 },
+            { z: 17, symbol: "Cl", name: "氯", group: 17 }, { z: 18, symbol: "Ar", name: "氬", group: 18 },
+            { z: 19, symbol: "K", name: "鉀", group: 1 }, { z: 20, symbol: "Ca", name: "鈣", group: 2 },
+            // Sc-Zn (21-30) Transition
+            { z: 21, symbol: "Sc", name: "鈧", group: 3 }, { z: 22, symbol: "Ti", name: "鈦", group: 4 },
+            { z: 23, symbol: "V", name: "釩", group: 5 }, { z: 24, symbol: "Cr", name: "鉻", group: 6 },
+            { z: 25, symbol: "Mn", name: "錳", group: 7 }, { z: 26, symbol: "Fe", name: "鐵", group: 8 },
+            { z: 27, symbol: "Co", name: "鈷", group: 9 }, { z: 28, symbol: "Ni", name: "鎳", group: 10 },
+            { z: 29, symbol: "Cu", name: "銅", group: 11 }, { z: 30, symbol: "Zn", name: "鋅", group: 12 },
+            // Ga-Kr (31-36) Main
+            { z: 31, symbol: "Ga", name: "鎵", group: 13 }, { z: 32, symbol: "Ge", name: "鍺", group: 14 },
+            { z: 33, symbol: "As", name: "砷", group: 15 }, { z: 34, symbol: "Se", name: "硒", group: 16 },
+            { z: 35, symbol: "Br", name: "溴", group: 17 }, { z: 36, symbol: "Kr", name: "氪", group: 18 },
+            // Rb-Sr (37-38) Main
+            { z: 37, symbol: "Rb", name: "銣", group: 1 }, { z: 38, symbol: "Sr", name: "鍶", group: 2 },
+            // Y-Cd (39-48) Transition
+            { z: 39, symbol: "Y", name: "釔", group: 3 }, { z: 40, symbol: "Zr", name: "鋯", group: 4 },
+            { z: 41, symbol: "Nb", name: "鈮", group: 5 }, { z: 42, symbol: "Mo", name: "鉬", group: 6 },
+            { z: 43, symbol: "Tc", name: "鎝", group: 7 }, { z: 44, symbol: "Ru", name: "釕", group: 8 },
+            { z: 45, symbol: "Rh", name: "銠", group: 9 }, { z: 46, symbol: "Pd", name: "鈀", group: 10 },
+            { z: 47, symbol: "Ag", name: "銀", group: 11 }, { z: 48, symbol: "Cd", name: "鎘", group: 12 },
+            // In-Xe (49-54) Main
+            { z: 49, symbol: "In", name: "銦", group: 13 }, { z: 50, symbol: "Sn", name: "錫", group: 14 },
+            { z: 51, symbol: "Sb", name: "銻", group: 15 }, { z: 52, symbol: "Te", name: "碲", group: 16 },
+            { z: 53, symbol: "I", name: "碘", group: 17 }, { z: 54, symbol: "Xe", name: "氙", group: 18 },
+            // Cs-Ba (55-56) Main
+            { z: 55, symbol: "Cs", name: "銫", group: 1 }, { z: 56, symbol: "Ba", name: "鋇", group: 2 },
+            // Hf-Hg (72-80) Transition
+            { z: 72, symbol: "Hf", name: "鉿", group: 4 }, { z: 73, symbol: "Ta", name: "鉭", group: 5 },
+            { z: 74, symbol: "W", name: "鎢", group: 6 }, { z: 75, symbol: "Re", name: "錸", group: 7 },
+            { z: 76, symbol: "Os", name: "鋨", group: 8 }, { z: 77, symbol: "Ir", name: "銥", group: 9 },
+            { z: 78, symbol: "Pt", name: "鉑", group: 10 }, { z: 79, symbol: "Au", name: "金", group: 11 },
+            { z: 80, symbol: "Hg", name: "汞", group: 12 },
+            // Tl-Rn (81-86) Main
+            { z: 81, symbol: "Tl", name: "鉈", group: 13 }, { z: 82, symbol: "Pb", name: "鉛", group: 14 },
+            { z: 83, symbol: "Bi", name: "鉍", group: 15 }, { z: 84, symbol: "Po", name: "釙", group: 16 },
+            { z: 85, symbol: "At", name: "砈", group: 17 }, { z: 86, symbol: "Rn", name: "氡", group: 18 },
+            // Fr-Ra (87-88) Main
+            { z: 87, symbol: "Fr", name: "鍅", group: 1 }, { z: 88, symbol: "Ra", name: "鐳", group: 2 },
+            // Rf-Cn (104-112) Transition
+            { z: 104, symbol: "Rf", name: "鑪", group: 4 }, { z: 105, symbol: "Db", name: "𨧀", group: 5 },
+            { z: 106, symbol: "Sg", name: "𨭎", group: 6 }, { z: 107, symbol: "Bh", name: "𨨏", group: 7 },
+            { z: 108, symbol: "Hs", name: "𨭆", group: 8 }, { z: 109, symbol: "Mt", name: "䥑", group: 9 },
+            { z: 110, symbol: "Ds", name: "鐽", group: 10 }, { z: 111, symbol: "Rg", name: "錀", group: 11 },
+            { z: 112, symbol: "Cn", name: "鎶", group: 12 },
+             // Nh-Og (113-118) Main
+            { z: 113, symbol: "Nh", name: "鉨", group: 13 }, { z: 114, symbol: "Fl", name: "鈇", group: 14 },
+            { z: 115, symbol: "Mc", name: "鏌", group: 15 }, { z: 116, symbol: "Lv", name: "鉝", group: 16 },
+            { z: 117, symbol: "Ts", name: "鿬", group: 17 }, { z: 118, symbol: "Og", name: "鿫", group: 18 }
+        ];
+
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                this.color = color;
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 5 + 2;
+                this.vx = Math.cos(angle) * speed;
+                this.vy = Math.sin(angle) * speed;
+                this.life = 1.0;
+                this.decay = Math.random() * 0.03 + 0.02;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.life -= this.decay;
+            }
+
+            draw(ctx) {
+                ctx.globalAlpha = this.life;
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, 3, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalAlpha = 1.0;
+            }
+        }
+
+        class FloatingText {
+            constructor(x, y, text, color) {
+                this.x = x;
+                this.y = y;
+                this.text = text;
+                this.color = color;
+                this.life = 1.0;
+                this.vy = -2; // Float up
+            }
+
+            update() {
+                this.y += this.vy;
+                this.life -= 0.02;
+            }
+
+            draw(ctx) {
+                ctx.globalAlpha = this.life;
+                ctx.font = "bold 24px 'Segoe UI', sans-serif";
+                ctx.fillStyle = this.color;
+                ctx.strokeStyle = "rgba(0,0,0,0.5)";
+                ctx.lineWidth = 3;
+                ctx.strokeText(this.text, this.x, this.y);
+                ctx.fillText(this.text, this.x, this.y);
+                ctx.globalAlpha = 1.0;
+            }
+        }
+
+        class Target {
+            constructor(element, width, height, isCorrect) {
+                this.element = element;
+                this.radius = 45;
+                this.isCorrect = isCorrect;
+                
+                // Safe Zone Calculation: Top 150px is reserved for HUD
+                const topPadding = 160; 
+                
+                this.x = Math.random() * (width - 200) + 100;
+                this.y = Math.random() * (height - topPadding - 200) + topPadding + 100;
+                
+                // Random initial direction
+                const angle = Math.random() * Math.PI * 2;
+                this.dx = Math.cos(angle);
+                this.dy = Math.sin(angle);
+                
+                // Colors based on group roughly
+                if (element.group <= 2) this.color = "#ef4444"; // Red (Alkalis)
+                else if (element.group >= 13 && element.group <= 16 && element.z < 10) this.color = "#22c55e"; // Green (Non-metals)
+                else if (element.group >= 17) this.color = "#f59e0b"; // Yellow (Halogens/Noble)
+                else this.color = "#3b82f6"; // Blue (Trans/Others)
+            }
+
+            update(width, height, speed) {
+                if (speed === 0) return;
+
+                this.x += this.dx * speed;
+                this.y += this.dy * speed;
+
+                const topPadding = 160; // Must match constructor logic + margin
+
+                // Bounce Logic
+                if (this.x - this.radius < 0) { 
+                    this.x = this.radius; 
+                    this.dx *= -1; 
+                }
+                if (this.x + this.radius > width) { 
+                    this.x = width - this.radius; 
+                    this.dx *= -1; 
+                }
+                
+                // Upper bound check (Prevent hitting HUD)
+                if (this.y - this.radius < topPadding) { 
+                    this.y = topPadding + this.radius; 
+                    this.dy = Math.abs(this.dy); // Force down
+                }
+                
+                // Lower bound check
+                if (this.y + this.radius > height) { 
+                    this.y = height - this.radius; 
+                    this.dy = -Math.abs(this.dy); // Force up
+                }
+            }
+
+            draw(ctx) {
+                // Glow
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = this.color;
+
+                // Body
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = "#1e293b"; // Slate-800
+                ctx.fill();
+                ctx.lineWidth = 3;
+                ctx.strokeStyle = this.color;
+                ctx.stroke();
+
+                ctx.shadowBlur = 0;
+
+                // Symbol
+                ctx.fillStyle = "#ffffff";
+                ctx.font = "bold 32px monospace";
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.fillText(this.element.symbol, this.x, this.y);
+            }
+
+            isHit(mx, my) {
+                const dist = Math.sqrt((mx - this.x) ** 2 + (my - this.y) ** 2);
+                return dist <= this.radius;
+            }
+        }
+
+        class Game {
+            constructor() {
+                this.canvas = document.getElementById('gameCanvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.scoreDisplay = document.getElementById('score-display');
+                this.speedDisplay = document.getElementById('speed-display');
+                this.livesDisplay = document.getElementById('lives-display');
+                this.qName = document.getElementById('question-name');
+                this.qNum = document.getElementById('question-number');
+                this.cycleCountDisplay = document.getElementById('cycle-count');
+                
+                this.score = 0;
+                this.lives = 5;
+                this.isPlaying = false;
+                this.targets = [];
+                this.particles = [];
+                this.floatingTexts = [];
+                this.masterPool = []; // Full pool for the difficulty
+                this.currentBatch = []; // Remaining questions in current cycle
+                this.baseSpeed = 2;
+                
+                this.resize();
+                window.addEventListener('resize', () => this.resize());
+                this.canvas.addEventListener('mousedown', (e) => this.handleClick(e));
+            }
+
+            resize() {
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+            }
+
+            resetGame() {
+                this.isPlaying = false;
+                document.getElementById('game-ui').classList.add('hidden');
+                document.getElementById('game-over-screen').classList.add('hidden');
+                document.getElementById('start-screen').classList.remove('hidden');
+            }
+
+            gameOver() {
+                this.isPlaying = false;
+                document.getElementById('final-score').innerText = this.score;
+                document.getElementById('game-ui').classList.add('hidden');
+                document.getElementById('game-over-screen').classList.remove('hidden');
+            }
+
+            startGame(difficulty) {
+                document.getElementById('start-screen').classList.add('hidden');
+                document.getElementById('game-over-screen').classList.add('hidden');
+                document.getElementById('game-ui').classList.remove('hidden');
+                
+                this.score = 0;
+                this.lives = 5;
+                this.isPlaying = true;
+                this.particles = [];
+                this.floatingTexts = [];
+                
+                // Filter pool logic
+                if (difficulty === 1) {
+                    this.masterPool = periodicTable.filter(e => e.z <= 20);
+                } else {
+                    // Difficulty 2: Main Group (1,2, 13-18) + Transition Z 21-30 (Sc-Zn)
+                    // Verified: e.group check handles Main Groups. Z check handles Transition 21-30.
+                    this.masterPool = periodicTable.filter(e => 
+                        (e.group <= 2 || e.group >= 13) || (e.z >= 21 && e.z <= 30)
+                    ); 
+                }
+
+                // Initialize the batch
+                this.currentBatch = [...this.masterPool];
+
+                this.nextRound();
+                this.updateUI();
+                this.loop();
+            }
+
+            nextRound() {
+                // Check for Cycle Completion
+                if (this.currentBatch.length === 0) {
+                    this.currentBatch = [...this.masterPool]; // Reset batch
+                    this.showCycleCompleteEffect();
+                }
+
+                // Pick correct answer from the Current Batch (to avoid repeats)
+                const correctIndex = Math.floor(Math.random() * this.currentBatch.length);
+                const correct = this.currentBatch[correctIndex];
+                
+                // Distractors come from the Master Pool (can be any valid element)
+                let distractors = [];
+                while(distractors.length < 2) {
+                    let d = this.masterPool[Math.floor(Math.random() * this.masterPool.length)];
+                    // Ensure distractor is not the correct answer AND not a duplicate distractor
+                    if (d.z !== correct.z && !distractors.find(x => x.z === d.z)) {
+                        distractors.push(d);
+                    }
+                }
+
+                this.currentTarget = correct;
+                this.qName.innerText = correct.name;
+                this.qNum.innerText = correct.z;
+
+                this.targets = [];
+                // Shuffle targets so the correct one isn't always in same order
+                const roundElements = [correct, ...distractors].sort(() => Math.random() - 0.5);
+
+                roundElements.forEach(el => {
+                    this.targets.push(new Target(el, this.canvas.width, this.canvas.height, el.z === correct.z));
+                });
+                
+                this.updateCycleUI();
+            }
+
+            showCycleCompleteEffect() {
+                const overlay = document.getElementById('flash-overlay');
+                overlay.classList.add('cycle-complete');
+                this.showFloatingText(this.canvas.width/2 - 100, this.canvas.height/2, "CYCLE COMPLETE! POOL RESET", "#22c55e");
+                setTimeout(() => {
+                    overlay.classList.remove('cycle-complete');
+                }, 1000);
+            }
+
+            getCurrentSpeed() {
+                if (this.score < 100) return 0;
+                // Every 100 points, +40%.
+                const levels = Math.floor((this.score - 100) / 100);
+                const multiplier = 1 + (levels * 0.4);
+                return this.baseSpeed * multiplier;
+            }
+
+            createExplosion(x, y, color) {
+                for (let i = 0; i < 20; i++) {
+                    this.particles.push(new Particle(x, y, color));
+                }
+            }
+
+            showFloatingText(x, y, text, color) {
+                this.floatingTexts.push(new FloatingText(x, y, text, color));
+            }
+
+            handleClick(e) {
+                if (!this.isPlaying) return;
+
+                const rect = this.canvas.getBoundingClientRect();
+                const mx = e.clientX - rect.left;
+                const my = e.clientY - rect.top;
+
+                for (let t of this.targets) {
+                    if (t.isHit(mx, my)) {
+                        if (t.isCorrect) {
+                            // Correct
+                            this.score += 20;
+                            this.createExplosion(t.x, t.y, "#34d399");
+                            this.showFloatingText(t.x, t.y - 30, "+20", "#34d399");
+                            
+                            // Remove the correctly answered element from currentBatch
+                            // Filter by Z to ensure unique removal
+                            this.currentBatch = this.currentBatch.filter(e => e.z !== this.currentTarget.z);
+                            
+                            this.nextRound();
+                        } else {
+                            // Wrong
+                            this.lives--;
+                            this.createExplosion(t.x, t.y, "#f87171");
+                            this.showFloatingText(t.x, t.y - 30, "-1 ❤", "#f87171");
+                            
+                            // Visual feedback on HUD
+                            const livesEl = document.getElementById('lives-container');
+                            livesEl.classList.add('low-health');
+                            setTimeout(() => livesEl.classList.remove('low-health'), 500);
+
+                            if (this.lives <= 0) {
+                                this.updateUI();
+                                setTimeout(() => this.gameOver(), 500); // Slight delay to see explosion
+                                return;
+                            }
+                            // Do NOT remove from currentBatch if wrong, so it can appear again in this cycle.
+                            // However, we refresh the round to clear the current targets? 
+                            // Usually in shooter games, shooting wrong target penalties but game continues.
+                            // But here, if they shot wrong, the targets are still moving.
+                            // We should probably remove the WRONG target they clicked to give feedback?
+                            // Let's just remove the wrong target from screen (by filtering this.targets)
+                            this.targets = this.targets.filter(target => target !== t);
+                        }
+                        this.updateUI();
+                        break;
+                    }
+                }
+            }
+
+            updateCycleUI() {
+                this.cycleCountDisplay.innerText = this.currentBatch.length;
+            }
+
+            updateUI() {
+                this.scoreDisplay.innerText = this.score;
+                this.livesDisplay.innerText = this.lives;
+                
+                // Color code lives
+                if (this.lives <= 2) this.livesDisplay.className = "text-red-500 font-bold";
+                else this.livesDisplay.className = "text-white font-bold";
+
+                const speed = this.getCurrentSpeed();
+                if (speed === 0) {
+                    this.speedDisplay.innerText = "STATIC";
+                    this.speedDisplay.style.color = "#94a3b8";
+                } else {
+                    const increase = Math.round((speed / this.baseSpeed - 1) * 100);
+                    this.speedDisplay.innerText = `+${increase}%`;
+                    this.speedDisplay.style.color = "#f97316";
+                }
+            }
+
+            loop() {
+                if (!this.isPlaying) return;
+
+                this.ctx.fillStyle = '#0f172a';
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+                // Grid background
+                this.ctx.strokeStyle = '#1e293b';
+                this.ctx.lineWidth = 1;
+                const gridSize = 50;
+                for(let x=0; x<this.canvas.width; x+=gridSize) {
+                    this.ctx.beginPath(); this.ctx.moveTo(x,0); this.ctx.lineTo(x,this.canvas.height); this.ctx.stroke();
+                }
+                for(let y=0; y<this.canvas.height; y+=gridSize) {
+                    this.ctx.beginPath(); this.ctx.moveTo(0,y); this.ctx.lineTo(this.canvas.width,y); this.ctx.stroke();
+                }
+
+                const speed = this.getCurrentSpeed();
+
+                // Draw Targets
+                this.targets.forEach(t => {
+                    t.update(this.canvas.width, this.canvas.height, speed);
+                    t.draw(this.ctx);
+                });
+
+                // Particles
+                for (let i = this.particles.length - 1; i >= 0; i--) {
+                    let p = this.particles[i];
+                    p.update();
+                    p.draw(this.ctx);
+                    if (p.life <= 0) this.particles.splice(i, 1);
+                }
+
+                // Floating Texts
+                for (let i = this.floatingTexts.length - 1; i >= 0; i--) {
+                    let ft = this.floatingTexts[i];
+                    ft.update();
+                    ft.draw(this.ctx);
+                    if (ft.life <= 0) this.floatingTexts.splice(i, 1);
+                }
+
+                requestAnimationFrame(() => this.loop());
+            }
+        }
+
+        const game = new Game();
+
+    </script>
+</body>
+</html>
