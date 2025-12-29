@@ -1,527 +1,581 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { Target, Trophy, RotateCcw, Brain, Eye, EyeOff, User, ListOrdered } from 'lucide-react';
-import { initializeApp } from "firebase/app";
-import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "firebase/auth";
-import { getFirestore, doc, setDoc, collection, onSnapshot, serverTimestamp } from "firebase/firestore";
-
-// --- Firebase Configuration & Initialization ---
-const firebaseConfig = JSON.parse(__firebase_config);
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-
-/**
- * 週期表資料庫
- */
-const periodicData = [
-  { z: 1, symbol: 'H', name: '氫', group: 1, period: 1, category: 'nonmetal', col: 1, row: 1 },
-  { z: 2, symbol: 'He', name: '氦', group: 18, period: 1, category: 'noble-gas', col: 18, row: 1 },
-  { z: 3, symbol: 'Li', name: '鋰', group: 1, period: 2, category: 'alkali-metal', col: 1, row: 2 },
-  { z: 4, symbol: 'Be', name: '鈹', group: 2, period: 2, category: 'alkaline-earth', col: 2, row: 2 },
-  { z: 5, symbol: 'B', name: '硼', group: 13, period: 2, category: 'metalloid', col: 13, row: 2 },
-  { z: 6, symbol: 'C', name: '碳', group: 14, period: 2, category: 'nonmetal', col: 14, row: 2 },
-  { z: 7, symbol: 'N', name: '氮', group: 15, period: 2, category: 'nonmetal', col: 15, row: 2 },
-  { z: 8, symbol: 'O', name: '氧', group: 16, period: 2, category: 'nonmetal', col: 16, row: 2 },
-  { z: 9, symbol: 'F', name: '氟', group: 17, period: 2, category: 'halogen', col: 17, row: 2 },
-  { z: 10, symbol: 'Ne', name: '氖', group: 18, period: 2, category: 'noble-gas', col: 18, row: 2 },
-  { z: 11, symbol: 'Na', name: '鈉', group: 1, period: 3, category: 'alkali-metal', col: 1, row: 3 },
-  { z: 12, symbol: 'Mg', name: '鎂', group: 2, period: 3, category: 'alkaline-earth', col: 2, row: 3 },
-  { z: 13, symbol: 'Al', name: '鋁', group: 13, period: 3, category: 'post-transition', col: 13, row: 3 },
-  { z: 14, symbol: 'Si', name: '矽', group: 14, period: 3, category: 'metalloid', col: 14, row: 3 },
-  { z: 15, symbol: 'P', name: '磷', group: 15, period: 3, category: 'nonmetal', col: 15, row: 3 },
-  { z: 16, symbol: 'S', name: '硫', group: 16, period: 3, category: 'nonmetal', col: 16, row: 3 },
-  { z: 17, symbol: 'Cl', name: '氯', group: 17, period: 3, category: 'halogen', col: 17, row: 3 },
-  { z: 18, symbol: 'Ar', name: '氬', group: 18, period: 3, category: 'noble-gas', col: 18, row: 3 },
-  // Period 4
-  { z: 19, symbol: 'K', name: '鉀', group: 1, period: 4, category: 'alkali-metal', col: 1, row: 4 },
-  { z: 20, symbol: 'Ca', name: '鈣', group: 2, period: 4, category: 'alkaline-earth', col: 2, row: 4 },
-  { z: 21, symbol: 'Sc', name: '鈧', group: 3, period: 4, category: 'transition', col: 3, row: 4 },
-  { z: 22, symbol: 'Ti', name: '鈦', group: 4, period: 4, category: 'transition', col: 4, row: 4 },
-  { z: 23, symbol: 'V', name: '釩', group: 5, period: 4, category: 'transition', col: 5, row: 4 },
-  { z: 24, symbol: 'Cr', name: '鉻', group: 6, period: 4, category: 'transition', col: 6, row: 4 },
-  { z: 25, symbol: 'Mn', name: '錳', group: 7, period: 4, category: 'transition', col: 7, row: 4 },
-  { z: 26, symbol: 'Fe', name: '鐵', group: 8, period: 4, category: 'transition', col: 8, row: 4 },
-  { z: 27, symbol: 'Co', name: '鈷', group: 9, period: 4, category: 'transition', col: 9, row: 4 },
-  { z: 28, symbol: 'Ni', name: '鎳', group: 10, period: 4, category: 'transition', col: 10, row: 4 },
-  { z: 29, symbol: 'Cu', name: '銅', group: 11, period: 4, category: 'transition', col: 11, row: 4 },
-  { z: 30, symbol: 'Zn', name: '鋅', group: 12, period: 4, category: 'transition', col: 12, row: 4 },
-  { z: 31, symbol: 'Ga', name: '鎵', group: 13, period: 4, category: 'post-transition', col: 13, row: 4 },
-  { z: 32, symbol: 'Ge', name: '鍺', group: 14, period: 4, category: 'metalloid', col: 14, row: 4 },
-  { z: 33, symbol: 'As', name: '砷', group: 15, period: 4, category: 'metalloid', col: 15, row: 4 },
-  { z: 34, symbol: 'Se', name: '硒', group: 16, period: 4, category: 'nonmetal', col: 16, row: 4 },
-  { z: 35, symbol: 'Br', name: '溴', group: 17, period: 4, category: 'halogen', col: 17, row: 4 },
-  { z: 36, symbol: 'Kr', name: '氪', group: 18, period: 4, category: 'noble-gas', col: 18, row: 4 },
-  // Selected common Period 5+ elements
-  { z: 37, symbol: 'Rb', name: '銣', col: 1, row: 5 }, { z: 38, symbol: 'Sr', name: '鍶', col: 2, row: 5 },
-  { z: 47, symbol: 'Ag', name: '銀', col: 11, row: 5 }, { z: 48, symbol: 'Cd', name: '鎘', col: 12, row: 5 },
-  { z: 50, symbol: 'Sn', name: '錫', col: 14, row: 5 }, { z: 53, symbol: 'I', name: '碘', col: 17, row: 5 },
-  { z: 54, symbol: 'Xe', name: '氙', col: 18, row: 5 },
-  { z: 55, symbol: 'Cs', name: '銫', col: 1, row: 6 }, { z: 56, symbol: 'Ba', name: '鋇', col: 2, row: 6 },
-  { z: 74, symbol: 'W', name: '鎢', col: 6, row: 6 }, { z: 78, symbol: 'Pt', name: '鉑', col: 10, row: 6 },
-  { z: 79, symbol: 'Au', name: '金', col: 11, row: 6 }, { z: 80, symbol: 'Hg', name: '汞', col: 12, row: 6 },
-  { z: 82, symbol: 'Pb', name: '鉛', col: 14, row: 6 }, { z: 86, symbol: 'Rn', name: '氡', col: 18, row: 6 },
-  { z: 87, symbol: 'Fr', name: '鍅', col: 1, row: 7 }, { z: 88, symbol: 'Ra', name: '鐳', col: 2, row: 7 },
-  { z: 92, symbol: 'U', name: '鈾', col: 6, row: 10, isActinide: true }, 
-];
-
-// Helper to fill grid
-const generateGridMap = () => {
-  const grid = [];
-  for(let p=1; p<=7; p++) {
-    for(let g=1; g<=18; g++) {
-        if (p===1 && (g>1 && g<18)) continue;
-        if ((p===2 || p===3) && (g>2 && g<13)) continue;
-        const element = periodicData.find(e => e.row === p && e.col === g);
-        grid.push({ row: p, col: g, data: element, type: 'main' });
-    }
-  }
-  return grid;
-};
-
-// Leaderboard Component
-const Leaderboard = ({ data, currentUserId }) => {
-    return (
-        <div className="bg-slate-800/90 border border-slate-700 rounded-xl p-4 w-full max-w-sm max-h-[60vh] overflow-y-auto">
-            <h3 className="text-white font-bold mb-3 flex items-center gap-2 sticky top-0 bg-slate-800/95 py-2">
-                <ListOrdered className="w-5 h-5 text-yellow-400" />
-                即時排行榜
-            </h3>
-            {data.length === 0 ? (
-                <div className="text-slate-500 text-sm text-center py-4">尚無紀錄，快來搶第一！</div>
-            ) : (
-                <div className="space-y-2">
-                    {data.map((entry, index) => (
-                        <div 
-                            key={entry.id} 
-                            className={`flex justify-between items-center p-2 rounded-lg text-sm ${entry.id === currentUserId ? 'bg-blue-600/30 border border-blue-500/50' : 'bg-slate-700/50'}`}
-                        >
-                            <div className="flex items-center gap-3">
-                                <span className={`font-mono font-bold w-6 text-center ${index < 3 ? 'text-yellow-400' : 'text-slate-500'}`}>
-                                    {index + 1}
-                                </span>
-                                <span className="text-slate-200 font-medium truncate max-w-[120px]">
-                                    {entry.name}
-                                </span>
-                            </div>
-                            <div className="flex items-center gap-3">
-                                <span className="text-xs text-slate-400">{entry.difficulty === 'advanced' ? '大師' : '初級'}</span>
-                                <span className="font-mono font-bold text-green-400">{entry.score}</span>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            )}
-        </div>
-    );
-};
-
-const ElementCell = ({ cell, mode, isActive, isRevealed, isError, onClick }) => {
-    const { data } = cell;
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>週期表神射手 - Periodic Table Sniper</title>
     
-    let baseClasses = "relative w-full h-full border border-gray-700 transition-all duration-200 cursor-pointer select-none rounded-sm flex items-center justify-center";
-    let bgColor = "bg-gray-900";
-    let textColor = "text-gray-400";
-    let borderColor = "border-gray-700";
-
-    if (isError) {
-        bgColor = "bg-red-900/80 animate-pulse";
-        borderColor = "border-red-500";
-    } else if (isRevealed) {
-        bgColor = "bg-green-600";
-        textColor = "text-white";
-        borderColor = "border-green-400";
-    } else if (isActive && mode === 'beginner') {
-        bgColor = "bg-gray-800 hover:bg-gray-700";
-    } else if (isActive && mode === 'advanced') {
-        bgColor = "bg-gray-800 hover:bg-gray-700";
-    }
-
-    if (!data) {
-        return <div className="w-full h-full bg-gray-950/30 border border-gray-800/30 rounded-sm" />;
-    }
-
-    return (
-        <div 
-            className={`${baseClasses} ${bgColor} ${borderColor}`}
-            style={{ 
-                gridColumnStart: cell.col, 
-                gridRowStart: cell.row,
-                aspectRatio: '1/1'
-            }}
-            onClick={() => onClick(data)}
-        >
-            {(mode === 'beginner' || isRevealed) && (
-                <div className="flex flex-col items-center justify-center leading-none">
-                    <span className={`text-[10px] md:text-xs font-bold absolute top-0.5 left-0.5 opacity-70 ${textColor}`}>{data.z}</span>
-                    <span className={`text-sm md:text-lg font-bold ${textColor}`}>{data.symbol}</span>
-                </div>
-            )}
-            {mode === 'advanced' && !isRevealed && !isError && (
-                <div className="w-1 h-1 bg-gray-600 rounded-full opacity-50"></div>
-            )}
-        </div>
-    );
-};
-
-export default function PeriodicTableSniper() {
-  const [gameState, setGameState] = useState<'login' | 'menu' | 'playing' | 'finished'>('login');
-  const [difficulty, setDifficulty] = useState<'beginner' | 'advanced'>('beginner');
-  const [score, setScore] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(60);
-  const [currentTarget, setCurrentTarget] = useState<any>(null);
-  const [revealedIds, setRevealedIds] = useState<number[]>([]);
-  const [lastErrorId, setLastErrorId] = useState<number | null>(null);
-  const [combo, setCombo] = useState(0);
-  
-  // User & Data State
-  const [user, setUser] = useState<any>(null);
-  const [playerName, setPlayerName] = useState("");
-  const [leaderboard, setLeaderboard] = useState<any[]>([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const gridCells = useMemo(() => generateGridMap(), []);
-
-  // --- 1. Firebase Auth Setup ---
-  useEffect(() => {
-    const initAuth = async () => {
-      if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-        await signInWithCustomToken(auth, __initial_auth_token);
-      } else {
-        await signInAnonymously(auth);
-      }
-    };
-    initAuth();
-    const unsubscribe = onAuthStateChanged(auth, setUser);
-    return () => unsubscribe();
-  }, []);
-
-  // --- 2. Live Leaderboard Sync ---
-  useEffect(() => {
-    if (!user) return;
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     
-    // Listen to the public scores collection
-    const q = collection(db, 'artifacts', appId, 'public', 'data', 'periodic_scores');
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-        const scores = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        // Rule 2: Sort in JS
-        const sortedScores = scores.sort((a, b) => b.score - a.score).slice(0, 50); // Top 50
-        setLeaderboard(sortedScores);
-    }, (error) => {
-        console.error("Leaderboard fetch error:", error);
-    });
-
-    return () => unsubscribe();
-  }, [user]);
-
-  // --- Game Logic ---
-  const playSound = (type: 'correct' | 'wrong') => {
-    // Placeholder
-  };
-
-  const saveScoreToCloud = async (finalScore: number) => {
-    if (!user || !playerName) return;
-    setIsSubmitting(true);
-    try {
-        // We use setDoc with userId to allow users to update their own best score easily
-        // Or strictly strictly speaking for a "new run" every time we might want addDoc
-        // But for a classroom setting, "Last Score" or "Best Score" per student is usually cleaner.
-        // Let's do: Overwrite user's score if it's higher, or just overwrite to show "Latest".
-        // Let's simple overwrite to show "Current Status".
-        const userScoreRef = doc(db, 'artifacts', appId, 'public', 'data', 'periodic_scores', user.uid);
-        await setDoc(userScoreRef, {
-            name: playerName,
-            score: finalScore,
-            difficulty: difficulty,
-            timestamp: serverTimestamp(),
-            accuracy: Math.round((revealedIds.length / (revealedIds.length + (60 - timeLeft)/5)) * 100) || 0
-        }, { merge: true });
-    } catch (e) {
-        console.error("Error saving score:", e);
-    } finally {
-        setIsSubmitting(false);
-    }
-  };
-
-  const generateQuestion = () => {
-    let pool = periodicData;
-    if (difficulty === 'beginner') {
-        pool = periodicData.filter(e => e.z <= 20);
-    } 
-    const available = pool.filter(e => !revealedIds.includes(e.z));
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     
-    if (available.length === 0) {
-        endGame(true);
-        return;
-    }
+    <script src="https://cdn.tailwindcss.com"></script>
 
-    const nextTarget = available[Math.floor(Math.random() * available.length)];
-    setCurrentTarget(nextTarget);
-  };
+    <style>
+        /* 自定義樣式 */
+        body { margin: 0; padding: 0; background-color: #020617; }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
 
-  const startGame = () => {
-    setScore(0);
-    setTimeLeft(60);
-    setRevealedIds([]);
-    setCombo(0);
-    setGameState('playing');
-  };
+    <script type="text/babel">
+        const { useState, useEffect, useMemo, useRef } = React;
 
-  const endGame = (cleared = false) => {
-    let finalScore = score;
-    if (cleared) finalScore += timeLeft * 10;
-    setScore(finalScore);
-    setGameState('finished');
-    saveScoreToCloud(finalScore); // Auto upload on finish
-  };
+        // --- 1. 圖標模擬元件 (使用 Emoji/HTML 替代 Lucide) ---
+        const IconWrapper = ({ children, className }) => (
+            <span className={`inline-flex items-center justify-center ${className}`} style={{ width: '1.2em', height: '1.2em', lineHeight: '1' }}>
+                {children}
+            </span>
+        );
+        
+        const Target = ({ className }) => <IconWrapper className={className}>🎯</IconWrapper>;
+        const Trophy = ({ className }) => <IconWrapper className={className}>🏆</IconWrapper>;
+        const RotateCcw = ({ className }) => <IconWrapper className={className}>🔄</IconWrapper>;
+        const Brain = ({ className }) => <IconWrapper className={className}>🧠</IconWrapper>;
+        const Eye = ({ className }) => <IconWrapper className={className}>👁️</IconWrapper>;
+        const EyeOff = ({ className }) => <IconWrapper className={className}>🙈</IconWrapper>;
+        const User = ({ className }) => <IconWrapper className={className}>👤</IconWrapper>;
+        const ListOrdered = ({ className }) => <IconWrapper className={className}>📜</IconWrapper>;
 
-  useEffect(() => {
-    if (gameState !== 'playing') return;
-    const timer = setInterval(() => {
-        setTimeLeft(prev => {
-            if (prev <= 1) {
-                clearInterval(timer);
-                endGame();
-                return 0;
+        // --- 2. 資料庫 (週期表) ---
+        const periodicData = [
+            { z: 1, symbol: 'H', name: '氫', group: 1, period: 1, category: 'nonmetal', col: 1, row: 1 },
+            { z: 2, symbol: 'He', name: '氦', group: 18, period: 1, category: 'noble-gas', col: 18, row: 1 },
+            { z: 3, symbol: 'Li', name: '鋰', group: 1, period: 2, category: 'alkali-metal', col: 1, row: 2 },
+            { z: 4, symbol: 'Be', name: '鈹', group: 2, period: 2, category: 'alkaline-earth', col: 2, row: 2 },
+            { z: 5, symbol: 'B', name: '硼', group: 13, period: 2, category: 'metalloid', col: 13, row: 2 },
+            { z: 6, symbol: 'C', name: '碳', group: 14, period: 2, category: 'nonmetal', col: 14, row: 2 },
+            { z: 7, symbol: 'N', name: '氮', group: 15, period: 2, category: 'nonmetal', col: 15, row: 2 },
+            { z: 8, symbol: 'O', name: '氧', group: 16, period: 2, category: 'nonmetal', col: 16, row: 2 },
+            { z: 9, symbol: 'F', name: '氟', group: 17, period: 2, category: 'halogen', col: 17, row: 2 },
+            { z: 10, symbol: 'Ne', name: '氖', group: 18, period: 2, category: 'noble-gas', col: 18, row: 2 },
+            { z: 11, symbol: 'Na', name: '鈉', group: 1, period: 3, category: 'alkali-metal', col: 1, row: 3 },
+            { z: 12, symbol: 'Mg', name: '鎂', group: 2, period: 3, category: 'alkaline-earth', col: 2, row: 3 },
+            { z: 13, symbol: 'Al', name: '鋁', group: 13, period: 3, category: 'post-transition', col: 13, row: 3 },
+            { z: 14, symbol: 'Si', name: '矽', group: 14, period: 3, category: 'metalloid', col: 14, row: 3 },
+            { z: 15, symbol: 'P', name: '磷', group: 15, period: 3, category: 'nonmetal', col: 15, row: 3 },
+            { z: 16, symbol: 'S', name: '硫', group: 16, period: 3, category: 'nonmetal', col: 16, row: 3 },
+            { z: 17, symbol: 'Cl', name: '氯', group: 17, period: 3, category: 'halogen', col: 17, row: 3 },
+            { z: 18, symbol: 'Ar', name: '氬', group: 18, period: 3, category: 'noble-gas', col: 18, row: 3 },
+            // Period 4
+            { z: 19, symbol: 'K', name: '鉀', group: 1, period: 4, category: 'alkali-metal', col: 1, row: 4 },
+            { z: 20, symbol: 'Ca', name: '鈣', group: 2, period: 4, category: 'alkaline-earth', col: 2, row: 4 },
+            { z: 21, symbol: 'Sc', name: '鈧', group: 3, period: 4, category: 'transition', col: 3, row: 4 },
+            { z: 22, symbol: 'Ti', name: '鈦', group: 4, period: 4, category: 'transition', col: 4, row: 4 },
+            { z: 23, symbol: 'V', name: '釩', group: 5, period: 4, category: 'transition', col: 5, row: 4 },
+            { z: 24, symbol: 'Cr', name: '鉻', group: 6, period: 4, category: 'transition', col: 6, row: 4 },
+            { z: 25, symbol: 'Mn', name: '錳', group: 7, period: 4, category: 'transition', col: 7, row: 4 },
+            { z: 26, symbol: 'Fe', name: '鐵', group: 8, period: 4, category: 'transition', col: 8, row: 4 },
+            { z: 27, symbol: 'Co', name: '鈷', group: 9, period: 4, category: 'transition', col: 9, row: 4 },
+            { z: 28, symbol: 'Ni', name: '鎳', group: 10, period: 4, category: 'transition', col: 10, row: 4 },
+            { z: 29, symbol: 'Cu', name: '銅', group: 11, period: 4, category: 'transition', col: 11, row: 4 },
+            { z: 30, symbol: 'Zn', name: '鋅', group: 12, period: 4, category: 'transition', col: 12, row: 4 },
+            { z: 31, symbol: 'Ga', name: '鎵', group: 13, period: 4, category: 'post-transition', col: 13, row: 4 },
+            { z: 32, symbol: 'Ge', name: '鍺', group: 14, period: 4, category: 'metalloid', col: 14, row: 4 },
+            { z: 33, symbol: 'As', name: '砷', group: 15, period: 4, category: 'metalloid', col: 15, row: 4 },
+            { z: 34, symbol: 'Se', name: '硒', group: 16, period: 4, category: 'nonmetal', col: 16, row: 4 },
+            { z: 35, symbol: 'Br', name: '溴', group: 17, period: 4, category: 'halogen', col: 17, row: 4 },
+            { z: 36, symbol: 'Kr', name: '氪', group: 18, period: 4, category: 'noble-gas', col: 18, row: 4 },
+            // Selected common Period 5+ elements
+            { z: 37, symbol: 'Rb', name: '銣', col: 1, row: 5 }, { z: 38, symbol: 'Sr', name: '鍶', col: 2, row: 5 },
+            { z: 47, symbol: 'Ag', name: '銀', col: 11, row: 5 }, { z: 48, symbol: 'Cd', name: '鎘', col: 12, row: 5 },
+            { z: 50, symbol: 'Sn', name: '錫', col: 14, row: 5 }, { z: 53, symbol: 'I', name: '碘', col: 17, row: 5 },
+            { z: 54, symbol: 'Xe', name: '氙', col: 18, row: 5 },
+            { z: 55, symbol: 'Cs', name: '銫', col: 1, row: 6 }, { z: 56, symbol: 'Ba', name: '鋇', col: 2, row: 6 },
+            { z: 74, symbol: 'W', name: '鎢', col: 6, row: 6 }, { z: 78, symbol: 'Pt', name: '鉑', col: 10, row: 6 },
+            { z: 79, symbol: 'Au', name: '金', col: 11, row: 6 }, { z: 80, symbol: 'Hg', name: '汞', col: 12, row: 6 },
+            { z: 82, symbol: 'Pb', name: '鉛', col: 14, row: 6 }, { z: 86, symbol: 'Rn', name: '氡', col: 18, row: 6 },
+            { z: 87, symbol: 'Fr', name: '鍅', col: 1, row: 7 }, { z: 88, symbol: 'Ra', name: '鐳', col: 2, row: 7 },
+            { z: 92, symbol: 'U', name: '鈾', col: 6, row: 10, isActinide: true }, 
+        ];
+
+        // --- 3. 模擬後端 (Offline Mock) ---
+        // 注意：為了讓程式碼無需 API Key 即可運作，這裡使用 LocalStorage 模擬 Firebase
+        const MOCK_DB_KEY = 'periodic_sniper_leaderboard';
+        
+        const mockAuth = {
+            currentUser: null,
+            signInAnonymously: async () => {
+                const mockUser = { uid: 'user_' + Math.random().toString(36).substr(2, 9) };
+                mockAuth.currentUser = mockUser;
+                return { user: mockUser };
+            },
+            onAuthStateChanged: (callback) => {
+                // 模擬延遲登入
+                setTimeout(() => {
+                    if (!mockAuth.currentUser) mockAuth.signInAnonymously();
+                    callback(mockAuth.currentUser);
+                }, 500);
+                return () => {}; // unsubscribe function
             }
-            return prev - 1;
-        });
-    }, 1000);
-    return () => clearInterval(timer);
-  }, [gameState]);
+        };
 
-  useEffect(() => {
-    if (gameState === 'playing' && !currentTarget) {
-        generateQuestion();
-    }
-  }, [gameState, currentTarget]);
+        const mockFirestore = {
+            saveScore: async (userId, data) => {
+                const scores = JSON.parse(localStorage.getItem(MOCK_DB_KEY) || '[]');
+                // 移除舊成績 (如果有的話)
+                const newScores = scores.filter(s => s.id !== userId);
+                newScores.push({ id: userId, ...data });
+                localStorage.setItem(MOCK_DB_KEY, JSON.stringify(newScores));
+                return true;
+            },
+            subscribeLeaderboard: (callback) => {
+                const check = () => {
+                    const scores = JSON.parse(localStorage.getItem(MOCK_DB_KEY) || '[]');
+                    // 簡單排序：分數高 -> 低
+                    scores.sort((a, b) => b.score - a.score);
+                    callback(scores.slice(0, 50));
+                };
+                check();
+                // 模擬即時更新 (每 2 秒讀取一次 Storage)
+                const interval = setInterval(check, 2000);
+                return () => clearInterval(interval);
+            }
+        };
 
-  useEffect(() => {
-    if (gameState === 'menu') {
-        setCurrentTarget(null);
-    }
-  }, [gameState]);
+        // --- 4. 輔助邏輯 ---
+        const generateGridMap = () => {
+            const grid = [];
+            for(let p=1; p<=7; p++) {
+                for(let g=1; g<=18; g++) {
+                    if (p===1 && (g>1 && g<18)) continue;
+                    if ((p===2 || p===3) && (g>2 && g<13)) continue;
+                    const element = periodicData.find(e => e.row === p && e.col === g);
+                    grid.push({ row: p, col: g, data: element, type: 'main' });
+                }
+            }
+            return grid;
+        };
 
-  const handleCellClick = (element: any) => {
-    if (gameState !== 'playing' || !currentTarget) return;
-    if (revealedIds.includes(element.z)) return;
-
-    if (element.z === currentTarget.z) {
-        setScore(prev => prev + 100 + (combo * 10));
-        setCombo(prev => prev + 1);
-        setRevealedIds(prev => [...prev, element.z]);
-        playSound('correct');
-        setCurrentTarget(null); 
-    } else {
-        setScore(prev => Math.max(0, prev - 50));
-        setCombo(0);
-        setTimeLeft(prev => Math.max(0, prev - 2));
-        setLastErrorId(element.z);
-        playSound('wrong');
-        setTimeout(() => setLastErrorId(null), 500);
-    }
-  };
-
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (playerName.trim().length > 0) {
-        setGameState('menu');
-    }
-  };
-
-  return (
-    <div className="flex flex-col h-screen w-full bg-slate-950 text-slate-100 font-sans overflow-hidden">
-        {/* Header */}
-        <header className="bg-slate-900 border-b border-slate-800 p-3 shadow-lg z-10">
-            <div className="max-w-6xl mx-auto flex justify-between items-center">
-                <div className="flex items-center gap-2 md:gap-3">
-                    <div className="bg-blue-600 p-1.5 md:p-2 rounded-lg">
-                        <Target className="w-5 h-5 md:w-6 md:h-6 text-white" />
-                    </div>
-                    <div>
-                        <h1 className="text-lg md:text-xl font-bold tracking-tight text-white">週期表神射手</h1>
-                        {playerName && <p className="text-xs text-blue-400">選手: {playerName}</p>}
-                    </div>
-                </div>
-
-                {gameState === 'playing' && (
-                    <div className="flex items-center gap-3 md:gap-8 bg-slate-800 px-4 py-1.5 rounded-full border border-slate-700">
-                        <div className="text-center">
-                            <span className="text-[10px] text-slate-400 block uppercase">時間</span>
-                            <span className={`font-mono text-xl md:text-2xl font-bold ${timeLeft < 10 ? 'text-red-500 animate-pulse' : 'text-blue-400'}`}>
-                                {timeLeft}
-                            </span>
-                        </div>
-                        <div className="text-center min-w-[80px] md:min-w-[120px]">
-                            <span className="text-[10px] text-slate-400 block uppercase">尋找</span>
-                            <span className="text-xl md:text-3xl font-bold text-yellow-400 animate-bounce block truncate px-2">
-                                {currentTarget ? currentTarget.name : '...'}
-                            </span>
-                        </div>
-                        <div className="text-center">
-                            <span className="text-[10px] text-slate-400 block uppercase">得分</span>
-                            <span className="font-mono text-xl md:text-2xl font-bold text-green-400">{score}</span>
-                        </div>
-                    </div>
-                )}
-
-                <div className="flex items-center gap-2">
-                    {gameState === 'playing' && (
-                        <button onClick={() => setGameState('menu')} className="p-2 hover:bg-slate-800 rounded-full text-slate-400 hover:text-white">
-                            <RotateCcw className="w-5 h-5" />
-                        </button>
-                    )}
-                </div>
-            </div>
-        </header>
-
-        {/* Main Content */}
-        <main className="flex-1 overflow-hidden p-2 md:p-4 flex flex-col items-center justify-center relative">
-            
-            {/* Game Grid */}
-            <div className={`
-                transition-all duration-500 ease-in-out
-                ${gameState !== 'playing' ? 'opacity-20 blur-sm scale-95 pointer-events-none' : 'opacity-100 scale-100'}
-                relative bg-slate-900/50 p-2 md:p-6 rounded-xl border border-slate-800 shadow-2xl overflow-x-auto max-w-full
-            `}>
-                <div className="grid gap-0.5 md:gap-1" style={{ 
-                    gridTemplateColumns: 'repeat(18, minmax(18px, 45px))',
-                    gridTemplateRows: 'repeat(10, minmax(18px, 45px))'
-                }}>
-                    {[1,2,3,4,5,6,7].map(p => (
-                        <div key={`p-${p}`} className="flex items-center justify-center text-[10px] text-slate-600 font-mono" style={{ gridColumn: 0, gridRow: p }}>
-                            {p}
-                        </div>
-                    ))}
-                    {gridCells.map((cell) => (
-                        <ElementCell 
-                            key={`${cell.row}-${cell.col}`}
-                            cell={cell}
-                            mode={difficulty}
-                            isActive={gameState === 'playing'}
-                            isRevealed={cell.data && revealedIds.includes(cell.data.z)}
-                            isError={cell.data && lastErrorId === cell.data.z}
-                            onClick={handleCellClick}
-                        />
-                    ))}
-                </div>
-                {gameState === 'playing' && difficulty === 'advanced' && (
-                     <div className="absolute top-2 right-2 md:top-4 md:right-4 text-[10px] md:text-xs text-slate-500 pointer-events-none">
-                        * 盲測模式
-                     </div>
-                )}
-            </div>
-
-            {/* Login Overlay */}
-            {gameState === 'login' && (
-                <div className="absolute inset-0 flex items-center justify-center bg-slate-950/80 backdrop-blur-md z-30">
-                    <form onSubmit={handleLogin} className="bg-slate-900 border border-slate-700 p-8 rounded-2xl shadow-2xl max-w-sm w-full text-center">
-                        <User className="w-12 h-12 text-blue-500 mx-auto mb-4" />
-                        <h2 className="text-2xl font-bold text-white mb-6">請輸入你的名字</h2>
-                        <input 
-                            type="text" 
-                            value={playerName}
-                            onChange={(e) => setPlayerName(e.target.value)}
-                            placeholder="例如：901 陳小明"
-                            className="w-full bg-slate-800 border border-slate-600 text-white rounded-lg p-3 mb-6 text-center focus:outline-none focus:border-blue-500 placeholder:text-slate-600"
-                            autoFocus
-                        />
-                        <button 
-                            type="submit"
-                            disabled={!playerName.trim()}
-                            className="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl transition-all"
-                        >
-                            進入遊戲
-                        </button>
-                    </form>
-                </div>
-            )}
-
-            {/* Menu Overlay */}
-            {gameState === 'menu' && (
-                <div className="absolute inset-0 flex items-center justify-center bg-slate-950/60 backdrop-blur-sm z-20 overflow-y-auto p-4">
-                    <div className="flex flex-col md:flex-row gap-6 max-w-4xl w-full items-start justify-center">
-                        
-                        {/* Menu Controls */}
-                        <div className="bg-slate-900 border border-slate-700 p-6 md:p-8 rounded-2xl shadow-2xl w-full max-w-md text-center shrink-0">
-                            <Brain className="w-12 h-12 text-blue-500 mx-auto mb-4" />
-                            <h2 className="text-3xl font-bold text-white mb-2">準備挑戰</h2>
-                            <p className="text-slate-400 mb-6">歡迎，<span className="text-white font-bold">{playerName}</span>！</p>
-
-                            <div className="grid grid-cols-2 gap-4 mb-8">
-                                <button 
-                                    onClick={() => setDifficulty('beginner')}
-                                    className={`p-3 md:p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 ${difficulty === 'beginner' ? 'border-blue-500 bg-blue-500/10 text-white' : 'border-slate-700 hover:border-slate-600 text-slate-400'}`}
+        // --- 5. 元件: 排行榜 ---
+        const Leaderboard = ({ data, currentUserId }) => {
+            return (
+                <div className="bg-slate-800/90 border border-slate-700 rounded-xl p-4 w-full max-w-sm max-h-[60vh] overflow-y-auto">
+                    <h3 className="text-white font-bold mb-3 flex items-center gap-2 sticky top-0 bg-slate-800/95 py-2">
+                        <ListOrdered className="w-5 h-5 text-yellow-400" />
+                        即時排行榜 (本機)
+                    </h3>
+                    {data.length === 0 ? (
+                        <div className="text-slate-500 text-sm text-center py-4">尚無紀錄，快來搶第一！</div>
+                    ) : (
+                        <div className="space-y-2">
+                            {data.map((entry, index) => (
+                                <div 
+                                    key={entry.id} 
+                                    className={`flex justify-between items-center p-2 rounded-lg text-sm ${entry.id === currentUserId ? 'bg-blue-600/30 border border-blue-500/50' : 'bg-slate-700/50'}`}
                                 >
-                                    <Eye className="w-6 h-6" />
-                                    <span className="font-bold">初級學徒</span>
-                                    <span className="text-[10px] opacity-70">1-20 (顯示)</span>
-                                </button>
-                                <button 
-                                    onClick={() => setDifficulty('advanced')}
-                                    className={`p-3 md:p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 ${difficulty === 'advanced' ? 'border-purple-500 bg-purple-500/10 text-white' : 'border-slate-700 hover:border-slate-600 text-slate-400'}`}
-                                >
-                                    <EyeOff className="w-6 h-6" />
-                                    <span className="font-bold">週期表大師</span>
-                                    <span className="text-[10px] opacity-70">全範圍 (盲測)</span>
-                                </button>
-                            </div>
-
-                            <button 
-                                onClick={startGame}
-                                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold py-4 rounded-xl text-lg shadow-lg hover:shadow-blue-500/20 transition-all transform hover:scale-[1.02]"
-                            >
-                                開始挑戰
-                            </button>
-                        </div>
-
-                        {/* Leaderboard Panel */}
-                        <Leaderboard data={leaderboard} currentUserId={user?.uid} />
-                    </div>
-                </div>
-            )}
-
-            {/* Game Over Overlay */}
-            {gameState === 'finished' && (
-                <div className="absolute inset-0 flex items-center justify-center bg-slate-950/80 backdrop-blur-md z-30 p-4">
-                    <div className="flex flex-col md:flex-row gap-6 max-w-4xl w-full items-center justify-center">
-                        <div className="bg-slate-900 border border-slate-700 p-8 rounded-2xl shadow-2xl max-w-md w-full text-center animate-in zoom-in duration-300">
-                            <Trophy className="w-16 h-16 text-yellow-400 mx-auto mb-4" />
-                            <h2 className="text-3xl font-bold text-white mb-2">挑戰結束！</h2>
-                            <div className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-blue-500 mb-4">
-                                {score}
-                            </div>
-                            {isSubmitting && <p className="text-sm text-blue-400 animate-pulse mb-4">分數上傳中...</p>}
-                            
-                            <div className="flex justify-center gap-8 mb-8 text-sm">
-                                <div>
-                                    <div className="text-slate-400 mb-1">難度</div>
-                                    <div className="font-bold text-white">{difficulty === 'beginner' ? '初級' : '大師'}</div>
-                                </div>
-                                <div>
-                                    <div className="text-slate-400 mb-1">命中率</div>
-                                    <div className="font-bold text-white">
-                                        {Math.round((revealedIds.length / (revealedIds.length + (60 - timeLeft)/5)) * 100) || 100}%
+                                    <div className="flex items-center gap-3">
+                                        <span className={`font-mono font-bold w-6 text-center ${index < 3 ? 'text-yellow-400' : 'text-slate-500'}`}>
+                                            {index + 1}
+                                        </span>
+                                        <span className="text-slate-200 font-medium truncate max-w-[120px]">
+                                            {entry.name}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <span className="text-xs text-slate-400">{entry.difficulty === 'advanced' ? '大師' : '初級'}</span>
+                                        <span className="font-mono font-bold text-green-400">{entry.score}</span>
                                     </div>
                                 </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        // --- 6. 元件: 元素格子 ---
+        const ElementCell = ({ cell, mode, isActive, isRevealed, isError, onClick }) => {
+            const { data } = cell;
+            
+            let baseClasses = "relative w-full h-full border border-gray-700 transition-all duration-200 cursor-pointer select-none rounded-sm flex items-center justify-center";
+            let bgColor = "bg-gray-900";
+            let textColor = "text-gray-400";
+            let borderColor = "border-gray-700";
+
+            if (isError) {
+                bgColor = "bg-red-900/80 animate-pulse";
+                borderColor = "border-red-500";
+            } else if (isRevealed) {
+                bgColor = "bg-green-600";
+                textColor = "text-white";
+                borderColor = "border-green-400";
+            } else if (isActive && mode === 'beginner') {
+                bgColor = "bg-gray-800 hover:bg-gray-700";
+            } else if (isActive && mode === 'advanced') {
+                bgColor = "bg-gray-800 hover:bg-gray-700";
+            }
+
+            if (!data) {
+                return <div className="w-full h-full bg-gray-950/30 border border-gray-800/30 rounded-sm" />;
+            }
+
+            return (
+                <div 
+                    className={`${baseClasses} ${bgColor} ${borderColor}`}
+                    style={{ 
+                        gridColumnStart: cell.col, 
+                        gridRowStart: cell.row,
+                        aspectRatio: '1/1'
+                    }}
+                    onClick={() => onClick(data)}
+                >
+                    {(mode === 'beginner' || isRevealed) && (
+                        <div className="flex flex-col items-center justify-center leading-none">
+                            <span className={`text-[10px] md:text-xs font-bold absolute top-0.5 left-0.5 opacity-70 ${textColor}`}>{data.z}</span>
+                            <span className={`text-sm md:text-lg font-bold ${textColor}`}>{data.symbol}</span>
+                        </div>
+                    )}
+                    {mode === 'advanced' && !isRevealed && !isError && (
+                        <div className="w-1 h-1 bg-gray-600 rounded-full opacity-50"></div>
+                    )}
+                </div>
+            );
+        };
+
+        // --- 7. 主應用程式 ---
+        const PeriodicTableSniper = () => {
+            const [gameState, setGameState] = useState('login'); // login, menu, playing, finished
+            const [difficulty, setDifficulty] = useState('beginner');
+            const [score, setScore] = useState(0);
+            const [timeLeft, setTimeLeft] = useState(60);
+            const [currentTarget, setCurrentTarget] = useState(null);
+            const [revealedIds, setRevealedIds] = useState([]);
+            const [lastErrorId, setLastErrorId] = useState(null);
+            const [combo, setCombo] = useState(0);
+            
+            // User & Data State
+            const [user, setUser] = useState(null);
+            const [playerName, setPlayerName] = useState("");
+            const [leaderboard, setLeaderboard] = useState([]);
+            const [isSubmitting, setIsSubmitting] = useState(false);
+
+            const gridCells = useMemo(() => generateGridMap(), []);
+
+            // Auth Initialization (Mock)
+            useEffect(() => {
+                const unsubscribe = mockAuth.onAuthStateChanged(setUser);
+                return () => unsubscribe();
+            }, []);
+
+            // Leaderboard Sync (Mock)
+            useEffect(() => {
+                if (!user) return;
+                const unsubscribe = mockFirestore.subscribeLeaderboard(setLeaderboard);
+                return () => unsubscribe();
+            }, [user]);
+
+            // Game Logic
+            const playSound = (type) => {
+                // 音效暫留 (Web Audio API implementation needed)
+            };
+
+            const saveScoreToCloud = async (finalScore) => {
+                if (!user || !playerName) return;
+                setIsSubmitting(true);
+                try {
+                    await mockFirestore.saveScore(user.uid, {
+                        name: playerName,
+                        score: finalScore,
+                        difficulty: difficulty,
+                        timestamp: Date.now(),
+                        accuracy: Math.round((revealedIds.length / (revealedIds.length + (60 - timeLeft)/5)) * 100) || 0
+                    });
+                } catch (e) {
+                    console.error("Error saving score:", e);
+                } finally {
+                    setIsSubmitting(false);
+                }
+            };
+
+            const generateQuestion = () => {
+                let pool = periodicData;
+                if (difficulty === 'beginner') {
+                    pool = periodicData.filter(e => e.z <= 20);
+                } 
+                const available = pool.filter(e => !revealedIds.includes(e.z));
+                
+                if (available.length === 0) {
+                    endGame(true);
+                    return;
+                }
+
+                const nextTarget = available[Math.floor(Math.random() * available.length)];
+                setCurrentTarget(nextTarget);
+            };
+
+            const startGame = () => {
+                setScore(0);
+                setTimeLeft(60);
+                setRevealedIds([]);
+                setCombo(0);
+                setGameState('playing');
+            };
+
+            const endGame = (cleared = false) => {
+                let finalScore = score;
+                if (cleared) finalScore += timeLeft * 10;
+                setScore(finalScore);
+                setGameState('finished');
+                saveScoreToCloud(finalScore); 
+            };
+
+            useEffect(() => {
+                if (gameState !== 'playing') return;
+                const timer = setInterval(() => {
+                    setTimeLeft(prev => {
+                        if (prev <= 1) {
+                            clearInterval(timer);
+                            endGame();
+                            return 0;
+                        }
+                        return prev - 1;
+                    });
+                }, 1000);
+                return () => clearInterval(timer);
+            }, [gameState]);
+
+            useEffect(() => {
+                if (gameState === 'playing' && !currentTarget) {
+                    generateQuestion();
+                }
+            }, [gameState, currentTarget]);
+
+            useEffect(() => {
+                if (gameState === 'menu') {
+                    setCurrentTarget(null);
+                }
+            }, [gameState]);
+
+            const handleCellClick = (element) => {
+                if (gameState !== 'playing' || !currentTarget) return;
+                if (revealedIds.includes(element.z)) return;
+
+                if (element.z === currentTarget.z) {
+                    setScore(prev => prev + 100 + (combo * 10));
+                    setCombo(prev => prev + 1);
+                    setRevealedIds(prev => [...prev, element.z]);
+                    playSound('correct');
+                    setCurrentTarget(null); 
+                } else {
+                    setScore(prev => Math.max(0, prev - 50));
+                    setCombo(0);
+                    setTimeLeft(prev => Math.max(0, prev - 2));
+                    setLastErrorId(element.z);
+                    playSound('wrong');
+                    setTimeout(() => setLastErrorId(null), 500);
+                }
+            };
+
+            const handleLogin = (e) => {
+                e.preventDefault();
+                if (playerName.trim().length > 0) {
+                    setGameState('menu');
+                }
+            };
+
+            return (
+                <div className="flex flex-col h-screen w-full bg-slate-950 text-slate-100 font-sans overflow-hidden">
+                    {/* Header */}
+                    <header className="bg-slate-900 border-b border-slate-800 p-3 shadow-lg z-10">
+                        <div className="max-w-6xl mx-auto flex justify-between items-center">
+                            <div className="flex items-center gap-2 md:gap-3">
+                                <div className="bg-blue-600 p-1.5 md:p-2 rounded-lg">
+                                    <Target className="text-white" />
+                                </div>
+                                <div>
+                                    <h1 className="text-lg md:text-xl font-bold tracking-tight text-white">週期表神射手</h1>
+                                    {playerName && <p className="text-xs text-blue-400">選手: {playerName}</p>}
+                                </div>
                             </div>
 
-                            <button 
-                                onClick={() => setGameState('menu')}
-                                className="w-full bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2"
-                            >
-                                <RotateCcw className="w-5 h-5" />
-                                再試一次
-                            </button>
+                            {gameState === 'playing' && (
+                                <div className="flex items-center gap-3 md:gap-8 bg-slate-800 px-4 py-1.5 rounded-full border border-slate-700">
+                                    <div className="text-center">
+                                        <span className="text-[10px] text-slate-400 block uppercase">時間</span>
+                                        <span className={`font-mono text-xl md:text-2xl font-bold ${timeLeft < 10 ? 'text-red-500 animate-pulse' : 'text-blue-400'}`}>
+                                            {timeLeft}
+                                        </span>
+                                    </div>
+                                    <div className="text-center min-w-[80px] md:min-w-[120px]">
+                                        <span className="text-[10px] text-slate-400 block uppercase">尋找</span>
+                                        <span className="text-xl md:text-3xl font-bold text-yellow-400 animate-bounce block truncate px-2">
+                                            {currentTarget ? currentTarget.name : '...'}
+                                        </span>
+                                    </div>
+                                    <div className="text-center">
+                                        <span className="text-[10px] text-slate-400 block uppercase">得分</span>
+                                        <span className="font-mono text-xl md:text-2xl font-bold text-green-400">{score}</span>
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="flex items-center gap-2">
+                                {gameState === 'playing' && (
+                                    <button onClick={() => setGameState('menu')} className="p-2 hover:bg-slate-800 rounded-full text-slate-400 hover:text-white">
+                                        <RotateCcw />
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    </header>
+
+                    {/* Main Content */}
+                    <main className="flex-1 overflow-hidden p-2 md:p-4 flex flex-col items-center justify-center relative">
+                        
+                        {/* Game Grid */}
+                        <div className={`
+                            transition-all duration-500 ease-in-out
+                            ${gameState !== 'playing' ? 'opacity-20 blur-sm scale-95 pointer-events-none' : 'opacity-100 scale-100'}
+                            relative bg-slate-900/50 p-2 md:p-6 rounded-xl border border-slate-800 shadow-2xl overflow-x-auto max-w-full
+                        `}>
+                            <div className="grid gap-0.5 md:gap-1" style={{ 
+                                gridTemplateColumns: 'repeat(18, minmax(18px, 45px))',
+                                gridTemplateRows: 'repeat(10, minmax(18px, 45px))'
+                            }}>
+                                {[1,2,3,4,5,6,7].map(p => (
+                                    <div key={`p-${p}`} className="flex items-center justify-center text-[10px] text-slate-600 font-mono" style={{ gridColumn: 0, gridRow: p }}>
+                                        {p}
+                                    </div>
+                                ))}
+                                {gridCells.map((cell) => (
+                                    <ElementCell 
+                                        key={`${cell.row}-${cell.col}`}
+                                        cell={cell}
+                                        mode={difficulty}
+                                        isActive={gameState === 'playing'}
+                                        isRevealed={cell.data && revealedIds.includes(cell.data.z)}
+                                        isError={cell.data && lastErrorId === cell.data.z}
+                                        onClick={handleCellClick}
+                                    />
+                                ))}
+                            </div>
+                            {gameState === 'playing' && difficulty === 'advanced' && (
+                                <div className="absolute top-2 right-2 md:top-4 md:right-4 text-[10px] md:text-xs text-slate-500 pointer-events-none">
+                                    * 盲測模式
+                                </div>
+                            )}
                         </div>
 
-                        {/* Leaderboard Panel (Visible on Game Over too) */}
-                        <Leaderboard data={leaderboard} currentUserId={user?.uid} />
-                    </div>
-                </div>
-            )}
+                        {/* Login Overlay */}
+                        {gameState === 'login' && (
+                            <div className="absolute inset-0 flex items-center justify-center bg-slate-950/80 backdrop-blur-md z-30">
+                                <form onSubmit={handleLogin} className="bg-slate-900 border border-slate-700 p-8 rounded-2xl shadow-2xl max-w-sm w-full text-center">
+                                    <div className="mb-4 text-blue-500 flex justify-center"><span className="text-5xl">👤</span></div>
+                                    <h2 className="text-2xl font-bold text-white mb-6">請輸入你的名字</h2>
+                                    <input 
+                                        type="text" 
+                                        value={playerName}
+                                        onChange={(e) => setPlayerName(e.target.value)}
+                                        placeholder="例如：901 陳小明"
+                                        className="w-full bg-slate-800 border border-slate-600 text-white rounded-lg p-3 mb-6 text-center focus:outline-none focus:border-blue-500 placeholder:text-slate-600"
+                                        autoFocus
+                                    />
+                                    <button 
+                                        type="submit"
+                                        disabled={!playerName.trim()}
+                                        className="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl transition-all"
+                                    >
+                                        進入遊戲
+                                    </button>
+                                </form>
+                            </div>
+                        )}
 
-        </main>
-    </div>
-  );
-}
+                        {/* Menu Overlay */}
+                        {gameState === 'menu' && (
+                            <div className="absolute inset-0 flex items-center justify-center bg-slate-950/60 backdrop-blur-sm z-20 overflow-y-auto p-4">
+                                <div className="flex flex-col md:flex-row gap-6 max-w-4xl w-full items-start justify-center">
+                                    
+                                    {/* Menu Controls */}
+                                    <div className="bg-slate-900 border border-slate-700 p-6 md:p-8 rounded-2xl shadow-2xl w-full max-w-md text-center shrink-0">
+                                        <div className="mb-4 text-blue-500 flex justify-center"><span className="text-5xl">🧠</span></div>
+                                        <h2 className="text-3xl font-bold text-white mb-2">準備挑戰</h2>
+                                        <p className="text-slate-400 mb-6">歡迎，<span className="text-white font-bold">{playerName}</span>！</p>
+
+                                        <div className="grid grid-cols-2 gap-4 mb-8">
+                                            <button 
+                                                onClick={() => setDifficulty('beginner')}
+                                                className={`p-3 md:p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 ${difficulty === 'beginner' ? 'border-blue-500 bg-blue-500/10 text-white' : 'border-slate-700 hover:border-slate-600 text-slate-400'}`}
+                                            >
+                                                <Eye />
+                                                <span className="font-bold">初級學徒</span>
+                                                <span className="text-[10px] opacity-70">1-20 (顯示)</span>
+                                            </button>
+                                            <button 
+                                                onClick={() => setDifficulty('advanced')}
+                                                className={`p-3 md:p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 ${difficulty === 'advanced' ? 'border-purple-500 bg-purple-500/10 text-white' : 'border-slate-700 hover:border-slate-600 text-slate-400'}`}
+                                            >
+                                                <EyeOff />
+                                                <span className="font-bold">週期表大師</span>
+                                                <span className="text-[10px] opacity-70">全範圍 (盲測)</span>
+                                            </button>
+                                        </div>
+
+                                        <button 
+                                            onClick={startGame}
+                                            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold py-4 rounded-xl text-lg shadow-lg hover:shadow-blue-500/20 transition-all transform hover:scale-[1.02]"
+                                        >
+                                            開始挑戰
+                                        </button>
+                                    </div>
+
+                                    {/* Leaderboard Panel */}
+                                    <Leaderboard data={leaderboard} currentUserId={user?.uid} />
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Game Over Overlay */}
+                        {gameState === 'finished' && (
+                            <div className="absolute inset-0 flex items-center justify-center bg-slate-950/80 backdrop-blur-md z-30 p-4">
+                                <div className="flex flex-col md:flex-row gap-6 max-w-4xl w-full items-center justify-center">
+                                    <div className="bg-slate-900 border border-slate-700 p-8 rounded-2xl shadow-2xl max-w-md w-full text-center animate-in zoom-in duration-300">
+                                        <div className="mb-4 text-yellow-400 flex justify-center"><span className="text-6xl">🏆</span></div>
+                                        <h2 className="text-3xl font-bold text-white mb-2">挑戰結束！</h2>
+                                        <div className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-blue-500 mb-4">
+                                            {score}
+                                        </div>
+                                        {isSubmitting && <p className="text-sm text-blue-400 animate-pulse mb-4">分數儲存中...</p>}
+                                        
+                                        <div className="flex justify-center gap-8 mb-8 text-sm">
+                                            <div>
+                                                <div className="text-slate-400 mb-1">難度</div>
+                                                <div className="font-bold text-white">{difficulty === 'beginner' ? '初級' : '大師'}</div>
+                                            </div>
+                                            <div>
+                                                <div className="text-slate-400 mb-1">命中率</div>
+                                                <div className="font-bold text-white">
+                                                    {Math.round((revealedIds.length / (revealedIds.length + (60 - timeLeft)/5)) * 100) || 100}%
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <button 
+                                            onClick={() => setGameState('menu')}
+                                            className="w-full bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2"
+                                        >
+                                            <RotateCcw />
+                                            再試一次
+                                        </button>
+                                    </div>
+
+                                    {/* Leaderboard Panel (Visible on Game Over too) */}
+                                    <Leaderboard data={leaderboard} currentUserId={user?.uid} />
+                                </div>
+                            </div>
+                        )}
+
+                    </main>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<PeriodicTableSniper />);
+    </script>
+</body>
+</html>
