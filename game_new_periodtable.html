@@ -1,560 +1,274 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { Target, Trophy, RotateCcw, Brain, Eye, EyeOff, User, ListOrdered, Zap } from 'lucide-react';
-import { initializeApp } from "firebase/app";
-import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "firebase/auth";
-import { getFirestore, doc, setDoc, collection, onSnapshot, serverTimestamp } from "firebase/firestore";
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>單機版專案管理系統</title>
+    <style>
+        :root {
+            --bg-color: #f4f4f5; /* 水洗灰風格 */
+            --card-bg: #ffffff;
+            --primary: #3b82f6; /* 淺藍色 */
+            --text-main: #1f2937;
+            --text-sec: #6b7280;
+            --danger: #ef4444;
+        }
 
-// --- Firebase Configuration & Initialization ---
-const firebaseConfig = JSON.parse(__firebase_config);
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.5;
+        }
 
-/**
- * 週期表資料庫
- */
-const periodicData = [
-  { z: 1, symbol: 'H', name: '氫', group: 1, period: 1, category: 'nonmetal', col: 1, row: 1 },
-  { z: 2, symbol: 'He', name: '氦', group: 18, period: 1, category: 'noble-gas', col: 18, row: 1 },
-  { z: 3, symbol: 'Li', name: '鋰', group: 1, period: 2, category: 'alkali-metal', col: 1, row: 2 },
-  { z: 4, symbol: 'Be', name: '鈹', group: 2, period: 2, category: 'alkaline-earth', col: 2, row: 2 },
-  { z: 5, symbol: 'B', name: '硼', group: 13, period: 2, category: 'metalloid', col: 13, row: 2 },
-  { z: 6, symbol: 'C', name: '碳', group: 14, period: 2, category: 'nonmetal', col: 14, row: 2 },
-  { z: 7, symbol: 'N', name: '氮', group: 15, period: 2, category: 'nonmetal', col: 15, row: 2 },
-  { z: 8, symbol: 'O', name: '氧', group: 16, period: 2, category: 'nonmetal', col: 16, row: 2 },
-  { z: 9, symbol: 'F', name: '氟', group: 17, period: 2, category: 'halogen', col: 17, row: 2 },
-  { z: 10, symbol: 'Ne', name: '氖', group: 18, period: 2, category: 'noble-gas', col: 18, row: 2 },
-  { z: 11, symbol: 'Na', name: '鈉', group: 1, period: 3, category: 'alkali-metal', col: 1, row: 3 },
-  { z: 12, symbol: 'Mg', name: '鎂', group: 2, period: 3, category: 'alkaline-earth', col: 2, row: 3 },
-  { z: 13, symbol: 'Al', name: '鋁', group: 13, period: 3, category: 'post-transition', col: 13, row: 3 },
-  { z: 14, symbol: 'Si', name: '矽', group: 14, period: 3, category: 'metalloid', col: 14, row: 3 },
-  { z: 15, symbol: 'P', name: '磷', group: 15, period: 3, category: 'nonmetal', col: 15, row: 3 },
-  { z: 16, symbol: 'S', name: '硫', group: 16, period: 3, category: 'nonmetal', col: 16, row: 3 },
-  { z: 17, symbol: 'Cl', name: '氯', group: 17, period: 3, category: 'halogen', col: 17, row: 3 },
-  { z: 18, symbol: 'Ar', name: '氬', group: 18, period: 3, category: 'noble-gas', col: 18, row: 3 },
-  // Period 4
-  { z: 19, symbol: 'K', name: '鉀', group: 1, period: 4, category: 'alkali-metal', col: 1, row: 4 },
-  { z: 20, symbol: 'Ca', name: '鈣', group: 2, period: 4, category: 'alkaline-earth', col: 2, row: 4 },
-  { z: 21, symbol: 'Sc', name: '鈧', group: 3, period: 4, category: 'transition', col: 3, row: 4 },
-  { z: 22, symbol: 'Ti', name: '鈦', group: 4, period: 4, category: 'transition', col: 4, row: 4 },
-  { z: 23, symbol: 'V', name: '釩', group: 5, period: 4, category: 'transition', col: 5, row: 4 },
-  { z: 24, symbol: 'Cr', name: '鉻', group: 6, period: 4, category: 'transition', col: 6, row: 4 },
-  { z: 25, symbol: 'Mn', name: '錳', group: 7, period: 4, category: 'transition', col: 7, row: 4 },
-  { z: 26, symbol: 'Fe', name: '鐵', group: 8, period: 4, category: 'transition', col: 8, row: 4 },
-  { z: 27, symbol: 'Co', name: '鈷', group: 9, period: 4, category: 'transition', col: 9, row: 4 },
-  { z: 28, symbol: 'Ni', name: '鎳', group: 10, period: 4, category: 'transition', col: 10, row: 4 },
-  { z: 29, symbol: 'Cu', name: '銅', group: 11, period: 4, category: 'transition', col: 11, row: 4 },
-  { z: 30, symbol: 'Zn', name: '鋅', group: 12, period: 4, category: 'transition', col: 12, row: 4 },
-  { z: 31, symbol: 'Ga', name: '鎵', group: 13, period: 4, category: 'post-transition', col: 13, row: 4 },
-  { z: 32, symbol: 'Ge', name: '鍺', group: 14, period: 4, category: 'metalloid', col: 14, row: 4 },
-  { z: 33, symbol: 'As', name: '砷', group: 15, period: 4, category: 'metalloid', col: 15, row: 4 },
-  { z: 34, symbol: 'Se', name: '硒', group: 16, period: 4, category: 'nonmetal', col: 16, row: 4 },
-  { z: 35, symbol: 'Br', name: '溴', group: 17, period: 4, category: 'halogen', col: 17, row: 4 },
-  { z: 36, symbol: 'Kr', name: '氪', group: 18, period: 4, category: 'noble-gas', col: 18, row: 4 },
-  // Selected common Period 5+ elements
-  { z: 37, symbol: 'Rb', name: '銣', col: 1, row: 5 }, { z: 38, symbol: 'Sr', name: '鍶', col: 2, row: 5 },
-  { z: 47, symbol: 'Ag', name: '銀', col: 11, row: 5 }, { z: 48, symbol: 'Cd', name: '鎘', col: 12, row: 5 },
-  { z: 50, symbol: 'Sn', name: '錫', col: 14, row: 5 }, { z: 53, symbol: 'I', name: '碘', col: 17, row: 5 },
-  { z: 54, symbol: 'Xe', name: '氙', col: 18, row: 5 },
-  { z: 55, symbol: 'Cs', name: '銫', col: 1, row: 6 }, { z: 56, symbol: 'Ba', name: '鋇', col: 2, row: 6 },
-  { z: 74, symbol: 'W', name: '鎢', col: 6, row: 6 }, { z: 78, symbol: 'Pt', name: '鉑', col: 10, row: 6 },
-  { z: 79, symbol: 'Au', name: '金', col: 11, row: 6 }, { z: 80, symbol: 'Hg', name: '汞', col: 12, row: 6 },
-  { z: 82, symbol: 'Pb', name: '鉛', col: 14, row: 6 }, { z: 86, symbol: 'Rn', name: '氡', col: 18, row: 6 },
-  { z: 87, symbol: 'Fr', name: '鍅', col: 1, row: 7 }, { z: 88, symbol: 'Ra', name: '鐳', col: 2, row: 7 },
-  { z: 92, symbol: 'U', name: '鈾', col: 6, row: 10, isActinide: true }, 
-];
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
 
-// Helper to fill grid
-const generateGridMap = () => {
-  const grid = [];
-  for(let p=1; p<=7; p++) {
-    for(let g=1; g<=18; g++) {
-        if (p===1 && (g>1 && g<18)) continue;
-        if ((p===2 || p===3) && (g>2 && g<13)) continue;
-        const element = periodicData.find(e => e.row === p && e.col === g);
-        grid.push({ row: p, col: g, data: element, type: 'main' });
-    }
-  }
-  return grid;
-};
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--text-main);
+        }
 
-// Leaderboard Component
-const Leaderboard = ({ data, currentUserId }) => {
-    return (
-        <div className="bg-slate-800/90 border border-slate-700 rounded-xl p-4 w-full max-w-sm max-h-[60vh] overflow-y-auto">
-            <h3 className="text-white font-bold mb-3 flex items-center gap-2 sticky top-0 bg-slate-800/95 py-2">
-                <ListOrdered className="w-5 h-5 text-yellow-400" />
-                即時排行榜
-            </h3>
-            {data.length === 0 ? (
-                <div className="text-slate-500 text-sm text-center py-4">尚無紀錄，快來搶第一！</div>
-            ) : (
-                <div className="space-y-2">
-                    {data.map((entry, index) => (
-                        <div 
-                            key={entry.id} 
-                            className={`flex justify-between items-center p-2 rounded-lg text-sm ${entry.id === currentUserId ? 'bg-blue-600/30 border border-blue-500/50' : 'bg-slate-700/50'}`}
-                        >
-                            <div className="flex items-center gap-3">
-                                <span className={`font-mono font-bold w-6 text-center ${index < 3 ? 'text-yellow-400' : 'text-slate-500'}`}>
-                                    {index + 1}
-                                </span>
-                                <span className="text-slate-200 font-medium truncate max-w-[120px]">
-                                    {entry.name}
-                                </span>
-                            </div>
-                            <div className="flex items-center gap-3">
-                                <span className="text-xs text-slate-400">{entry.difficulty === 'advanced' ? '大師' : '初級'}</span>
-                                <span className="font-mono font-bold text-green-400">{entry.score}</span>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            )}
+        /* 輸入區域 */
+        .input-group {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        input, select {
+            padding: 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 1rem;
+            flex-grow: 1;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        button:hover { opacity: 0.9; }
+
+        .btn-add { background-color: var(--primary); color: white; }
+        .btn-danger { background-color: var(--danger); color: white; padding: 5px 10px; font-size: 0.875rem; }
+        .btn-secondary { background-color: #e5e7eb; color: var(--text-main); }
+
+        /* 列表區域 */
+        .list-container {
+            display: grid;
+            gap: 15px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 15px 20px;
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-content {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .card-subtitle {
+            font-size: 0.875rem;
+            color: var(--text-sec);
+            margin-top: 4px;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        /* 狀態標籤 */
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+        .status-todo { background-color: #fee2e2; color: #991b1b; }
+        .status-doing { background-color: #fef3c7; color: #92400e; }
+        .status-done { background-color: #d1fae5; color: #065f46; }
+
+        /* 工具列 */
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="toolbar">
+        <h1>專案進度管理 (單機版)</h1>
+        <div>
+            <button class="btn-secondary" onclick="exportData()">⬇ 備份資料</button>
+            <input type="file" id="importFile" style="display:none" onchange="importData(this)">
+            <button class="btn-secondary" onclick="document.getElementById('importFile').click()">⬆ 匯入還原</button>
         </div>
-    );
-};
-
-const ElementCell = ({ cell, mode, isActive, isRevealed, isError, isHint, onClick }) => {
-    const { data } = cell;
-    
-    let baseClasses = "relative w-full h-full border border-gray-700 transition-all duration-200 cursor-pointer select-none rounded-sm flex items-center justify-center";
-    let bgColor = "bg-gray-900";
-    let textColor = "text-gray-400";
-    let borderColor = "border-gray-700";
-
-    if (isError) {
-        bgColor = "bg-red-900/80 animate-pulse";
-        borderColor = "border-red-500";
-    } else if (isRevealed) {
-        bgColor = "bg-green-600";
-        textColor = "text-white";
-        borderColor = "border-green-400";
-    } else if (isHint && isActive) {
-        // Hint Style
-        bgColor = "bg-yellow-500/30 animate-pulse";
-        borderColor = "border-yellow-400 border-2";
-    } else if (isActive && mode === 'beginner') {
-        bgColor = "bg-gray-800 hover:bg-gray-700";
-    } else if (isActive && mode === 'advanced') {
-        bgColor = "bg-gray-800 hover:bg-gray-700";
-    }
-
-    if (!data) {
-        return <div className="w-full h-full bg-gray-950/30 border border-gray-800/30 rounded-sm" />;
-    }
-
-    return (
-        <div 
-            className={`${baseClasses} ${bgColor} ${borderColor}`}
-            style={{ 
-                gridColumnStart: cell.col, 
-                gridRowStart: cell.row,
-                aspectRatio: '1/1'
-            }}
-            onClick={() => onClick(data)}
-        >
-            {(mode === 'beginner' || isRevealed) && (
-                <div className="flex flex-col items-center justify-center leading-none">
-                    <span className={`text-[10px] md:text-xs font-bold absolute top-0.5 left-0.5 opacity-70 ${textColor}`}>{data.z}</span>
-                    <span className={`text-sm md:text-lg font-bold ${textColor}`}>{data.symbol}</span>
-                </div>
-            )}
-            {/* Show hint marker or empty state for Advanced */}
-            {mode === 'advanced' && !isRevealed && !isError && (
-                <div className={`w-1 h-1 rounded-full ${isHint ? 'bg-yellow-400 w-2 h-2 animate-bounce' : 'bg-gray-600 opacity-50'}`}></div>
-            )}
-        </div>
-    );
-};
-
-export default function PeriodicTableSniper() {
-  const [gameState, setGameState] = useState<'login' | 'menu' | 'playing' | 'finished'>('login');
-  const [difficulty, setDifficulty] = useState<'beginner' | 'advanced'>('beginner');
-  const [score, setScore] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(120); // Default 120s
-  const [currentTarget, setCurrentTarget] = useState<any>(null);
-  const [revealedIds, setRevealedIds] = useState<number[]>([]);
-  const [lastErrorId, setLastErrorId] = useState<number | null>(null);
-  const [mistakes, setMistakes] = useState(0); // Track mistakes for accurate stats
-  const [combo, setCombo] = useState(0);
-  
-  // Hint State
-  const [showHint, setShowHint] = useState(false);
-  
-  // User & Data State
-  const [user, setUser] = useState<any>(null);
-  const [playerName, setPlayerName] = useState("");
-  const [leaderboard, setLeaderboard] = useState<any[]>([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const gridCells = useMemo(() => generateGridMap(), []);
-
-  // --- 1. Firebase Auth Setup ---
-  useEffect(() => {
-    const initAuth = async () => {
-      if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-        await signInWithCustomToken(auth, __initial_auth_token);
-      } else {
-        await signInAnonymously(auth);
-      }
-    };
-    initAuth();
-    const unsubscribe = onAuthStateChanged(auth, setUser);
-    return () => unsubscribe();
-  }, []);
-
-  // --- 2. Live Leaderboard Sync ---
-  useEffect(() => {
-    if (!user) return;
-    const q = collection(db, 'artifacts', appId, 'public', 'data', 'periodic_scores');
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-        const scores = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        const sortedScores = scores.sort((a, b) => b.score - a.score).slice(0, 50);
-        setLeaderboard(sortedScores);
-    }, (error) => {
-        console.error("Leaderboard fetch error:", error);
-    });
-    return () => unsubscribe();
-  }, [user]);
-
-  // --- Hint Logic ---
-  useEffect(() => {
-    // Reset hint whenever target changes or game state changes
-    setShowHint(false);
-    
-    if (gameState !== 'playing' || !currentTarget) return;
-
-    // Start 3-second timer
-    const hintTimer = setTimeout(() => {
-        setShowHint(true);
-    }, 3000);
-
-    return () => clearTimeout(hintTimer);
-  }, [currentTarget, gameState]);
-
-  // --- Game Logic ---
-  const playSound = (type: 'correct' | 'wrong') => {
-    // Placeholder
-  };
-
-  const saveScoreToCloud = async (finalScore: number) => {
-    if (!user || !playerName) return;
-    setIsSubmitting(true);
-    try {
-        const userScoreRef = doc(db, 'artifacts', appId, 'public', 'data', 'periodic_scores', user.uid);
-        
-        // Calculate accuracy: Correct / (Correct + Mistakes)
-        const totalAttempts = revealedIds.length + mistakes;
-        const accuracy = totalAttempts > 0 
-            ? Math.round((revealedIds.length / totalAttempts) * 100) 
-            : 0;
-
-        await setDoc(userScoreRef, {
-            name: playerName,
-            score: finalScore,
-            difficulty: difficulty,
-            timestamp: serverTimestamp(),
-            accuracy: accuracy
-        }, { merge: true });
-    } catch (e) {
-        console.error("Error saving score:", e);
-    } finally {
-        setIsSubmitting(false);
-    }
-  };
-
-  const generateQuestion = () => {
-    let pool = periodicData;
-    if (difficulty === 'beginner') {
-        pool = periodicData.filter(e => e.z <= 20);
-    } 
-    const available = pool.filter(e => !revealedIds.includes(e.z));
-    
-    if (available.length === 0) {
-        endGame(true);
-        return;
-    }
-
-    const nextTarget = available[Math.floor(Math.random() * available.length)];
-    setCurrentTarget(nextTarget);
-  };
-
-  const startGame = () => {
-    setScore(0);
-    setTimeLeft(120); // 2 Minutes
-    setRevealedIds([]);
-    setMistakes(0);
-    setCombo(0);
-    setGameState('playing');
-  };
-
-  const endGame = (cleared = false) => {
-    let finalScore = score;
-    if (cleared) finalScore += timeLeft * 10;
-    setScore(finalScore);
-    setGameState('finished');
-    saveScoreToCloud(finalScore);
-  };
-
-  useEffect(() => {
-    if (gameState !== 'playing') return;
-    const timer = setInterval(() => {
-        setTimeLeft(prev => {
-            if (prev <= 1) {
-                clearInterval(timer);
-                endGame();
-                return 0;
-            }
-            return prev - 1;
-        });
-    }, 1000);
-    return () => clearInterval(timer);
-  }, [gameState]);
-
-  useEffect(() => {
-    if (gameState === 'playing' && !currentTarget) {
-        generateQuestion();
-    }
-  }, [gameState, currentTarget]);
-
-  useEffect(() => {
-    if (gameState === 'menu') {
-        setCurrentTarget(null);
-    }
-  }, [gameState]);
-
-  const handleCellClick = (element: any) => {
-    if (gameState !== 'playing' || !currentTarget) return;
-    if (revealedIds.includes(element.z)) return;
-
-    if (element.z === currentTarget.z) {
-        // Correct
-        setScore(prev => prev + 100 + (combo * 10));
-        setCombo(prev => prev + 1);
-        setRevealedIds(prev => [...prev, element.z]);
-        setTimeLeft(prev => prev + 5); // ADD 5 SECONDS BONUS
-        playSound('correct');
-        setCurrentTarget(null); 
-    } else {
-        // Wrong
-        setScore(prev => Math.max(0, prev - 50));
-        setCombo(0);
-        setTimeLeft(prev => Math.max(0, prev - 2));
-        setMistakes(prev => prev + 1); // Track mistakes
-        setLastErrorId(element.z);
-        playSound('wrong');
-        setTimeout(() => setLastErrorId(null), 500);
-    }
-  };
-
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (playerName.trim().length > 0) {
-        setGameState('menu');
-    }
-  };
-
-  return (
-    <div className="flex flex-col h-screen w-full bg-slate-950 text-slate-100 font-sans overflow-hidden">
-        {/* Header */}
-        <header className="bg-slate-900 border-b border-slate-800 p-3 shadow-lg z-10">
-            <div className="max-w-6xl mx-auto flex justify-between items-center">
-                <div className="flex items-center gap-2 md:gap-3">
-                    <div className="bg-blue-600 p-1.5 md:p-2 rounded-lg">
-                        <Target className="w-5 h-5 md:w-6 md:h-6 text-white" />
-                    </div>
-                    <div>
-                        <h1 className="text-lg md:text-xl font-bold tracking-tight text-white">週期表神射手</h1>
-                        {playerName && <p className="text-xs text-blue-400">選手: {playerName}</p>}
-                    </div>
-                </div>
-
-                {gameState === 'playing' && (
-                    <div className="flex items-center gap-3 md:gap-8 bg-slate-800 px-4 py-1.5 rounded-full border border-slate-700">
-                        <div className="text-center">
-                            <span className="text-[10px] text-slate-400 block uppercase">時間</span>
-                            <span className={`font-mono text-xl md:text-2xl font-bold flex items-center gap-1 ${timeLeft < 10 ? 'text-red-500 animate-pulse' : 'text-blue-400'}`}>
-                                {timeLeft} <span className="text-xs font-normal opacity-50">s</span>
-                            </span>
-                        </div>
-                        <div className="text-center min-w-[80px] md:min-w-[120px]">
-                            <span className="text-[10px] text-slate-400 block uppercase">尋找</span>
-                            <span className="text-xl md:text-3xl font-bold text-yellow-400 animate-bounce block truncate px-2">
-                                {currentTarget ? currentTarget.name : '...'}
-                            </span>
-                        </div>
-                        <div className="text-center">
-                            <span className="text-[10px] text-slate-400 block uppercase">得分</span>
-                            <span className="font-mono text-xl md:text-2xl font-bold text-green-400">{score}</span>
-                        </div>
-                    </div>
-                )}
-
-                <div className="flex items-center gap-2">
-                    {gameState === 'playing' && (
-                        <button onClick={() => setGameState('menu')} className="p-2 hover:bg-slate-800 rounded-full text-slate-400 hover:text-white">
-                            <RotateCcw className="w-5 h-5" />
-                        </button>
-                    )}
-                </div>
-            </div>
-        </header>
-
-        {/* Main Content */}
-        <main className="flex-1 overflow-hidden p-2 md:p-4 flex flex-col items-center justify-center relative">
-            
-            {/* Game Grid */}
-            <div className={`
-                transition-all duration-500 ease-in-out
-                ${gameState !== 'playing' ? 'opacity-20 blur-sm scale-95 pointer-events-none' : 'opacity-100 scale-100'}
-                relative bg-slate-900/50 p-2 md:p-6 rounded-xl border border-slate-800 shadow-2xl overflow-x-auto max-w-full
-            `}>
-                <div className="grid gap-0.5 md:gap-1" style={{ 
-                    gridTemplateColumns: 'repeat(18, minmax(18px, 45px))',
-                    gridTemplateRows: 'repeat(10, minmax(18px, 45px))'
-                }}>
-                    {[1,2,3,4,5,6,7].map(p => (
-                        <div key={`p-${p}`} className="flex items-center justify-center text-[10px] text-slate-600 font-mono" style={{ gridColumn: 0, gridRow: p }}>
-                            {p}
-                        </div>
-                    ))}
-                    {gridCells.map((cell) => (
-                        <ElementCell 
-                            key={`${cell.row}-${cell.col}`}
-                            cell={cell}
-                            mode={difficulty}
-                            isActive={gameState === 'playing'}
-                            isRevealed={cell.data && revealedIds.includes(cell.data.z)}
-                            isError={cell.data && lastErrorId === cell.data.z}
-                            isHint={showHint && cell.data && currentTarget && cell.data.z === currentTarget.z}
-                            onClick={handleCellClick}
-                        />
-                    ))}
-                </div>
-                {gameState === 'playing' && difficulty === 'advanced' && (
-                     <div className="absolute top-2 right-2 md:top-4 md:right-4 text-[10px] md:text-xs text-slate-500 pointer-events-none flex flex-col items-end">
-                        <span>* 盲測模式 (答對 +5秒)</span>
-                        {showHint && <span className="text-yellow-400 animate-pulse flex items-center gap-1"><Zap className="w-3 h-3"/> 提示已開啟</span>}
-                     </div>
-                )}
-            </div>
-
-            {/* Login Overlay */}
-            {gameState === 'login' && (
-                <div className="absolute inset-0 flex items-center justify-center bg-slate-950/80 backdrop-blur-md z-30">
-                    <form onSubmit={handleLogin} className="bg-slate-900 border border-slate-700 p-8 rounded-2xl shadow-2xl max-w-sm w-full text-center">
-                        <User className="w-12 h-12 text-blue-500 mx-auto mb-4" />
-                        <h2 className="text-2xl font-bold text-white mb-6">請輸入你的名字</h2>
-                        <input 
-                            type="text" 
-                            value={playerName}
-                            onChange={(e) => setPlayerName(e.target.value)}
-                            placeholder="例如：901 陳小明"
-                            className="w-full bg-slate-800 border border-slate-600 text-white rounded-lg p-3 mb-6 text-center focus:outline-none focus:border-blue-500 placeholder:text-slate-600"
-                            autoFocus
-                        />
-                        <button 
-                            type="submit"
-                            disabled={!playerName.trim()}
-                            className="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl transition-all"
-                        >
-                            進入遊戲
-                        </button>
-                    </form>
-                </div>
-            )}
-
-            {/* Menu Overlay */}
-            {gameState === 'menu' && (
-                <div className="absolute inset-0 flex items-center justify-center bg-slate-950/60 backdrop-blur-sm z-20 overflow-y-auto p-4">
-                    <div className="flex flex-col md:flex-row gap-6 max-w-4xl w-full items-start justify-center">
-                        
-                        {/* Menu Controls */}
-                        <div className="bg-slate-900 border border-slate-700 p-6 md:p-8 rounded-2xl shadow-2xl w-full max-w-md text-center shrink-0">
-                            <Brain className="w-12 h-12 text-blue-500 mx-auto mb-4" />
-                            <h2 className="text-3xl font-bold text-white mb-2">準備挑戰</h2>
-                            <p className="text-slate-400 mb-6">歡迎，<span className="text-white font-bold">{playerName}</span>！</p>
-
-                            <div className="grid grid-cols-2 gap-4 mb-8">
-                                <button 
-                                    onClick={() => setDifficulty('beginner')}
-                                    className={`p-3 md:p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 ${difficulty === 'beginner' ? 'border-blue-500 bg-blue-500/10 text-white' : 'border-slate-700 hover:border-slate-600 text-slate-400'}`}
-                                >
-                                    <Eye className="w-6 h-6" />
-                                    <span className="font-bold">初級學徒</span>
-                                    <span className="text-[10px] opacity-70">1-20 (顯示)</span>
-                                </button>
-                                <button 
-                                    onClick={() => setDifficulty('advanced')}
-                                    className={`p-3 md:p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 ${difficulty === 'advanced' ? 'border-purple-500 bg-purple-500/10 text-white' : 'border-slate-700 hover:border-slate-600 text-slate-400'}`}
-                                >
-                                    <EyeOff className="w-6 h-6" />
-                                    <span className="font-bold">週期表大師</span>
-                                    <span className="text-[10px] opacity-70">全範圍 (盲測 +5s)</span>
-                                </button>
-                            </div>
-
-                            <button 
-                                onClick={startGame}
-                                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold py-4 rounded-xl text-lg shadow-lg hover:shadow-blue-500/20 transition-all transform hover:scale-[1.02]"
-                            >
-                                開始挑戰 (2分鐘)
-                            </button>
-                        </div>
-
-                        {/* Leaderboard Panel */}
-                        <Leaderboard data={leaderboard} currentUserId={user?.uid} />
-                    </div>
-                </div>
-            )}
-
-            {/* Game Over Overlay */}
-            {gameState === 'finished' && (
-                <div className="absolute inset-0 flex items-center justify-center bg-slate-950/80 backdrop-blur-md z-30 p-4">
-                    <div className="flex flex-col md:flex-row gap-6 max-w-4xl w-full items-center justify-center">
-                        <div className="bg-slate-900 border border-slate-700 p-8 rounded-2xl shadow-2xl max-w-md w-full text-center animate-in zoom-in duration-300">
-                            <Trophy className="w-16 h-16 text-yellow-400 mx-auto mb-4" />
-                            <h2 className="text-3xl font-bold text-white mb-2">挑戰結束！</h2>
-                            <div className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-blue-500 mb-4">
-                                {score}
-                            </div>
-                            {isSubmitting && <p className="text-sm text-blue-400 animate-pulse mb-4">分數上傳中...</p>}
-                            
-                            <div className="flex justify-center gap-8 mb-8 text-sm">
-                                <div>
-                                    <div className="text-slate-400 mb-1">難度</div>
-                                    <div className="font-bold text-white">{difficulty === 'beginner' ? '初級' : '大師'}</div>
-                                </div>
-                                <div>
-                                    <div className="text-slate-400 mb-1">命中率</div>
-                                    <div className="font-bold text-white">
-                                        {/* Accuracy = Correct / (Correct + Mistakes) */}
-                                        { (revealedIds.length + mistakes) > 0 
-                                            ? Math.round((revealedIds.length / (revealedIds.length + mistakes)) * 100) 
-                                            : 0 
-                                        }%
-                                    </div>
-                                </div>
-                            </div>
-
-                            <button 
-                                onClick={() => setGameState('menu')}
-                                className="w-full bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2"
-                            >
-                                <RotateCcw className="w-5 h-5" />
-                                再試一次
-                            </button>
-                        </div>
-
-                        {/* Leaderboard Panel (Visible on Game Over too) */}
-                        <Leaderboard data={leaderboard} currentUserId={user?.uid} />
-                    </div>
-                </div>
-            )}
-
-        </main>
     </div>
-  );
-}
+
+    <div class="input-group">
+        <input type="text" id="itemName" placeholder="輸入任務名稱 (例如：第一章剪輯)">
+        <select id="itemStatus">
+            <option value="待處理">待處理</option>
+            <option value="進行中">進行中</option>
+            <option value="已完成">已完成</option>
+        </select>
+        <button class="btn-add" onclick="addItem()">＋ 新增</button>
+    </div>
+
+    <div class="list-container" id="listRender">
+        </div>
+</div>
+
+<script>
+    // 1. 初始化資料
+    let dataList = JSON.parse(localStorage.getItem('myProjectData')) || [];
+
+    // 2. 渲染畫面
+    function render() {
+        const container = document.getElementById('listRender');
+        container.innerHTML = ''; // 清空
+
+        dataList.forEach((item, index) => {
+            // 決定狀態顏色
+            let badgeClass = 'status-todo';
+            if(item.status === '進行中') badgeClass = 'status-doing';
+            if(item.status === '已完成') badgeClass = 'status-done';
+
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.innerHTML = `
+                <div class="card-content">
+                    <span class="card-title">
+                        ${item.name} 
+                        <span class="badge ${badgeClass}">${item.status}</span>
+                    </span>
+                    <span class="card-subtitle">建立時間：${item.date}</span>
+                </div>
+                <div class="actions">
+                    <button class="btn-secondary" onclick="toggleStatus(${index})">切換狀態</button>
+                    <button class="btn-danger" onclick="deleteItem(${index})">刪除</button>
+                </div>
+            `;
+            container.appendChild(card);
+        });
+
+        // 每次渲染都自動儲存到 LocalStorage
+        saveToLocal();
+    }
+
+    // 3. 新增功能
+    function addItem() {
+        const nameInput = document.getElementById('itemName');
+        const statusInput = document.getElementById('itemStatus');
+        
+        if (nameInput.value.trim() === '') return alert('請輸入名稱');
+
+        const newItem = {
+            name: nameInput.value,
+            status: statusInput.value,
+            date: new Date().toLocaleString('zh-TW', { hour12: false })
+        };
+
+        dataList.push(newItem);
+        nameInput.value = ''; // 清空輸入框
+        render();
+    }
+
+    // 4. 刪除功能
+    function deleteItem(index) {
+        if(confirm('確定要刪除嗎？')) {
+            dataList.splice(index, 1);
+            render();
+        }
+    }
+
+    // 5. 切換狀態功能 (簡易版狀態機)
+    function toggleStatus(index) {
+        const current = dataList[index].status;
+        if (current === '待處理') dataList[index].status = '進行中';
+        else if (current === '進行中') dataList[index].status = '已完成';
+        else dataList[index].status = '待處理';
+        render();
+    }
+
+    // 6. 儲存到瀏覽器 (LocalStorage)
+    function saveToLocal() {
+        localStorage.setItem('myProjectData', JSON.stringify(dataList));
+    }
+
+    // 7. 匯出備份 (下載 JSON)
+    function exportData() {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dataList));
+        const downloadAnchorNode = document.createElement('a');
+        downloadAnchorNode.setAttribute("href", dataStr);
+        downloadAnchorNode.setAttribute("download", "project_backup_" + new Date().toISOString().slice(0,10) + ".json");
+        document.body.appendChild(downloadAnchorNode);
+        downloadAnchorNode.click();
+        downloadAnchorNode.remove();
+    }
+
+    // 8. 匯入還原
+    function importData(input) {
+        const file = input.files[0];
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const json = JSON.parse(e.target.result);
+                if (Array.isArray(json)) {
+                    dataList = json;
+                    render();
+                    alert('資料匯入成功！');
+                } else {
+                    alert('檔案格式錯誤');
+                }
+            } catch (error) {
+                alert('無法讀取檔案，請確認是正確的 JSON 備份檔');
+            }
+        };
+        reader.readAsText(file);
+    }
+
+    // 初始執行
+    render();
+</script>
+
+</body>
+</html>
