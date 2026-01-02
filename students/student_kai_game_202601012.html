@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>理科全能解密王 - 終極整合</title>
+    <style>
+        :root { 
+            --primary: #2c3e50; --accent: #e67e22; --success: #27ae60; --error: #e74c3c;
+            --bg: #f4f7f6; --card: #ffffff;
+        }
+        body { font-family: 'Segoe UI', 'PingFang TC', sans-serif; background: var(--bg); color: var(--primary); margin: 0; }
+        .container { max-width: 1000px; margin: 20px auto; padding: 20px; }
+        
+        /* 核心 Lobby：資訊牆設計 */
+        .lobby-card { background: var(--card); border-radius: 30px; padding: 40px; box-shadow: 0 20px 50px rgba(0,0,0,0.1); text-align: center; }
+        .main-title { font-size: 3rem; font-weight: 900; margin-bottom: 5px; color: var(--primary); }
+        .sub-title { color: #7f8c8d; margin-bottom: 30px; letter-spacing: 2px; }
+
+        .tutorial-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 35px; text-align: left; }
+        .tuto-box { background: #fffcf5; border: 1px solid #ffeada; padding: 20px; border-radius: 15px; font-size: 0.95rem; line-height: 1.6; position: relative; }
+        .tuto-box h4 { margin: 0 0 10px 0; color: var(--accent); font-size: 1.1rem; display: flex; align-items: center; }
+        .tuto-box ul { padding-left: 20px; margin: 5px 0; }
+        .badge { background: var(--primary); color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; margin-left: 8px; }
+
+        .example-box { background: #fff; border: 1px dashed #e67e22; padding: 12px; border-radius: 10px; margin-top: 10px; font-family: monospace; font-size: 0.85rem; }
+
+        /* 遊戲場景 */
+        .scene { display: none; }
+        .scene.active { display: block; animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .game-layout { display: grid; grid-template-columns: 2fr 1fr; gap: 25px; }
+        .equation-box { background: #eff6ff; border: 2px solid #3b82f6; border-radius: 25px; padding: 50px; min-height: 200px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 2rem; color: #1e40af; font-weight: bold; text-align: center; }
+        
+        input[type="text"] { width: 100%; padding: 18px; font-size: 1.5rem; border: 2px solid #ddd; border-radius: 15px; text-align: center; outline: none; margin: 20px 0; box-sizing: border-box; }
+        .btn-main { padding: 18px 60px; font-size: 1.3rem; font-weight: bold; border-radius: 15px; border: none; cursor: pointer; color: white; background: var(--primary); transition: 0.3s; width: 100%; }
+        .btn-main:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+
+        .sidebar { background: white; border-radius: 20px; padding: 20px; max-height: 600px; overflow-y: auto; border: 1px solid #eee; }
+        .letter-tag { display: flex; justify-content: space-between; padding: 6px; border-bottom: 1px solid #f0f0f0; font-family: monospace; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="scene-lobby" class="scene active">
+        <div class="lobby-card">
+            <h1 class="main-title">理科全能解密王</h1>
+            <div class="sub-title">SCIENTIFIC DECODER MAX</div>
+            
+            <div class="tutorial-grid">
+                <div class="tuto-box">
+                    <h4>📖 基礎轉換規則</h4>
+                    <ul>
+                        <li>解題求出兩個數字 (代數符號僅為稱呼)。</li>
+                        <li><b>A=1, B=2, ... Z=26</b> (依字母序換算)。</li>
+                        <li>拼湊：數字 P + 數字 Q → 字母 P(大寫) + 字母 Q(小寫)。</li>
+                        <li><b style="color:var(--error)">重根：</b> 若兩數相同，只取一個大寫字母。</li>
+                    </ul>
+                    <div class="example-box">例：解出 11, 1 → Ka → 答「鉀」<br>例：解出 8, 8 → O → 答「氧」</div>
+                </div>
+
+                <div class="tuto-box">
+                    <h4>🔥 硬核代數規範 <span class="badge">Lv.2+</span></h4>
+                    <ul>
+                        <li><b>隱藏係數：</b> 係數為 1 時會省略不寫。</li>
+                        <li><b>十字交乘：</b> x² 項可能含係數，請拆解首尾項。</li>
+                        <li><b>公式解與判別式：</b> 若拆解失敗，請算 D = b² - 4ac。</li>
+                        <li><b>無解機制：</b> 若判別式為負，請直接輸入「<b>無解</b>」。</li>
+                    </ul>
+                    <div class="example-box">3x² - 31x + 70 = 0 → (3x-10)(x-7) → 10, 7</div>
+                </div>
+            </div>
+
+            <button class="btn-main" onclick="enterGame()">開始解密挑戰</button>
+            <p style="margin-top:20px; font-size:0.9rem; color:#95a5a6;">🏆 最高紀錄：<span id="best-score">0</span></p>
+        </div>
+    </div>
+
+    <div id="scene-game" class="scene">
+        <div class="game-layout">
+            <div class="main-area">
+                <div style="margin-bottom:15px; display:flex; justify-content:space-between; align-items:center;">
+                    <span id="lvl-display" style="font-weight:bold; color:var(--accent);">LEVEL 1</span>
+                    <span style="font-weight:bold;">SCORE: <span id="score">0</span></span>
+                </div>
+                <div class="equation-box" id="q-text"></div>
+                <input type="text" id="ans-input" placeholder="元素名稱 或 無解" autocomplete="off" onkeypress="if(event.key==='Enter')checkAnswer()">
+                <button class="btn-main" onclick="checkAnswer()">提交 (Enter)</button>
+                <div id="feedback" style="margin-top:20px; text-align:center; font-weight:bold; min-height:30px;"></div>
+                <div style="text-align:center; margin-top:20px;">
+                    <button style="background:none; border:none; color:#7f8c8d; text-decoration:underline; cursor:pointer;" onclick="location.reload()">放棄並回主頁</button>
+                </div>
+            </div>
+
+            <div class="sidebar">
+                <p style="text-align:center; font-weight:bold; border-bottom:2px solid #f0f0f0; padding-bottom:10px;">字母/平方 參考表</p>
+                <div id="alphabet-list"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const elementData = {
+    "H":"氫","He":"氦","Li":"鋰","Be":"鈹","B":"硼","C":"碳","N":"氮","O":"氧","F":"氟","Ne":"氖",
+    "Na":"鈉","Mg":"鎂","Al":"鋁","Si":"矽","P":"磷","S":"硫","Cl":"氯","Ar":"氬","K":"鉀","Ca":"鈣",
+    "Sc":"鈧","Ti":"鈦","V":"釩","Cr":"鉻","Mn":"錳","Fe":"鐵","Co":"鈷","Ni":"鎳","Cu":"銅","Zn":"鋅",
+    "Ga":"鎵","Ge":"鍺","As":"砷","Se":"硒","Br":"溴","Kr":"氪","Rb":"銣","Sr":"鍶","Y":"釔","Zr":"鋯",
+    "In":"銦","Sn":"錫","Sb":"銻","Te":"碲","I":"碘","Xe":"氙","Cs":"髫","Ba":"鋇","La":"鑭",
+    "Pt":"鉑","Au":"金","Hg":"汞","Pb":"鉛","Bi":"鉍","Ra":"鐳","Ac":"錒"
+};
+    let score = 0, level = 1, currentP, currentQ, isNoSol = false, isProc = false;
+    let highScore = localStorage.getItem('sciUltraS') || 0;
+
+    document.getElementById('best-score').innerText = highScore;
+    const list = document.getElementById('alphabet-list');
+    for(let i=1; i<=26; i++) {
+        list.innerHTML += `<div class="letter-tag"><span>${String.fromCharCode(64+i)}: ${i}</span><span>²=${i*i}</span></div>`;
+    }
+
+    function enterGame() {
+        document.getElementById('scene-lobby').classList.remove('active');
+        document.getElementById('scene-game').classList.add('active');
+        nextQuestion();
+    }
+
+    function generateQuestion() {
+        const vars = ["x", "a", "m", "n"][Math.floor(Math.random()*4)];
+        isNoSol = Math.random() < 0.2; // 20% 無解機率
+        const txt = document.getElementById('q-text');
+        
+        const fmt = (n) => (n === 1 ? "" : n);
+
+        if (isNoSol) {
+            const a = Math.floor(Math.random() * 3) + 2;
+            const b = Math.floor(Math.random() * 5) + 1;
+            const c = Math.floor(Math.random() * 15) + 20;
+            txt.innerHTML = `${a}${vars}² + ${b}${vars} + ${c} = 0`;
+        } else {
+            const keys = Object.keys(elementData);
+            const sym = keys[Math.floor(Math.random() * keys.length)];
+            currentP = sym.charCodeAt(0) - 64;
+            currentQ = sym.length > 1 ? sym.charCodeAt(1) - 96 : currentP;
+
+            if (level === 1) {
+                // 等級 1: 二元一次 (係數為 1)
+                txt.innerHTML = `${vars} + y = ${currentP+currentQ}<br>${vars} - y = ${Math.abs(currentP-currentQ)}`;
+            } else {
+                // 等級 2+: 十字交乘 (ax² - (p+aq)x + pq = 0)
+                const a = Math.floor(Math.random() * 3) + 2;
+                const bVal = currentP + (a * currentQ);
+                const cVal = currentP * currentQ;
+                txt.innerHTML = `${a}${vars}² - ${bVal}${vars} + ${cVal} = 0`;
+            }
+        }
+    }
+
+    function checkAnswer() {
+        if(isProc) return;
+        const input = document.getElementById('ans-input').value.trim();
+        const feedback = document.getElementById('feedback');
+        let correct = false;
+
+        if (isNoSol) {
+            if (input === "無解") correct = true;
+        } else {
+            const s1 = String.fromCharCode(64+currentP) + (currentP===currentQ ? "" : String.fromCharCode(96+currentQ));
+            const s2 = String.fromCharCode(64+currentQ) + (currentP===currentQ ? "" : String.fromCharCode(96+currentP));
+            if (input === elementData[s1] || input === elementData[s2]) correct = true;
+        }
+
+        if (correct) {
+            isProc = true; score += 10;
+            if(score > highScore) { highScore = score; localStorage.setItem('sciUltraS', score); }
+            feedback.innerText = "✨ 解密成功！"; feedback.style.color = "var(--success)";
+            if (score % 30 === 0) level++; 
+            setTimeout(() => { isProc = false; nextQuestion(); }, 1000);
+        } else {
+            feedback.innerText = "❌ 邏輯錯誤，再試一次！"; feedback.style.color = "var(--error)";
+        }
+    }
+
+    function nextQuestion() {
+        document.getElementById('ans-input').value = "";
+        document.getElementById('ans-input').focus();
+        document.getElementById('feedback').innerText = "";
+        document.getElementById('score').innerText = score;
+        document.getElementById('lvl-display').innerText = "LEVEL " + level;
+        generateQuestion();
+    }
+</script>
+</body>
+</html>
