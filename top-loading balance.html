@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>上皿天平互動實驗</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f0fdfa; user-select: none; }
+        .draggable { touch-action: none; } /* 避免手機端拖曳時滾動頁面 */
+        .cursor-grabbing { cursor: grabbing !important; }
+        
+        /* 木質與金屬質感漸層 */
+        .wood-bg { background: linear-gradient(135deg, #d97706, #b45309); }
+        .metal-bg { background: linear-gradient(to bottom, #94a3b8, #475569); }
+        .brass-bg { background: linear-gradient(135deg, #fbbf24, #d97706); }
+        .pan-bg { background: linear-gradient(to bottom, rgba(241, 245, 249, 0.8), rgba(203, 213, 225, 0.9)); }
+        
+        /* 砝碼特殊造型 */
+        .weight-item {
+            clip-path: polygon(20% 0, 80% 0, 100% 20%, 100% 100%, 0 100%, 0 20%);
+            box-shadow: inset 0 -2px 6px rgba(0,0,0,0.5), 0 2px 4px rgba(0,0,0,0.3);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-start py-6 px-4">
+
+    <!-- 標題與說明區 -->
+    <div class="w-full max-w-4xl bg-white p-4 rounded-xl shadow-md mb-6 border-t-4 border-teal-500">
+        <h1 class="text-2xl font-bold text-gray-800 mb-2 flex items-center justify-between">
+            <span>⚖️ 實驗室：上皿天平測量</span>
+            <span id="status-badge" class="text-sm px-3 py-1 bg-red-100 text-red-700 rounded-full font-semibold transition-colors duration-300">未平衡</span>
+        </h1>
+        <p class="text-gray-600 text-sm md:text-base">
+            <strong>實驗步驟：</strong><br>
+            1. 觀察指針，若未對準中央刻度，請直接拖曳天平兩側的<strong>校準螺絲</strong>使天平歸零。<br>
+            2. 將想要測量的<strong>待測物</strong>拖曳至<strong>左盤</strong>。<br>
+            3. 依序將<strong>砝碼</strong>拖曳至<strong>右盤</strong>，直到天平再次平衡，加總右盤的砝碼即為物品重量。
+        </p>
+    </div>
+
+    <div class="relative w-full max-w-4xl h-[450px] bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden flex flex-col justify-end items-center mb-6">
+        <!-- 裝飾背景網格 -->
+        <div class="absolute inset-0 opacity-[0.03] pointer-events-none" style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 20px 20px;"></div>
+
+        <!-- 天平容器 -->
+        <div id="balance-container" class="relative w-[500px] h-[350px] pointer-events-none">
+            
+            <!-- 底座 -->
+            <div class="absolute bottom-4 left-1/2 -ml-[120px] w-[240px] h-8 metal-bg rounded-t-xl shadow-[0_-4px_10px_rgba(0,0,0,0.1)] z-10"></div>
+            
+            <!-- 中央支柱 (加高以支撐頂部刻度板) -->
+            <div class="absolute bottom-12 left-1/2 -ml-[12px] w-[24px] h-[280px] metal-bg z-10 shadow-inner"></div>
+
+            <!-- 刻度板 (移至支柱頂部，並調整刻度朝下) -->
+            <div class="absolute bottom-[290px] left-1/2 -ml-[40px] w-[80px] h-[30px] bg-gray-100 border-2 border-gray-400 rounded-b-full z-10 overflow-hidden shadow-sm">
+                <div class="absolute top-0 left-1/2 -ml-[1px] w-[2px] h-[15px] bg-red-600"></div> <!-- 中央刻度 -->
+                <div class="absolute top-0 left-[20px] w-[1px] h-[10px] bg-gray-500"></div>
+                <div class="absolute top-0 left-[60px] w-[1px] h-[10px] bg-gray-500"></div>
+                <div class="absolute top-0 left-[10px] w-[1px] h-[6px] bg-gray-400"></div>
+                <div class="absolute top-0 left-[30px] w-[1px] h-[6px] bg-gray-400"></div>
+                <div class="absolute top-0 left-[50px] w-[1px] h-[6px] bg-gray-400"></div>
+                <div class="absolute top-0 left-[70px] w-[1px] h-[6px] bg-gray-400"></div>
+            </div>
+
+            <!-- 橫樑 (旋轉中心) -->
+            <div id="beam" class="absolute bottom-[200px] left-1/2 -ml-[200px] -mb-[8px] w-[400px] h-[16px] bg-slate-700 rounded-full origin-center z-20 shadow-md">
+                <!-- 指針 (跟隨橫樑旋轉，改為指向上方) -->
+                <div class="absolute bottom-1/2 left-1/2 -ml-[2px] w-[4px] h-[120px] bg-red-500 origin-bottom rounded-t-full shadow-lg"></div>
+
+                <!-- 左校準螺絲軌道與螺絲 (移至橫樑最外側，並開啟 pointer-events) -->
+                <div class="absolute top-1/2 left-[-40px] -mt-[2px] w-[50px] h-[4px] metal-bg rounded-l-full"></div>
+                <div id="visual-nut-left" class="absolute top-1/2 left-[-25px] -mt-[12px] w-[16px] h-[24px] brass-bg rounded-sm shadow-md transition-none border border-amber-700 z-30 cursor-ew-resize flex items-center justify-center pointer-events-auto touch-none" title="拖曳調整左校準螺絲">
+                    <div class="w-[2px] h-full bg-amber-900/30"></div>
+                    <div class="w-[2px] h-full bg-amber-900/30 ml-[2px]"></div>
+                </div>
+                
+                <!-- 右校準螺絲軌道與螺絲 -->
+                <div class="absolute top-1/2 right-[-40px] -mt-[2px] w-[50px] h-[4px] metal-bg rounded-r-full"></div>
+                <div id="visual-nut-right" class="absolute top-1/2 right-[-25px] -mt-[12px] w-[16px] h-[24px] brass-bg rounded-sm shadow-md transition-none border border-amber-700 z-30 cursor-ew-resize flex items-center justify-center pointer-events-auto touch-none" title="拖曳調整右校準螺絲">
+                    <div class="w-[2px] h-full bg-amber-900/30"></div>
+                    <div class="w-[2px] h-full bg-amber-900/30 ml-[2px]"></div>
+                </div>
+
+                <!-- 左托盤包裹層 (位於橫樑最左側，將進行反向旋轉以保持水平) -->
+                <div id="left-pan-wrapper" class="absolute top-1/2 left-[10px] w-0 h-0 z-0">
+                    <!-- 實際托盤區 -->
+                    <div class="absolute bottom-0 left-1/2 -ml-[75px] w-[150px] h-[100px] pan-bg border-b-8 border-gray-400 rounded-b-xl shadow-lg flex flex-col justify-end items-center pb-[2px] pointer-events-auto drop-zone" id="left-pan">
+                        <div class="text-gray-400 font-bold mb-auto pt-2 text-sm opacity-50">左盤 (待測物)</div>
+                        <div id="left-pan-items" class="w-full h-full flex flex-wrap-reverse content-start justify-center gap-1 p-2"></div>
+                    </div>
+                    <!-- 支撐架 -->
+                    <div class="absolute top-0 left-1/2 -ml-[4px] w-[8px] h-[15px] metal-bg"></div>
+                </div>
+
+                <!-- 右托盤包裹層 -->
+                <div id="right-pan-wrapper" class="absolute top-1/2 right-[10px] w-0 h-0 z-0">
+                    <!-- 實際托盤區 -->
+                    <div class="absolute bottom-0 left-1/2 -ml-[75px] w-[150px] h-[100px] pan-bg border-b-8 border-gray-400 rounded-b-xl shadow-lg flex flex-col justify-end items-center pb-[2px] pointer-events-auto drop-zone" id="right-pan">
+                        <div class="text-gray-400 font-bold mb-auto pt-2 text-sm opacity-50">右盤 (砝碼)</div>
+                        <div id="right-pan-items" class="w-full h-full flex flex-wrap-reverse content-start justify-center gap-1 p-2"></div>
+                    </div>
+                    <!-- 支撐架 -->
+                    <div class="absolute top-0 left-1/2 -ml-[4px] w-[8px] h-[15px] metal-bg"></div>
+                </div>
+            </div>
+            
+            <!-- 支點裝飾 -->
+            <div class="absolute bottom-[194px] left-1/2 -ml-[8px] w-[16px] h-[16px] bg-slate-900 rounded-full z-30 border-2 border-slate-600 shadow-md"></div>
+        </div>
+    </div>
+
+    <!-- 將按鈕與庫存區整合，移除原本的滑桿控制區 -->
+    <div class="w-full max-w-4xl bg-white p-4 rounded-xl shadow-md border border-gray-200 drop-zone" id="inventory">
+        <div class="flex justify-between items-center flex-wrap gap-2 mb-2 border-b pb-2">
+            <h3 class="font-bold text-gray-700">📦 物品庫 (拖曳至盤上)</h3>
+            <div class="flex gap-2">
+                <button id="btn-reset-items" class="bg-amber-100 hover:bg-amber-200 text-amber-800 font-bold py-1.5 px-4 rounded transition-colors text-sm shadow-sm">
+                    重置所有物品
+                </button>
+                <button id="btn-new-error" class="bg-teal-100 hover:bg-teal-200 text-teal-800 font-bold py-1.5 px-4 rounded transition-colors text-sm shadow-sm">
+                    弄亂天平
+                </button>
+            </div>
+        </div>
+        <div id="inventory-items" class="flex flex-wrap gap-4 mt-3 min-h-[120px] items-center">
+                
+                <!-- 待測物 -->
+                <div class="draggable w-12 h-12 flex items-center justify-center text-4xl cursor-grab transition-transform hover:scale-110 relative" data-mass="65" data-type="object" title="蘋果">
+                    🍎
+                    <span class="absolute -bottom-4 text-xs font-bold text-gray-500 pointer-events-none">蘋果</span>
+                </div>
+                <div class="draggable w-10 h-10 flex items-center justify-center text-3xl cursor-grab transition-transform hover:scale-110 relative" data-mass="24" data-type="object" title="電池">
+                    🔋
+                    <span class="absolute -bottom-4 text-xs font-bold text-gray-500 pointer-events-none">電池</span>
+                </div>
+                <div class="draggable w-8 h-8 flex items-center justify-center text-2xl cursor-grab transition-transform hover:scale-110 relative" data-mass="8" data-type="object" title="鑰匙">
+                    🔑
+                    <span class="absolute -bottom-4 text-xs font-bold text-gray-500 pointer-events-none">鑰匙</span>
+                </div>
+                <div class="draggable w-10 h-10 flex items-center justify-center text-3xl cursor-grab transition-transform hover:scale-110 relative" data-mass="133" data-type="object" title="書本">
+                    📘
+                    <span class="absolute -bottom-4 text-xs font-bold text-gray-500 pointer-events-none">書本</span>
+                </div>
+
+                <div class="w-[1px] h-12 bg-gray-300 mx-2"></div> <!-- 分隔線 -->
+
+                <!-- 砝碼 -->
+                <!-- 100g -->
+                <div class="draggable weight-item brass-bg w-10 h-12 flex items-center justify-center text-white font-bold text-sm cursor-grab transition-transform hover:scale-105" data-mass="100" data-type="weight">100g</div>
+                <!-- 50g -->
+                <div class="draggable weight-item brass-bg w-9 h-10 flex items-center justify-center text-white font-bold text-xs cursor-grab transition-transform hover:scale-105" data-mass="50" data-type="weight">50g</div>
+                <!-- 20g (x2) -->
+                <div class="draggable weight-item metal-bg w-7 h-8 flex items-center justify-center text-white font-bold text-[10px] cursor-grab transition-transform hover:scale-105" data-mass="20" data-type="weight">20g</div>
+                <div class="draggable weight-item metal-bg w-7 h-8 flex items-center justify-center text-white font-bold text-[10px] cursor-grab transition-transform hover:scale-105" data-mass="20" data-type="weight">20g</div>
+                <!-- 10g -->
+                <div class="draggable weight-item metal-bg w-6 h-7 flex items-center justify-center text-white font-bold text-[9px] cursor-grab transition-transform hover:scale-105" data-mass="10" data-type="weight">10g</div>
+                <!-- 5g -->
+                <div class="draggable weight-item bg-gray-400 w-5 h-6 flex items-center justify-center text-gray-800 font-bold text-[8px] cursor-grab transition-transform hover:scale-105 shadow-md" data-mass="5" data-type="weight">5g</div>
+                <!-- 2g (x2) -->
+                <div class="draggable weight-item bg-gray-300 w-4 h-5 flex items-center justify-center text-gray-800 font-bold text-[7px] cursor-grab transition-transform hover:scale-105 shadow-md" data-mass="2" data-type="weight">2g</div>
+                <div class="draggable weight-item bg-gray-300 w-4 h-5 flex items-center justify-center text-gray-800 font-bold text-[7px] cursor-grab transition-transform hover:scale-105 shadow-md" data-mass="2" data-type="weight">2g</div>
+                <!-- 1g -->
+                <div class="draggable weight-item bg-gray-300 w-3 h-4 flex items-center justify-center text-gray-800 font-bold text-[6px] cursor-grab transition-transform hover:scale-105 shadow-sm" data-mass="1" data-type="weight">1g</div>
+                
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM 元素
+        const beam = document.getElementById('beam');
+        const leftPanWrapper = document.getElementById('left-pan-wrapper');
+        const rightPanWrapper = document.getElementById('right-pan-wrapper');
+        const visualNutLeft = document.getElementById('visual-nut-left');
+        const visualNutRight = document.getElementById('visual-nut-right');
+        const leftPanItems = document.getElementById('left-pan-items');
+        const rightPanItems = document.getElementById('right-pan-items');
+        const inventoryItems = document.getElementById('inventory-items');
+        const statusBadge = document.getElementById('status-badge');
+
+        // 移除滑桿變數，改用內部狀態
+        let leftNutValue = 0;
+        let rightNutValue = 0;
+
+        // 物理與狀態變數
+        let currentAngle = 0;
+        let velocity = 0;
+        const springConstant = 0.08;
+        const damping = 0.88;
+        const maxAngle = 22; // 最大傾斜角度
+        const sensitivity = 1.5; // 每克造成的角度變化
+
+        let initialSystemError = 0; // 天平初始未歸零的誤差
+        
+        let leftMass = 0;
+        let rightMass = 0;
+
+        // 拖曳狀態 (包含物品與螺絲)
+        let activeDragItem = null;
+        let originalParent = null;
+        let shiftX = 0, shiftY = 0;
+        
+        let activeNut = null;
+        let startNutClientX = 0;
+        let startNutValue = 0;
+
+        // 初始化
+        function init() {
+            randomizeError();
+            setupEventListeners();
+            requestAnimationFrame(physicsLoop);
+        }
+
+        // 隨機產生天平初始誤差 (強迫使用者歸零)
+        function randomizeError() {
+            // 隨機 -4 到 +4 克的誤差，排除 0
+            do {
+                initialSystemError = (Math.random() * 8) - 4;
+            } while (Math.abs(initialSystemError) < 0.5);
+            
+            // 重置螺絲狀態
+            leftNutValue = 0;
+            rightNutValue = 0;
+            updateVisualNuts();
+        }
+
+        function updateVisualNuts() {
+            // 螺絲數值 -5 ~ 5。映射到視覺位置
+            // 基準位置 -25px。數值越大(正)，螺絲越向外側移動。
+            visualNutLeft.style.left = `${-25 - (leftNutValue * 3)}px`;
+            visualNutRight.style.right = `${-25 - (rightNutValue * 3)}px`;
+        }
+
+        // 計算左右盤的總質量
+        function calculateMasses() {
+            leftMass = 0;
+            Array.from(leftPanItems.children).forEach(item => {
+                leftMass += parseFloat(item.dataset.mass || 0);
+            });
+
+            rightMass = 0;
+            Array.from(rightPanItems.children).forEach(item => {
+                rightMass += parseFloat(item.dataset.mass || 0);
+            });
+        }
+
+        function physicsLoop() {
+            // 計算力矩/目標角度
+            // 【修正物理邏輯：符合真實力矩與槓桿原理】
+            // 1. 旋轉定義：CSS rotate 正值為順時針(右側下沉)，負值為逆時針(左側下沉)
+            // 2. 右盤質量 (rightMass) 產生順時針力矩 (正)
+            // 3. 左盤質量 (leftMass)  產生逆時針力矩 (負)
+            // 4. 校準螺絲：螺絲向外拉 (NutValue為正) 代表力臂變長，增加該側力矩。
+            //    - 右側螺絲向外拉 -> 增加順時針力矩 (正向)
+            //    - 左側螺絲向外拉 -> 增加逆時針力矩 (負向)
+            const netTorque = (rightMass - leftMass) + initialSystemError + (rightNutValue - leftNutValue);
+            
+            let targetAngle = netTorque * sensitivity;
+            
+            // 如果極度接近平衡，直接對齊 0 (增加使用者友善的吸附感)
+            if (Math.abs(netTorque) < 0.2) {
+                targetAngle = 0;
+            }
+
+            // 限制最大角度
+            if (targetAngle > maxAngle) targetAngle = maxAngle;
+            if (targetAngle < -maxAngle) targetAngle = -maxAngle;
+
+            // 彈簧阻尼系統
+            let diff = targetAngle - currentAngle;
+            let acceleration = diff * springConstant;
+            velocity += acceleration;
+            velocity *= damping;
+            currentAngle += velocity;
+
+            // 邊界碰撞反彈 (增加真實感)
+            if (currentAngle > maxAngle) {
+                currentAngle = maxAngle;
+                velocity = -velocity * 0.4;
+            } else if (currentAngle < -maxAngle) {
+                currentAngle = -maxAngle;
+                velocity = -velocity * 0.4;
+            }
+
+            // 更新 DOM (確保不覆蓋原有的排版 class)
+            beam.style.transform = `rotate(${currentAngle}deg)`;
+            
+            // 托盤包裹層反向旋轉，維持托盤水平
+            leftPanWrapper.style.transform = `rotate(${-currentAngle}deg)`;
+            rightPanWrapper.style.transform = `rotate(${-currentAngle}deg)`;
+
+            // 更新 UI 狀態標籤
+            updateStatusBadge(netTorque, targetAngle);
+
+            requestAnimationFrame(physicsLoop);
+        }
+
+        function updateStatusBadge(netTorque, targetAngle) {
+            if (Math.abs(currentAngle) < 0.5 && Math.abs(velocity) < 0.1) {
+                if (Math.abs(netTorque) < 0.2) {
+                    if (leftMass === 0 && rightMass === 0) {
+                        statusBadge.textContent = "已歸零";
+                        statusBadge.className = "text-sm px-3 py-1 bg-green-100 text-green-700 rounded-full font-semibold transition-colors duration-300";
+                    } else {
+                        statusBadge.textContent = "⚖️ 已平衡！";
+                        statusBadge.className = "text-sm px-3 py-1 bg-blue-100 text-blue-700 rounded-full font-semibold transition-colors duration-300 shadow-[0_0_10px_rgba(59,130,246,0.5)]";
+                    }
+                } else {
+                    statusBadge.textContent = "未平衡";
+                    statusBadge.className = "text-sm px-3 py-1 bg-red-100 text-red-700 rounded-full font-semibold transition-colors duration-300";
+                }
+            } else {
+                statusBadge.textContent = "晃動中...";
+                statusBadge.className = "text-sm px-3 py-1 bg-amber-100 text-amber-700 rounded-full font-semibold transition-colors duration-300";
+            }
+        }
+
+        function setupEventListeners() {
+            // 按鈕事件
+            document.getElementById('btn-reset-items').addEventListener('click', () => {
+                const items = document.querySelectorAll('.draggable');
+                items.forEach(item => inventoryItems.appendChild(item));
+                calculateMasses();
+            });
+
+            document.getElementById('btn-new-error').addEventListener('click', randomizeError);
+
+            // 拖曳事件 (支援滑鼠與觸控)
+            document.addEventListener('pointerdown', handlePointerDown);
+            document.addEventListener('pointermove', handlePointerMove);
+            document.addEventListener('pointerup', handlePointerUp);
+            document.addEventListener('pointercancel', handlePointerUp);
+        }
+
+        function handlePointerDown(e) {
+            // 檢查是否點擊到校準螺絲
+            if (e.target.closest('#visual-nut-left')) {
+                e.preventDefault();
+                activeNut = 'left';
+                startNutClientX = e.clientX;
+                startNutValue = leftNutValue;
+                visualNutLeft.setPointerCapture(e.pointerId);
+                return;
+            }
+            if (e.target.closest('#visual-nut-right')) {
+                e.preventDefault();
+                activeNut = 'right';
+                startNutClientX = e.clientX;
+                startNutValue = rightNutValue;
+                visualNutRight.setPointerCapture(e.pointerId);
+                return;
+            }
+
+            const draggable = e.target.closest('.draggable');
+            if (!draggable) return;
+
+            e.preventDefault(); // 防止滾動等預設行為
+            activeDragItem = draggable;
+            originalParent = activeDragItem.parentNode;
+
+            // 視覺效果
+            activeDragItem.classList.add('cursor-grabbing');
+            activeDragItem.classList.remove('hover:scale-110', 'hover:scale-105');
+            
+            // 捕獲游標
+            activeDragItem.setPointerCapture(e.pointerId);
+
+            // 取得當前點擊相對於元素左上角的偏移量，為了拖曳時平滑
+            const rect = activeDragItem.getBoundingClientRect();
+            shiftX = e.clientX - rect.left;
+            shiftY = e.clientY - rect.top;
+
+            // 脫離原本文件流，準備絕對定位拖曳
+            activeDragItem.style.position = 'fixed';
+            activeDragItem.style.zIndex = '1000';
+            document.body.appendChild(activeDragItem);
+
+            moveAt(e.clientX, e.clientY);
+            
+            // 先計算一次重量，因為物品被拿起了
+            calculateMasses(); 
+        }
+
+        function handlePointerMove(e) {
+            if (activeNut) {
+                const deltaX = e.clientX - startNutClientX;
+                if (activeNut === 'left') {
+                    // 往左滑動 (deltaX 為負) 代表向外轉出，數值增加
+                    leftNutValue = startNutValue - (deltaX / 3);
+                    if (leftNutValue > 5) leftNutValue = 5;
+                    if (leftNutValue < -5) leftNutValue = -5;
+                } else if (activeNut === 'right') {
+                    // 往右滑動 (deltaX 為正) 代表向外轉出，數值增加
+                    rightNutValue = startNutValue + (deltaX / 3);
+                    if (rightNutValue > 5) rightNutValue = 5;
+                    if (rightNutValue < -5) rightNutValue = -5;
+                }
+                updateVisualNuts();
+                return; 
+            }
+
+            if (!activeDragItem) return;
+            moveAt(e.clientX, e.clientY);
+        }
+
+        function moveAt(clientX, clientY) {
+            activeDragItem.style.left = clientX - shiftX + 'px';
+            activeDragItem.style.top = clientY - shiftY + 'px';
+        }
+
+        function handlePointerUp(e) {
+            if (activeNut) {
+                if (activeNut === 'left') visualNutLeft.releasePointerCapture(e.pointerId);
+                if (activeNut === 'right') visualNutRight.releasePointerCapture(e.pointerId);
+                activeNut = null;
+                return;
+            }
+
+            if (!activeDragItem) return;
+
+            // 釋放游標與隱藏元素以偵測下方目標
+            activeDragItem.releasePointerCapture(e.pointerId);
+            activeDragItem.style.pointerEvents = 'none'; // 暫時穿透
+            
+            // 尋找游標下方的元素
+            const dropTargetElement = document.elementFromPoint(e.clientX, e.clientY);
+            const dropZone = dropTargetElement ? dropTargetElement.closest('.drop-zone') : null;
+            
+            activeDragItem.style.pointerEvents = ''; // 恢復
+            
+            // 恢復原本樣式
+            activeDragItem.style.position = '';
+            activeDragItem.style.zIndex = '';
+            activeDragItem.style.left = '';
+            activeDragItem.style.top = '';
+            activeDragItem.classList.remove('cursor-grabbing');
+            
+            if (activeDragItem.dataset.type === 'object') activeDragItem.classList.add('hover:scale-110');
+            else activeDragItem.classList.add('hover:scale-105');
+
+            // 判斷落點
+            if (dropZone) {
+                if (dropZone.id === 'left-pan') {
+                    leftPanItems.appendChild(activeDragItem);
+                } else if (dropZone.id === 'right-pan') {
+                    rightPanItems.appendChild(activeDragItem);
+                } else if (dropZone.id === 'inventory') {
+                    inventoryItems.appendChild(activeDragItem);
+                } else {
+                    originalParent.appendChild(activeDragItem);
+                }
+            } else {
+                // 不在有效區域，放回原處
+                originalParent.appendChild(activeDragItem);
+            }
+
+            // 更新重量與物理
+            calculateMasses();
+            activeDragItem = null;
+        }
+
+        // 啟動
+        window.onload = init;
+
+    </script>
+</body>
+</html>
