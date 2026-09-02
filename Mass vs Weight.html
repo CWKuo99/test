@@ -141,9 +141,17 @@
                                     10 kg
                                 </div>
                             </div>
-                            <div class="mt-4 text-center">
-                                <div class="text-xl font-bold text-indigo-600" id="weight-n-display">98.1 N</div>
-                                <div class="text-sm text-slate-500" id="weight-kgw-display">10.00 kgw</div>
+                            <div class="mt-4 text-center w-52">
+                                <div class="text-2xl font-bold text-indigo-600" id="weight-n-display">98.1 N</div>
+                                <div class="text-base font-medium text-slate-700 bg-white border-2 border-slate-200 rounded-md px-3 py-1 inline-block mt-1 shadow-sm" id="weight-kgw-display">10.00 kgw</div>
+                                
+                                <!-- 動態解說卡片 (針對盲點探討) -->
+                                <div class="mt-4 bg-blue-50/80 border border-blue-200 p-3 rounded-xl text-left shadow-sm relative text-xs text-blue-800 leading-relaxed backdrop-blur-sm">
+                                    <div class="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-blue-50 border-t border-l border-blue-200 transform rotate-45"></div>
+                                    <div id="weight-explanation" class="relative z-10">
+                                        <!-- JS將動態注入解釋 -->
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -254,6 +262,7 @@
         const springMassBox = document.getElementById('spring-mass-box');
         const weightNDisplay = document.getElementById('weight-n-display');
         const weightKgwDisplay = document.getElementById('weight-kgw-display');
+        const weightExplanation = document.getElementById('weight-explanation');
         
         // 天平相關 DOM
         const zeroGravityAlert = document.getElementById('zero-gravity-alert');
@@ -319,6 +328,33 @@
             springMassBox.textContent = `${currentMass} kg`;
             weightNDisplay.textContent = `${weightN.toFixed(1)} N`;
             weightKgwDisplay.textContent = `${weightKgw.toFixed(2)} kgw`;
+
+            // 更新重量換算解說 (動態對應環境)
+            if (env.id === 'earth') {
+                weightExplanation.innerHTML = `
+                    <span class="font-bold text-blue-900 text-sm">數值為何與質量相同？</span><br/>
+                    地球環境 <i>g</i> = 9.81。<br/>
+                    <i>W</i> = ${currentMass} &times; 9.81 = ${weightN.toFixed(1)} N。<br/>
+                    而 1 kgw 定義為 9.81 N，換算回去：<br/>
+                    <span class="bg-blue-200 px-1.5 py-0.5 rounded text-blue-900 font-medium mt-1 mb-1 inline-block">kgw = N &divide; 9.81 = ${currentMass}</span><br/>
+                    <span class="text-rose-600 font-bold mt-1 block border-t border-blue-200 pt-1.5">💡 質量(kg)與重量(kgw)在地球上數值相同，是定義造成的巧合。</span>
+                `;
+            } else if (env.g === 0) {
+                weightExplanation.innerHTML = `
+                    <span class="font-bold text-blue-900 text-sm">無重力狀態</span><br/>
+                    環境 <i>g</i> = 0，無引力作用。<br/>
+                    牛頓(N)與公斤重(kgw)均為 0。<br/>
+                    <span class="text-rose-600 font-bold mt-2 block border-t border-blue-200 pt-1.5">💡 重量變為 0，但質量 (${currentMass} kg) 屬物質內含屬性，完全不受環境影響！</span>
+                `;
+            } else {
+                weightExplanation.innerHTML = `
+                    <span class="font-bold text-blue-900 text-sm">環境改變，引力(g)改變！</span><br/>
+                    <i>W</i> = ${currentMass} &times; ${env.g.toFixed(2)} = <strong>${weightN.toFixed(1)} N</strong><br/>
+                    換算為地球標準公斤重：<br/>
+                    <span class="bg-blue-200 px-1.5 py-0.5 rounded text-blue-900 font-medium mt-1 mb-1 inline-block">kgw = N &divide; 9.81 = ${weightKgw.toFixed(2)}</span><br/>
+                    <span class="text-rose-600 font-bold mt-1 block border-t border-blue-200 pt-1.5">💡 重量已隨引力改變，但質量 (${currentMass} kg) 絕對不變。</span>
+                `;
+            }
 
             // 更新天平數值與失效狀態
             balanceLeftMass.textContent = `${currentMass}kg`;
