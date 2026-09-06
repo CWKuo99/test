@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>密度與體積探究模擬實驗室</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f3f4f6; }
+        
+        .object-block { 
+            transition: transform 0.1s, box-shadow 0.2s; 
+            cursor: grab; 
+            border: 2px solid transparent; 
+        }
+        .object-block:active { cursor: grabbing; transform: scale(0.95); }
+        .object-block:hover { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); }
+        
+        .wet-indicator {
+            position: absolute; top: -6px; right: -6px;
+            background-color: #3b82f6; color: white;
+            border-radius: 50%; width: 22px; height: 22px;
+            font-size: 12px; display: flex; align-items: center; justify-content: center;
+            animation: drip 1.5s infinite;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            z-index: 10;
+        }
+        @keyframes drip {
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            50% { transform: translateY(3px) scale(0.9); opacity: 0.8; }
+            100% { transform: translateY(0) scale(1); opacity: 1; }
+        }
+
+        .equipment-zone { min-height: 180px; transition: background-color 0.2s; }
+        .drag-over { background-color: #e0f2fe !important; border-color: #3b82f6 !important; }
+        
+        .cylinder-container {
+            background: linear-gradient(90deg, rgba(255,255,255,0.5) 0%, rgba(240,240,240,0.8) 50%, rgba(255,255,255,0.5) 100%);
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
+        }
+        .cylinder-water { 
+            /* 模擬水體上升的彈性物理效果 */
+            transition: height 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); 
+            background: linear-gradient(180deg, rgba(147, 197, 253, 0.6) 0%, rgba(59, 130, 246, 0.6) 100%);
+            border-top: 2px solid rgba(255,255,255,0.8);
+            box-shadow: 0 -2px 4px rgba(59, 130, 246, 0.3);
+        }
+        /* 彎月面特效 */
+        .cylinder-water::before {
+            content: ''; absolute; top: -4px; left: 0; right: 0; height: 6px;
+            background: rgba(147, 197, 253, 0.4);
+            border-radius: 50%;
+        }
+
+        /* 刻度線設定 */
+        .tick-mark { position: absolute; left: 0; width: 8px; border-bottom: 1px solid #9ca3af; }
+        .tick-mark.medium { width: 14px; border-bottom: 1px solid #6b7280; }
+        .tick-mark.major { width: 22px; border-bottom: 2px solid #4b5563; }
+        .tick-label { position: absolute; left: 26px; font-size: 10px; color: #4b5563; transform: translateY(-50%); }
+    </style>
+</head>
+<body class="p-4 md:p-6 h-screen flex flex-col relative">
+
+    <div id="toast-container" class="fixed top-5 left-1/2 transform -translate-x-1/2 z-50 flex flex-col gap-2 w-full max-w-md pointer-events-none"></div>
+
+    <header class="mb-4 flex flex-col md:flex-row md:justify-between md:items-end gap-2">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-800">🧪 密度與體積探究模擬實驗室</h1>
+            <p class="text-gray-600 mt-1">請將物件拖曳至天平或量筒中進行測量，並將讀出的數據手動輸入至右側紀錄表中。</p>
+        </div>
+        <div class="text-sm text-amber-700 font-semibold bg-amber-100 px-3 py-2 rounded-md shadow-sm border border-amber-200">
+            💡 提示：請注意測量順序！物體若先碰水再秤重，會產生實驗誤差。
+        </div>
+    </header>
+
+    <div class="flex-1 flex flex-col lg:flex-row gap-6 overflow-hidden">
+        
+        <div class="w-full lg:w-1/2 flex flex-col gap-4">
+            
+            <div class="flex gap-4 flex-1">
+                <!-- 電子天平 -->
+                <div class="bg-white rounded-xl shadow-md p-4 flex-1 flex flex-col items-center justify-between border-t-4 border-slate-700">
+                    <h2 class="text-lg font-bold text-gray-700 mb-2">⚖️ 電子天平</h2>
+                    <!-- 拖曳放置區 -->
+                    <div id="scale-pad" 
+                         class="w-full h-32 bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center relative equipment-zone"
+                         ondragover="allowDrop(event)" ondragenter="dragEnter(event)" ondragleave="dragLeave(event)" ondrop="drop(event, 'scale')">
+                        <span class="text-gray-400 pointer-events-none">拖曳物件至此秤重</span>
+                    </div>
+                    <div class="mt-4 bg-green-900 text-green-400 font-mono text-3xl px-6 py-2 rounded-md tracking-wider w-full text-right shadow-inner">
+                        <span id="scale-display">0.00</span> g
+                    </div>
+                    <button onclick="tareScale()" class="mt-2 bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-1 rounded text-sm w-full transition font-medium">歸零 (Tare)</button>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-md p-4 flex-1 flex flex-col items-center justify-between border-t-4 border-blue-500">
+                    <h2 class="text-lg font-bold text-gray-700 mb-2">🚰 100mL 量筒</h2>
+                    
+                    <span class="text-xs text-blue-600 font-bold mb-3 bg-blue-50 px-3 py-1 rounded border border-blue-100">💡 提示：量筒內原有 50 毫升的水</span>
+                    
+                    <!-- 拖曳放置區 -->
+                    <div id="cylinder-pad-container" 
+                         class="relative w-28 h-64 border-l-2 border-r-2 border-b-2 border-gray-400 rounded-b-lg cylinder-container flex items-end justify-center equipment-zone overflow-hidden"
+                         ondragover="allowDrop(event)" ondragenter="dragEnter(event)" ondragleave="dragLeave(event)" ondrop="drop(event, 'cylinder')">
+                        
+                        <!-- 刻度系統 (0-100, 1為一格) -->
+                        <div class="absolute left-0 bottom-0 w-full h-full pointer-events-none z-20">
+                            <!-- JS 動態生成刻度 -->
+                            <script>
+                                for(let i=1; i<=100; i+=1) {
+                                    const bottomPercent = i;
+                                    let tickClass = 'tick-mark';
+                                    if(i % 10 === 0) tickClass += ' major';
+                                    else if(i % 5 === 0) tickClass += ' medium';
+                                    
+                                    document.write(`<div class="${tickClass}" style="bottom: ${bottomPercent}%;"></div>`);
+                                    if(i % 10 === 0) {
+                                        document.write(`<div class="tick-label font-mono" style="bottom: ${bottomPercent}%;">${i}</div>`);
+                                    }
+                                }
+                            </script>
+                        </div>
+
+                        <!-- 水體 (預設 50%) -->
+                        <div id="water-body" class="w-full cylinder-water relative flex items-end justify-center pb-2 z-10" style="height: 50%;"></div>
+                        
+                        <!-- 物件實際放置的 DOM 容器 -->
+                        <div id="cylinder-pad" class="absolute bottom-0 w-full h-1/3 flex items-end justify-center pb-2 z-15 pointer-events-none"></div>
+                    </div>
+                    
+                    <div class="mt-4 bg-blue-900 text-blue-300 font-mono text-3xl px-6 py-2 rounded-md tracking-wider w-full text-right shadow-inner">
+                        <span id="cylinder-display">50.0</span> mL
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-md p-4 border-t-4 border-amber-500">
+                <div class="flex justify-between items-center mb-3">
+                    <h2 class="text-lg font-bold text-gray-700">📦 待測物件盤</h2>
+                    <button onclick="wipeDryAll()" class="bg-amber-100 hover:bg-amber-200 text-amber-800 px-3 py-1 rounded text-sm transition font-medium flex items-center gap-1">
+                        🧻 擦乾所有物件
+                    </button>
+                </div>
+                
+                <!-- 拖曳放置區 -->
+                <div id="tray-pad" 
+                     class="flex flex-wrap gap-4 bg-gray-50 p-4 rounded-lg min-h-[120px] equipment-zone items-center"
+                     ondragover="allowDrop(event)" ondragenter="dragEnter(event)" ondragleave="dragLeave(event)" ondrop="drop(event, 'tray')">
+                    <!-- 物件會由 JS 動態生成 -->
+                </div>
+            </div>
+        </div>
+
+        <div class="w-full lg:w-1/2 flex flex-col gap-4">
+            <div class="bg-white rounded-xl shadow-md p-4 flex-1 flex flex-col border-t-4 border-emerald-500">
+                <h2 class="text-lg font-bold text-gray-700 mb-3">📝 實驗數據手動紀錄</h2>
+                
+                <!-- 學生手動輸入區 -->
+                <div class="bg-indigo-50 border border-indigo-100 rounded-lg p-3 mb-4 flex flex-wrap md:flex-nowrap gap-3 items-end shadow-sm">
+                    <div class="flex-1 min-w-[80px]">
+                        <label class="block text-xs font-semibold text-indigo-800 mb-1">物件編號</label>
+                        <select id="input-obj-id" class="w-full p-2 border border-gray-300 rounded text-sm bg-white focus:ring-2 focus:ring-indigo-400 outline-none"></select>
+                    </div>
+                    <div class="flex-1 min-w-[100px]">
+                        <label class="block text-xs font-semibold text-indigo-800 mb-1">質量 M (g)</label>
+                        <input type="number" id="input-mass" step="0.01" min="0" placeholder="讀取天平" class="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-indigo-400 outline-none font-mono">
+                    </div>
+                    <div class="flex-1 min-w-[100px]">
+                        <label class="block text-xs font-semibold text-indigo-800 mb-1">體積 V (cm³)</label>
+                        <input type="number" id="input-vol" step="0.1" min="0" placeholder="輸入 cm³" class="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-indigo-400 outline-none font-mono">
+                    </div>
+                    <button onclick="addManualData()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded text-sm font-bold shadow transition h-[38px] shrink-0">
+                        ➕ 新增
+                    </button>
+                </div>
+
+                <!-- 數據表 -->
+                <div class="overflow-y-auto h-40 mb-4 border rounded-md">
+                    <table class="w-full text-sm text-left">
+                        <thead class="text-xs text-gray-700 uppercase bg-gray-100 sticky top-0 z-10 shadow-sm">
+                            <tr>
+                                <th class="px-4 py-2">編號</th>
+                                <th class="px-4 py-2">材質 (預測)</th>
+                                <th class="px-4 py-2">質量 M (g)</th>
+                                <th class="px-4 py-2">體積 V (cm³)</th>
+                                <th class="px-4 py-2 text-center">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="data-table-body">
+                            <!-- 數據列 -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <h2 class="text-lg font-bold text-gray-700 mb-2 mt-2">📈 質量-體積 (M-V) 關係圖</h2>
+                <div class="flex-1 relative w-full h-full min-h-[250px]">
+                    <canvas id="densityChart"></canvas>
+                </div>
+                
+                <!-- 新增：密度計算結果展示區 -->
+                <div id="density-results" class="hidden mt-4 p-3 bg-indigo-50 border border-indigo-200 rounded-lg transition-all duration-500">
+                    <h3 class="text-sm font-bold text-indigo-800 mb-2 flex items-center justify-between">
+                        <span>🎉 數據收集完成！各材質密度 (M-V 曲線斜率) 結果：</span>
+                        <span class="text-xs bg-indigo-200 text-indigo-800 px-2 py-1 rounded shadow-sm">斜率 = 質量 / 體積</span>
+                    </h3>
+                    <div id="density-values" class="grid grid-cols-3 gap-3 text-center"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 核心系統與狀態 ---
+        const BASE_WATER_VOL = 50.0;
+        let isTared = false;
+        
+        const materials = [
+            { id: 'A', name: '材質 A', density: 2.70, color: 'bg-slate-300', borderColor: 'border-slate-500' },
+            { id: 'B', name: '材質 B', density: 7.87, color: 'bg-zinc-600', borderColor: 'border-zinc-800' },
+            { id: 'C', name: '材質 C', density: 8.96, color: 'bg-amber-600', borderColor: 'border-amber-800' }
+        ];
+
+        const volumes = [10, 15, 20, 25];
+        let objects = {};
+        
+        materials.forEach(mat => {
+            volumes.forEach((v, index) => {
+                const objId = `${mat.id}-${index+1}`;
+                objects[objId] = {
+                    id: objId,
+                    matId: mat.id,
+                    matName: mat.name,
+                    trueVol: v,
+                    trueMass: parseFloat((v * mat.density).toFixed(2)),
+                    isWet: false,
+                    waterMass: parseFloat((Math.random() * 1.5 + 0.5 + (v * 0.05)).toFixed(2)),
+                    location: 'tray',
+                    colorClasses: `${mat.color} ${mat.borderColor}`,
+                    sizePx: 25 + v * 1.5 
+                };
+            });
+        });
+
+        let recordedData = [];
+
+        // --- 自訂提示框 (Toast) 系統 ---
+        function showToast(message, type = 'error') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const bgColor = type === 'error' ? 'bg-red-500' : (type === 'success' ? 'bg-green-500' : 'bg-blue-500');
+            toast.className = `${bgColor} text-white px-4 py-2 rounded shadow-lg text-sm font-medium transition-all duration-300 transform translate-y-[-20px] opacity-0 pointer-events-auto flex justify-between items-center`;
+            toast.innerHTML = `<span>${message}</span> <button onclick="this.parentElement.remove()" class="ml-4 font-bold text-lg leading-none hover:text-gray-200">&times;</button>`;
+            
+            container.appendChild(toast);
+            
+            // 動畫進場
+            setTimeout(() => { toast.classList.remove('translate-y-[-20px]', 'opacity-0'); }, 10);
+            
+            // 3秒後自動消失
+            setTimeout(() => {
+                toast.classList.add('opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+
+        // --- 拖曳 (Drag and Drop) 邏輯 ---
+        function dragStart(ev, id) {
+            ev.dataTransfer.setData("text/plain", id);
+            ev.currentTarget.style.opacity = '0.4';
+            ev.currentTarget.style.transform = 'scale(0.9)';
+        }
+
+        function dragEnd(ev) {
+            ev.currentTarget.style.opacity = '1';
+            ev.currentTarget.style.transform = 'scale(1)';
+            document.querySelectorAll('.equipment-zone').forEach(z => z.classList.remove('drag-over'));
+        }
+
+        function allowDrop(ev) {
+            ev.preventDefault();
+        }
+
+        function dragEnter(ev) {
+            ev.preventDefault();
+            // 尋找最近的 drop zone
+            const zone = ev.target.closest('.equipment-zone');
+            if(zone) zone.classList.add('drag-over');
+        }
+
+        function dragLeave(ev) {
+            const zone = ev.target.closest('.equipment-zone');
+            if(zone) zone.classList.remove('drag-over');
+        }
+
+        function drop(ev, targetLocation) {
+            ev.preventDefault();
+            document.querySelectorAll('.equipment-zone').forEach(z => z.classList.remove('drag-over'));
+            
+            const objId = ev.dataTransfer.getData("text/plain");
+            if (!objId || !objects[objId]) return;
+
+            const obj = objects[objId];
+
+            // 物理邏輯：離開量筒就會變濕
+            if (obj.location === 'cylinder' && targetLocation !== 'cylinder') {
+                obj.isWet = true;
+                if(targetLocation === 'scale') {
+                    showToast("⚠️ 物體沾水了！直接放上天平會產生誤差。", "error");
+                }
+            }
+
+            // 容量限制：天平與量筒一次只能放一個
+            if (targetLocation === 'scale' || targetLocation === 'cylinder') {
+                const existingObj = Object.values(objects).find(o => o.location === targetLocation);
+                if (existingObj && existingObj.id !== obj.id) {
+                    existingObj.location = 'tray'; // 將原本的擠回盤子
+                }
+            }
+
+            obj.location = targetLocation;
+            renderObjects();
+        }
+
+        // --- STREAMING_CHUNK:畫面渲染與儀器讀數 ---
+        function renderObjects() {
+            // 清空所有區域
+            document.getElementById('tray-pad').innerHTML = '';
+            const scalePad = document.getElementById('scale-pad');
+            const cylPad = document.getElementById('cylinder-pad');
+            
+            // 恢復提示文字
+            scalePad.innerHTML = '<span class="text-gray-400 absolute pointer-events-none">拖曳物件至此秤重</span>';
+            cylPad.innerHTML = '';
+
+            Object.values(objects).forEach(obj => {
+                const el = document.createElement('div');
+                el.id = `obj-${obj.id}`;
+                el.className = `object-block relative border-2 flex items-center justify-center text-xs font-bold text-white shadow-sm rounded-sm ${obj.colorClasses} z-20`;
+                el.style.width = `${obj.sizePx}px`;
+                el.style.height = `${obj.sizePx}px`;
+                el.innerText = obj.id;
+                
+                // HTML5 Drag API
+                el.setAttribute('draggable', 'true');
+                el.ondragstart = (e) => dragStart(e, obj.id);
+                el.ondragend = dragEnd;
+
+                if(obj.isWet) {
+                    const wetBadge = document.createElement('div');
+                    wetBadge.className = 'wet-indicator';
+                    wetBadge.innerText = '💧';
+                    el.appendChild(wetBadge);
+                }
+
+                if (obj.location === 'tray') {
+                    document.getElementById('tray-pad').appendChild(el);
+                } else if (obj.location === 'scale') {
+                    scalePad.appendChild(el);
+                    scalePad.querySelector('span').style.display = 'none'; // 隱藏提示
+                } else if (obj.location === 'cylinder') {
+                    // 放進量筒的物件視覺上置底
+                    el.style.position = 'absolute';
+                    el.style.bottom = '2px';
+                    cylPad.appendChild(el);
+                }
+            });
+            
+            updateDisplays();
+            updateSelectOptions();
+        }
+
+        function wipeDryAll() {
+            let wiped = false;
+            Object.values(objects).forEach(obj => {
+                if (obj.isWet) { obj.isWet = false; wiped = true; }
+            });
+            if(wiped) {
+                showToast("✅ 已將所有物件擦乾！", "success");
+                renderObjects();
+            } else {
+                showToast("目前沒有濕的物件。", "blue");
+            }
+        }
+
+        function tareScale() {
+            isTared = !isTared;
+            updateDisplays();
+        }
+
+        function updateDisplays() {
+            // 天平計算
+            const objOnScale = Object.values(objects).find(o => o.location === 'scale');
+            let scaleValue = 0.00;
+            if (objOnScale) {
+                scaleValue = objOnScale.trueMass + (objOnScale.isWet ? objOnScale.waterMass : 0);
+            }
+            if (isTared && !objOnScale) scaleValue = 0.00;
+            
+            // 加入些微誤差晃動效果 (擬真)
+            const displayEl = document.getElementById('scale-display');
+            displayEl.innerText = scaleValue.toFixed(2);
+            displayEl.classList.remove('text-green-400');
+            displayEl.classList.add('text-green-300');
+            setTimeout(() => displayEl.classList.replace('text-green-300', 'text-green-400'), 300);
+
+            // 量筒計算
+            const objInCyl = Object.values(objects).find(o => o.location === 'cylinder');
+            let totalVol = BASE_WATER_VOL;
+            if (objInCyl) totalVol += objInCyl.trueVol;
+            
+            // 水位高度 = 體積 (100mL = 100%)
+            document.getElementById('water-body').style.height = `${totalVol}%`;
+            
+            // 更新量筒電子讀數
+            const cylDisplayEl = document.getElementById('cylinder-display');
+            if (cylDisplayEl) {
+                cylDisplayEl.innerText = totalVol.toFixed(1);
+                cylDisplayEl.classList.remove('text-blue-300');
+                cylDisplayEl.classList.add('text-blue-200');
+                setTimeout(() => cylDisplayEl.classList.replace('text-blue-200', 'text-blue-300'), 300);
+            }
+            
+            // 自動選取目前在儀器上的物件到輸入選單中
+            if(objOnScale) document.getElementById('input-obj-id').value = objOnScale.id;
+            else if(objInCyl) document.getElementById('input-obj-id').value = objInCyl.id;
+        }
+
+        // --- STREAMING_CHUNK:手動數據紀錄與圖表 ---
+        function updateSelectOptions() {
+            const select = document.getElementById('input-obj-id');
+            const currentVal = select.value;
+            select.innerHTML = '';
+            Object.values(objects).forEach(obj => {
+                const opt = document.createElement('option');
+                opt.value = obj.id;
+                opt.text = obj.id;
+                select.appendChild(opt);
+            });
+            if(currentVal && objects[currentVal]) select.value = currentVal;
+        }
+
+        function addManualData() {
+            const objId = document.getElementById('input-obj-id').value;
+            const mRaw = document.getElementById('input-mass').value;
+            const vRaw = document.getElementById('input-vol').value;
+
+            if(!objId) return showToast("請選擇物件編號");
+            if(mRaw === "" || vRaw === "") return showToast("請完整輸入質量與體積數值");
+
+            const m = parseFloat(mRaw);
+            const v = parseFloat(vRaw);
+
+            if(isNaN(m) || isNaN(v) || m <= 0 || v <= 0) return showToast("數值必須為大於 0 的有效數字");
+            
+            // 讓學生反推材質
+            const matName = objects[objId].matName;
+
+            const dataPoint = { id: Date.now(), objId: objId, matName: matName, m: m, v: v };
+            recordedData.push(dataPoint);
+            
+            // 清空輸入框
+            document.getElementById('input-mass').value = '';
+            document.getElementById('input-vol').value = '';
+            
+            showToast(`已記錄 ${objId} 的數據`, "success");
+            updateTable();
+            updateChart();
+        }
+
+        function deleteRecord(id) {
+            recordedData = recordedData.filter(d => d.id !== id);
+            updateTable();
+            updateChart();
+        }
+
+        function updateTable() {
+            const tbody = document.getElementById('data-table-body');
+            tbody.innerHTML = '';
+            recordedData.forEach(d => {
+                const tr = document.createElement('tr');
+                tr.className = "bg-white border-b hover:bg-gray-50 transition";
+                tr.innerHTML = `
+                    <td class="px-4 py-2 font-mono font-bold">${d.objId}</td>
+                    <td class="px-4 py-2 text-gray-500 text-xs">${d.matName}</td>
+                    <td class="px-4 py-2 font-mono text-green-700">${d.m.toFixed(2)}</td>
+                    <td class="px-4 py-2 font-mono text-blue-700">${d.v.toFixed(1)}</td>
+                    <td class="px-4 py-2 text-center">
+                        <button onclick="deleteRecord(${d.id})" class="text-red-500 hover:text-white hover:bg-red-500 px-2 py-1 rounded text-xs transition">刪除</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // --- Chart.js 圖表設定 ---
+        let scatterChart;
+        const ctx = document.getElementById('densityChart').getContext('2d');
+        const chartColors = { 'A': '#94a3b8', 'B': '#52525b', 'C': '#d97706' };
+
+        function initChart() {
+            scatterChart = new Chart(ctx, {
+                type: 'scatter',
+                data: { datasets: [] },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { type: 'linear', position: 'bottom', title: { display: true, text: '體積 V (cm³)', font: {weight: 'bold'} }, min: 0, max: 40 },
+                        y: { title: { display: true, text: '質量 M (g)', font: {weight: 'bold'} }, min: 0 }
+                    },
+                    plugins: {
+                        tooltip: { 
+                            callbacks: { 
+                                label: (ctx) => `${ctx.raw.id}: M=${ctx.parsed.y}g, V=${ctx.parsed.x}cm³` 
+                            } 
+                        }
+                    },
+                    animation: { duration: 500 }
+                }
+            });
+            updateChart();
+        }
+
+        function updateChart() {
+            const datasets = [];
+            
+            // 檢查是否收集滿 12 組不同的物件數據
+            const uniqueObjIds = new Set(recordedData.map(d => d.objId));
+            const isComplete = uniqueObjIds.size === 12;
+            
+            let resultsHTML = '';
+            
+            materials.forEach(mat => {
+                const points = recordedData.filter(d => d.matName === mat.name).map(d => ({x: d.v, y: d.m, id: d.objId}));
+                if (points.length > 0) {
+                    // 散佈點 (原本的點)
+                    datasets.push({
+                        label: mat.name + (isComplete ? " (實測點)" : " (?)"),
+                        data: points,
+                        backgroundColor: chartColors[mat.id],
+                        borderColor: chartColors[mat.id],
+                        pointRadius: 6,
+                        pointHoverRadius: 8,
+                        showLine: false // 預設不連線
+                    });
+                    
+                    // 若完成 12 組，則畫出趨勢線並計算斜率
+                    if (isComplete) {
+                        // 計算通過原點的最佳適配直線斜率 (m = Σ(xy) / Σ(x^2))
+                        let sumXY = 0;
+                        let sumX2 = 0;
+                        points.forEach(p => {
+                            sumXY += p.x * p.y;
+                            sumX2 += p.x * p.x;
+                        });
+                        const slope = sumX2 === 0 ? 0 : (sumXY / sumX2);
+                        
+                        // 加入趨勢線 dataset
+                        datasets.push({
+                            label: mat.name + " (趨勢線)",
+                            data: [{x: 0, y: 0}, {x: 40, y: slope * 40}],
+                            type: 'line',
+                            borderColor: chartColors[mat.id],
+                            borderWidth: 2,
+                            pointRadius: 0,
+                            borderDash: [5, 5] // 以虛線呈現，代表這是推導出來的趨勢
+                        });
+                        
+                        // 準備顯示在 UI 的結果
+                        resultsHTML += `
+                            <div class="bg-white p-2 rounded border border-gray-200 shadow-sm hover:shadow transition">
+                                <span class="font-bold text-sm" style="color:${chartColors[mat.id]}">${mat.name}</span><br>
+                                密度 <span class="font-mono text-xl text-gray-800">${slope.toFixed(2)}</span> <span class="text-xs text-gray-500">g/cm³</span>
+                            </div>
+                        `;
+                    }
+                }
+            });
+
+            scatterChart.data.datasets = datasets;
+            scatterChart.update();
+            
+            // 更新結果顯示區 UI
+            const resultsDiv = document.getElementById('density-results');
+            const valuesDiv = document.getElementById('density-values');
+            
+            if (isComplete && resultsDiv.classList.contains('hidden')) {
+                resultsDiv.classList.remove('hidden');
+                valuesDiv.innerHTML = resultsHTML;
+                showToast("🎉 12 組數據收集完成！已繪製密度趨勢線並計算斜率。", "success");
+            } else if (!isComplete) {
+                resultsDiv.classList.add('hidden');
+                valuesDiv.innerHTML = '';
+            }
+        }
+
+        // 啟動初始化
+        window.onload = () => {
+            renderObjects();
+            initChart();
+        };
+    </script>
+</body>
+</html>
