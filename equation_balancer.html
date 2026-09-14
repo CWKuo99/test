@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>會考經典：化學反應式平衡模擬器</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .equation-text { font-family: 'Times New Roman', serif; }
+        .toggle-checkbox:checked { right: 0; border-color: #3B82F6; }
+        .toggle-checkbox:checked + .toggle-label { background-color: #3B82F6; }
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+        select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e"); background-position: right 0.5rem center; background-repeat: no-repeat; background-size: 1.5em 1.5em; padding-right: 2.5rem; }
+    </style>
+</head>
+<body class="bg-slate-100 min-h-screen p-4 md:p-8 font-sans flex flex-col items-center">
+
+    <div class="max-w-6xl w-full bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col">
+        
+        <!-- 頂部：題型選擇器 (改為下拉選單以容納更多題目) -->
+        <div class="bg-slate-900 px-6 py-5 flex flex-col md:flex-row items-center gap-4 justify-between border-b border-slate-700">
+            <span class="text-white font-bold text-lg tracking-wide">選擇實驗情境：</span>
+            <select id="eq-selector" class="w-full md:w-2/3 bg-slate-800 text-white border border-slate-600 rounded-lg px-4 py-2 text-lg focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none font-bold">
+                <!-- 由 JS 動態生成選項 -->
+            </select>
+        </div>
+
+        <!-- 上方區塊：動態化學式展示區 -->
+        <div class="bg-slate-800 text-white py-14 px-8 flex flex-col items-center relative transition-all min-h-[300px] justify-center">
+            <!-- 反應式渲染區 -->
+            <div id="eq-display" class="equation-text flex items-baseline justify-center flex-wrap gap-2 md:gap-4 transition-all">
+                <!-- 由 JS 動態生成 -->
+            </div>
+
+            <!-- 守恆狀態判定 -->
+            <div id="balance-status" class="absolute bottom-6 px-8 py-2 rounded-full text-lg font-bold transition-all duration-300 shadow-lg">
+                <!-- 由 JS 動態生成 -->
+            </div>
+        </div>
+
+        <!-- 下方區塊：左右分欄 -->
+        <div class="flex flex-col md:flex-row p-6 md:p-8 gap-8 bg-slate-50">
+            
+            <!-- 左側：微觀與巨觀數據分析 -->
+            <div class="flex-1 space-y-6">
+                <!-- 微觀原子統計 -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                    <h2 class="text-xl font-bold text-slate-700 mb-4 border-b pb-2">微觀原子數量核對</h2>
+                    <div class="flex justify-between items-start px-2 md:px-6">
+                        <div id="react-atoms" class="text-center w-2/5 space-y-2">
+                            <p class="text-sm text-slate-500 mb-2 font-bold bg-slate-100 py-1 rounded">反應物 (左側)</p>
+                        </div>
+                        <div class="text-3xl text-slate-300 font-light mt-8">VS</div>
+                        <div id="prod-atoms" class="text-center w-2/5 space-y-2">
+                            <p class="text-sm text-slate-500 mb-2 font-bold bg-slate-100 py-1 rounded">生成物 (右側)</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 巨觀質量比分析 -->
+                <div class="bg-indigo-50 p-6 rounded-xl shadow-sm border border-indigo-100">
+                    <h2 class="text-xl font-bold text-indigo-900 mb-2">巨觀計量比例分析</h2>
+                    <p class="text-indigo-700 text-lg mb-4">
+                        當前係數比 = <span id="ratio-coef" class="font-bold text-2xl tracking-widest font-mono"></span>
+                    </p>
+                    
+                    <div class="flex items-center space-x-3 mb-4">
+                        <div class="relative inline-block w-12 mr-2 align-middle select-none">
+                            <input type="checkbox" id="mass-toggle" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer border-slate-300 z-10 transition-all duration-300"/>
+                            <label for="mass-toggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-slate-300 cursor-pointer transition-colors duration-300"></label>
+                        </div>
+                        <span class="font-bold text-slate-700">顯示質量比計算 (公克)</span>
+                    </div>
+
+                    <div id="mass-section" class="hidden fade-in bg-white p-5 rounded-lg border border-indigo-200">
+                        <div class="text-slate-600 mb-2 text-sm font-bold">莫耳數 × 分子量 = 質量：</div>
+                        <p id="calc-formula" class="text-lg text-slate-700 font-mono"></p>
+                        <p class="text-indigo-700 text-lg mt-3">
+                            真實質量比 = <span id="ratio-mass" class="font-bold text-2xl tracking-widest font-mono"></span>
+                        </p>
+                        <div class="mt-3 pt-3 border-t border-indigo-100 flex items-center justify-between">
+                            <span class="text-sm text-slate-500 font-bold">最簡整數比：</span>
+                            <span id="ratio-simple" class="font-bold text-slate-800 text-xl font-mono tracking-widest"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右側：係數控制器 -->
+            <div class="w-full md:w-1/3">
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 sticky top-6">
+                    <h2 class="text-xl font-bold text-slate-700 mb-6 border-b pb-2 flex items-center">
+                        <svg class="w-5 h-5 mr-2 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+                        係數控制台
+                    </h2>
+                    
+                    <div id="controllers" class="space-y-4">
+                        <!-- 由 JS 動態生成各分子的控制器 -->
+                    </div>
+                    
+                    <div class="mt-6 p-4 bg-amber-50 rounded-lg text-sm text-amber-800 border border-amber-200">
+                        <p class="font-bold mb-1">💡 探究引導：</p>
+                        <p id="hint-text"></p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // --- 核心資料庫 (擴增八下核心反應式) ---
+        const equations = {
+            oxygen: {
+                title: "氧氣的製備 (雙氧水分解)",
+                hint: "催化劑(二氧化錳)不參與計量平衡，請直接平衡雙氧水與水、氧氣的關係。留意氧原子的奇偶數變化。",
+                arrowText: "MnO₂",
+                reactants: [{ id: "r1", display: "H<sub>2</sub>O<sub>2</sub>", MW: 34, atoms: { H: 2, O: 2 } }],
+                products: [
+                    { id: "p1", display: "H<sub>2</sub>O", MW: 18, atoms: { H: 2, O: 1 } },
+                    { id: "p2", display: "O<sub>2</sub>", MW: 32, atoms: { O: 2 } }
+                ]
+            },
+            co2: {
+                title: "二氧化碳的製備 (碳酸鈣+稀鹽酸)",
+                hint: "找出左右兩側原子數落差最大的元素 (例如 Cl 或 H) 作為切入點。",
+                reactants: [
+                    { id: "r1", display: "CaCO<sub>3</sub>", MW: 100, atoms: { Ca: 1, C: 1, O: 3 } },
+                    { id: "r2", display: "HCl", MW: 36.5, atoms: { H: 1, Cl: 1 } }
+                ],
+                products: [
+                    { id: "p1", display: "CaCl<sub>2</sub>", MW: 111, atoms: { Ca: 1, Cl: 2 } },
+                    { id: "p2", display: "CO<sub>2</sub>", MW: 44, atoms: { C: 1, O: 2 } },
+                    { id: "p3", display: "H<sub>2</sub>O", MW: 18, atoms: { H: 2, O: 1 } }
+                ]
+            },
+            alkali: {
+                title: "鹼金屬與水的反應 (鈉+水)",
+                hint: "右側的氫原子分散在 H₂ 和 NaOH 中，若出現小數點係數，可將全式同乘 2。",
+                reactants: [
+                    { id: "r1", display: "Na", MW: 23, atoms: { Na: 1 } },
+                    { id: "r2", display: "H<sub>2</sub>O", MW: 18, atoms: { H: 2, O: 1 } }
+                ],
+                products: [
+                    { id: "p1", display: "H<sub>2</sub>", MW: 2, atoms: { H: 2 } },
+                    { id: "p2", display: "NaOH", MW: 40, atoms: { Na: 1, O: 1, H: 1 } }
+                ]
+            },
+            active_metal: {
+                title: "活性大金屬與稀酸 (鎂帶+鹽酸)",
+                hint: "這是一個標準的置換反應，觀察鎂 (Mg) 如何將氫 (H) 從鹽酸中置換出來。",
+                reactants: [
+                    { id: "r1", display: "Mg", MW: 24, atoms: { Mg: 1 } },
+                    { id: "r2", display: "HCl", MW: 36.5, atoms: { H: 1, Cl: 1 } }
+                ],
+                products: [
+                    { id: "p1", display: "H<sub>2</sub>", MW: 2, atoms: { H: 2 } },
+                    { id: "p2", display: "MgCl<sub>2</sub>", MW: 95, atoms: { Mg: 1, Cl: 2 } }
+                ]
+            },
+            neutralization: {
+                title: "酸鹼中和 (氫氧化鈉+鹽酸)",
+                hint: "觀察酸提供的氫離子 (H⁺) 與鹼提供的氫氧根 (OH⁻) 如何 1:1 結合生成水分子。",
+                reactants: [
+                    { id: "r1", display: "NaOH", MW: 40, atoms: { Na: 1, O: 1, H: 1 } },
+                    { id: "r2", display: "HCl", MW: 36.5, atoms: { H: 1, Cl: 1 } }
+                ],
+                products: [
+                    { id: "p1", display: "NaCl", MW: 58.5, atoms: { Na: 1, Cl: 1 } },
+                    { id: "p2", display: "H<sub>2</sub>O", MW: 18, atoms: { H: 2, O: 1 } }
+                ]
+            },
+            esterification: {
+                title: "酯化反應 (乙酸+乙醇)",
+                hint: "濃硫酸為脫水劑。這題可以觀察結構式的原子如何合併計算，有機酸脫去 -OH，醇類脫去 -H。",
+                arrowText: "H₂SO₄",
+                reactants: [
+                    { id: "r1", display: "CH<sub>3</sub>COOH", MW: 60, atoms: { C: 2, H: 4, O: 2 } },
+                    { id: "r2", display: "C<sub>2</sub>H<sub>5</sub>OH", MW: 46, atoms: { C: 2, H: 6, O: 1 } }
+                ],
+                products: [
+                    { id: "p1", display: "CH<sub>3</sub>COOC<sub>2</sub>H<sub>5</sub>", MW: 88, atoms: { C: 4, H: 8, O: 2 } },
+                    { id: "p2", display: "H<sub>2</sub>O", MW: 18, atoms: { H: 2, O: 1 } }
+                ]
+            },
+            ammonia: {
+                title: "哈柏法製氨",
+                hint: "氫原子在左側為偶數，右側為奇數，試著找出它們的「最小公倍數」。",
+                reactants: [
+                    { id: "r1", display: "N<sub>2</sub>", MW: 28, atoms: { N: 2 } },
+                    { id: "r2", display: "H<sub>2</sub>", MW: 2, atoms: { H: 2 } }
+                ],
+                products: [{ id: "p1", display: "NH<sub>3</sub>", MW: 17, atoms: { N: 1, H: 3 } }]
+            },
+            propane: {
+                title: "碳氫化合物燃燒 (丙烷)",
+                hint: "請嚴格遵守順序：先平衡碳(C)，再平衡氫(H)，最後才統整右側總氧數來反推左邊。",
+                reactants: [
+                    { id: "r1", display: "C<sub>3</sub>H<sub>8</sub>", MW: 44, atoms: { C: 3, H: 8 } },
+                    { id: "r2", display: "O<sub>2</sub>", MW: 32, atoms: { O: 2 } }
+                ],
+                products: [
+                    { id: "p1", display: "CO<sub>2</sub>", MW: 44, atoms: { C: 1, O: 2 } },
+                    { id: "p2", display: "H<sub>2</sub>O", MW: 18, atoms: { H: 2, O: 1 } }
+                ]
+            }
+        };
+
+        // 擴充原子色彩對應表
+        const colorMap = {
+            H: 'text-blue-500', O: 'text-red-500', N: 'text-purple-600',
+            C: 'text-slate-800', Fe: 'text-orange-600', Ca: 'text-emerald-600',
+            Cl: 'text-lime-600', Na: 'text-indigo-500', Mg: 'text-teal-600'
+        };
+        const getAtomColor = (atom) => colorMap[atom] || 'text-slate-600';
+
+        let currentEq = 'oxygen';
+        let coefs = {};
+        let showMass = false;
+
+        // 升階處理小數點 GCD (支援 HCl 36.5 這類小數點質量)
+        const gcd = (a, b) => {
+            a = Math.abs(a); b = Math.abs(b);
+            return b === 0 ? a : gcd(b, a % b);
+        };
+        const getArrayGcd = (arr) => {
+            const intArr = arr.map(n => Math.round(n * 10)); // 乘 10 消除 .5
+            const nonZero = intArr.filter(n => n !== 0);
+            if (nonZero.length === 0) return 10;
+            const gcdVal = nonZero.reduce((acc, val) => gcd(acc, val));
+            return gcdVal / 10; // 還原比例
+        };
+
+        function initApp() {
+            const selector = document.getElementById('eq-selector');
+            selector.innerHTML = '';
+            
+            Object.keys(equations).forEach(key => {
+                const opt = document.createElement('option');
+                opt.value = key;
+                opt.innerText = equations[key].title;
+                selector.appendChild(opt);
+            });
+
+            selector.addEventListener('change', (e) => loadEquation(e.target.value));
+
+            document.getElementById('mass-toggle').addEventListener('change', (e) => {
+                showMass = e.target.checked;
+                render();
+            });
+
+            loadEquation('oxygen');
+        }
+
+        function loadEquation(key) {
+            currentEq = key;
+            const eq = equations[currentEq];
+            document.getElementById('eq-selector').value = key;
+
+            coefs = {};
+            eq.reactants.forEach(r => coefs[r.id] = 1);
+            eq.products.forEach(p => coefs[p.id] = 1);
+
+            document.getElementById('hint-text').innerText = eq.hint;
+            buildControllers(eq);
+            render();
+        }
+
+        function updateCoef(id, delta) {
+            if (coefs[id] + delta >= 0 && coefs[id] + delta <= 15) {
+                coefs[id] += delta;
+                render();
+            }
+        }
+
+        function buildControllers(eq) {
+            const container = document.getElementById('controllers');
+            container.innerHTML = '';
+            
+            const createCtrl = (item) => {
+                return `
+                <div class="flex items-center justify-between bg-slate-50 p-3 rounded-lg border border-slate-100">
+                    <span class="text-xl font-bold text-slate-700 equation-text">${item.display}</span>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="updateCoef('${item.id}', -1)" class="w-10 h-10 rounded-full bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-xl transition flex items-center justify-center">-</button>
+                        <span id="ctrl-${item.id}" class="text-2xl font-bold w-8 text-center text-blue-600 font-mono"></span>
+                        <button onclick="updateCoef('${item.id}', 1)" class="w-10 h-10 rounded-full bg-blue-500 hover:bg-blue-600 text-white font-bold text-xl transition flex items-center justify-center">+</button>
+                    </div>
+                </div>`;
+            };
+
+            eq.reactants.forEach(r => container.innerHTML += createCtrl(r));
+            container.innerHTML += `<div class="text-center text-slate-300 my-1 font-bold">↓ 生成物 ↓</div>`;
+            eq.products.forEach(p => container.innerHTML += createCtrl(p));
+        }
+
+        function render() {
+            const eq = equations[currentEq];
+            let eqHtml = '';
+            
+            const renderPart = (arr) => {
+                arr.forEach((item, idx) => {
+                    if (idx > 0) eqHtml += `<span class="text-3xl md:text-5xl text-slate-500 mx-1 md:mx-2">+</span>`;
+                    const opacity = coefs[item.id] === 0 ? 'opacity-30' : 'opacity-100';
+                    const coefStr = coefs[item.id] === 1 ? '1' : coefs[item.id];
+                    eqHtml += `<div class="${opacity} transition-opacity flex items-baseline">
+                        <span class="text-yellow-400 mr-1 md:mr-2 text-4xl md:text-6xl">${coefStr}</span>
+                        <span class="text-3xl md:text-5xl tracking-wide">${item.display}</span>
+                    </div>`;
+                    document.getElementById(`ctrl-${item.id}`).innerText = coefs[item.id];
+                });
+            };
+            
+            renderPart(eq.reactants);
+            
+            // 處理箭頭與催化劑文字
+            const arrowTxt = eq.arrowText ? `<div class="absolute -top-6 text-sm text-yellow-300 font-sans tracking-widest w-full text-center">${eq.arrowText}</div>` : '';
+            eqHtml += `<div class="relative flex flex-col items-center justify-center mx-4 md:mx-6 text-slate-400">
+                           ${arrowTxt}
+                           <span class="text-3xl md:text-5xl">→</span>
+                       </div>`;
+            
+            renderPart(eq.products);
+            document.getElementById('eq-display').innerHTML = eqHtml;
+
+            let reactAtoms = {}, prodAtoms = {}, allAtoms = new Set();
+            eq.reactants.forEach(r => {
+                for(let [atom, count] of Object.entries(r.atoms)) {
+                    reactAtoms[atom] = (reactAtoms[atom] || 0) + (count * coefs[r.id]);
+                    allAtoms.add(atom);
+                }
+            });
+            eq.products.forEach(p => {
+                for(let [atom, count] of Object.entries(p.atoms)) {
+                    prodAtoms[atom] = (prodAtoms[atom] || 0) + (count * coefs[p.id]);
+                    allAtoms.add(atom);
+                }
+            });
+
+            let isBalanced = true;
+            let hasZero = Object.values(coefs).some(v => v === 0);
+            
+            let rAtomHtml = '', pAtomHtml = '';
+            Array.from(allAtoms).sort().forEach(atom => {
+                const rCount = reactAtoms[atom] || 0;
+                const pCount = prodAtoms[atom] || 0;
+                if (rCount !== pCount) isBalanced = false;
+                
+                const colorClass = getAtomColor(atom);
+                rAtomHtml += `<p class="text-lg flex justify-between items-center bg-slate-50 px-3 py-1 rounded">
+                    <span>${atom} 原子</span>
+                    <span class="font-bold ${colorClass} text-2xl font-mono">${rCount}</span>
+                </p>`;
+                pAtomHtml += `<p class="text-lg flex justify-between items-center bg-slate-50 px-3 py-1 rounded border-r-4 ${rCount === pCount ? 'border-green-400' : 'border-red-400'}">
+                    <span>${atom} 原子</span>
+                    <span class="font-bold ${colorClass} text-2xl font-mono">${pCount}</span>
+                </p>`;
+            });
+
+            document.getElementById('react-atoms').innerHTML = rAtomHtml;
+            document.getElementById('prod-atoms').innerHTML = pAtomHtml;
+
+            const statusDiv = document.getElementById('balance-status');
+            if (isBalanced && !hasZero) {
+                statusDiv.innerHTML = "✅ 質量守恆達成 (方程式已完美平衡)";
+                statusDiv.className = "absolute bottom-6 px-8 py-2 rounded-full text-lg font-bold transition-all duration-300 shadow-lg bg-green-500 text-white ring-4 ring-green-300 scale-105";
+            } else {
+                statusDiv.innerHTML = "❌ 未平衡 (請觀察左右兩側原子差異)";
+                statusDiv.className = "absolute bottom-6 px-8 py-2 rounded-full text-lg font-bold transition-all duration-300 shadow-lg bg-red-500 text-white";
+            }
+
+            let coefTexts = [], calcTexts = [], massValues = [];
+            
+            eq.reactants.forEach(r => {
+                coefTexts.push(coefs[r.id]);
+                calcTexts.push(`(${coefs[r.id]}×${r.MW})`);
+                massValues.push(coefs[r.id] * r.MW);
+            });
+            eq.products.forEach(p => {
+                coefTexts.push(coefs[p.id]);
+                calcTexts.push(`(${coefs[p.id]}×${p.MW})`);
+                massValues.push(coefs[p.id] * p.MW);
+            });
+
+            document.getElementById('ratio-coef').innerText = coefTexts.join(' : ');
+
+            const massSec = document.getElementById('mass-section');
+            if (showMass) {
+                massSec.classList.remove('hidden');
+                document.getElementById('calc-formula').innerText = calcTexts.join(' : ');
+                document.getElementById('ratio-mass').innerText = massValues.join(' : ');
+                
+                const divisor = getArrayGcd(massValues);
+                const simpleRatio = massValues.map(v => v / divisor).join(' : ');
+                document.getElementById('ratio-simple').innerText = hasZero ? "數值包含0無法化簡" : simpleRatio;
+            } else {
+                massSec.classList.add('hidden');
+            }
+        }
+
+        window.onload = initApp;
+    </script>
+</body>
+</html>
