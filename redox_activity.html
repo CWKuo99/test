@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>氧化還原與活性互動教學 (進階版)</title>
+    <style>
+        body {
+            font-family: 'Microsoft JhengHei', sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 15px;
+            margin-bottom: 30px;
+        }
+        
+        /* 活性列表區塊 */
+        .activity-series-box {
+            background-color: #fffdf5;
+            border: 2px solid #f39c12;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+            text-align: center;
+            box-shadow: inset 0 0 10px rgba(243, 156, 18, 0.1);
+        }
+        .activity-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #d35400;
+            margin-bottom: 15px;
+        }
+        .series-row {
+            font-size: 1.2rem;
+            letter-spacing: 2px;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #2c3e50;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+        .series-row .highlight {
+            color: #2980b9;
+        }
+        .series-row .sym {
+            font-family: 'Arial', sans-serif;
+            font-size: 1.1rem;
+            color: #555;
+        }
+        .series-row .sym.highlight {
+            color: #3498db;
+        }
+
+        /* 調色盤拖曳區塊 */
+        .palette-container {
+            position: sticky;
+            top: 20px;
+            background: #e8f4f8;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 5px solid #3498db;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            z-index: 100;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        .palette-title {
+            display: flex;
+            align-items: center;
+            font-weight: bold;
+            color: #2980b9;
+            margin-right: 10px;
+        }
+        .draggable {
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: grab;
+            user-select: none;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+            transition: transform 0.1s;
+        }
+        .draggable:active {
+            cursor: grabbing;
+            transform: scale(0.95);
+        }
+        .bg-rx { background-color: #e67e22; }
+        .bg-agent { background-color: #8e44ad; }
+
+        /* 方程式挑戰區塊 */
+        .equation-card {
+            background-color: #fcfcfc;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 25px;
+            transition: box-shadow 0.3s;
+        }
+        .equation-card:hover {
+            box-shadow: 0 8px 15px rgba(0,0,0,0.05);
+        }
+        .eq-header {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #7f8c8d;
+            margin-bottom: 15px;
+            border-left: 4px solid #95a5a6;
+            padding-left: 10px;
+        }
+        .equation-area {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .substance-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        .chem-formula {
+            font-size: 26px;
+            font-weight: bold;
+            color: #2c3e50;
+            font-family: 'Arial', sans-serif;
+            background: #fff;
+            padding: 5px 15px;
+            border-radius: 5px;
+            border: 1px solid #ecf0f1;
+        }
+        .drop-zone {
+            width: 140px;
+            height: 40px;
+            border: 2px dashed #bdc3c7;
+            border-radius: 6px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #fafafa;
+            color: #95a5a6;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        .drop-zone.over {
+            background-color: #ecf0f1;
+            border-color: #3498db;
+            transform: scale(1.05);
+        }
+        .drop-zone.correct {
+            border: none;
+            color: white;
+            font-weight: bold;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
+        }
+        .math-symbol {
+            font-size: 30px;
+            font-weight: bold;
+            color: #95a5a6;
+        }
+        
+        #msg-box {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(44, 62, 80, 0.9);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>氧化還原與活性分析</h1>
+    
+    <!-- 活性大小排序表 -->
+    <div class="activity-series-box">
+        <div class="activity-title">📌 元素對氧的活性大小排序</div>
+        <div class="series-row">
+            鉀 > 鈉 > 鈣 > 鎂 > 鋁 > 錳 > <span class="highlight">碳</span> > 鋅 > 鉻 > 鐵 > 鈷 > 鎳 > 錫 > 鉛 > <span class="highlight">氫</span> > 銅 > 汞 > 銀 > 鉑 > 金
+        </div>
+        <div class="series-row">
+            <span class="sym">K</span> > <span class="sym">Na</span> > <span class="sym">Ca</span> > <span class="sym">Mg</span> > <span class="sym">Al</span> > <span class="sym">Mn</span> > <span class="sym highlight">C</span> > <span class="sym">Zn</span> > <span class="sym">Cr</span> > <span class="sym">Fe</span> > <span class="sym">Co</span> > <span class="sym">Ni</span> > <span class="sym">Sn</span> > <span class="sym">Pb</span> > <span class="sym highlight">H</span> > <span class="sym">Cu</span> > <span class="sym">Hg</span> > <span class="sym">Ag</span> > <span class="sym">Pt</span> > <span class="sym">Au</span>
+        </div>
+        <p style="margin-top: 15px; color: #555; font-size: 0.9rem;">
+            <strong>邏輯推演：</strong>活性大的元素對氧有強烈的結合力，容易搶走別人的氧（自身氧化，作還原劑）。
+        </p>
+    </div>
+
+    <!-- 標籤調色盤 (改為無限取用) -->
+    <div class="palette-container">
+        <div class="palette-title">操作區：請拖曳標籤至下方對應位置 👉</div>
+        <div class="draggable bg-rx" draggable="true" data-type="rx" data-ans="ox">氧化反應</div>
+        <div class="draggable bg-rx" draggable="true" data-type="rx" data-ans="red">還原反應</div>
+        <div class="draggable bg-agent" draggable="true" data-type="agent" data-ans="red-a">還原劑</div>
+        <div class="draggable bg-agent" draggable="true" data-type="agent" data-ans="ox-a">氧化劑</div>
+    </div>
+
+    <!-- 任務一：多組方程式 -->
+    <h2>任務一：解析氧化還原方程式</h2>
+    
+    <!-- 反應 1 -->
+    <div class="equation-card">
+        <div class="eq-header">範例 1：鎂與氧化銅 (對照上方活性：Mg > Cu)</div>
+        <div class="equation-area">
+            <div class="substance-group">
+                <div class="chem-formula">Mg</div>
+                <div class="drop-zone" data-target-type="rx" data-correct="ox">拖曳反應類型</div>
+                <div class="drop-zone" data-target-type="agent" data-correct="red-a">拖曳藥劑類型</div>
+            </div>
+            <div class="math-symbol">+</div>
+            <div class="substance-group">
+                <div class="chem-formula">CuO</div>
+                <div class="drop-zone" data-target-type="rx" data-correct="red">拖曳反應類型</div>
+                <div class="drop-zone" data-target-type="agent" data-correct="ox-a">拖曳藥劑類型</div>
+            </div>
+            <div class="math-symbol">→</div>
+            <div class="substance-group">
+                <div class="chem-formula">MgO + Cu</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 反應 2 -->
+    <div class="equation-card">
+        <div class="eq-header">範例 2：碳冶煉金屬鉛 (對照上方活性：C > Pb)</div>
+        <div class="equation-area">
+            <div class="substance-group">
+                <div class="chem-formula">C</div>
+                <div class="drop-zone" data-target-type="rx" data-correct="ox">拖曳反應類型</div>
+                <div class="drop-zone" data-target-type="agent" data-correct="red-a">拖曳藥劑類型</div>
+            </div>
+            <div class="math-symbol">+</div>
+            <div class="substance-group">
+                <div class="chem-formula">2PbO</div>
+                <div class="drop-zone" data-target-type="rx" data-correct="red">拖曳反應類型</div>
+                <div class="drop-zone" data-target-type="agent" data-correct="ox-a">拖曳藥劑類型</div>
+            </div>
+            <div class="math-symbol">→</div>
+            <div class="substance-group">
+                <div class="chem-formula">CO₂ + 2Pb</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 反應 3 -->
+    <div class="equation-card">
+        <div class="eq-header">範例 3：鋁熱反應焊接鐵軌 (對照上方活性：Al > Fe)</div>
+        <div class="equation-area">
+            <div class="substance-group">
+                <div class="chem-formula">2Al</div>
+                <div class="drop-zone" data-target-type="rx" data-correct="ox">拖曳反應類型</div>
+                <div class="drop-zone" data-target-type="agent" data-correct="red-a">拖曳藥劑類型</div>
+            </div>
+            <div class="math-symbol">+</div>
+            <div class="substance-group">
+                <div class="chem-formula">Fe₂O₃</div>
+                <div class="drop-zone" data-target-type="rx" data-correct="red">拖曳反應類型</div>
+                <div class="drop-zone" data-target-type="agent" data-correct="ox-a">拖曳藥劑類型</div>
+            </div>
+            <div class="math-symbol">→</div>
+            <div class="substance-group">
+                <div class="chem-formula">Al₂O₃ + 2Fe</div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div id="msg-box">提示訊息</div>
+
+<script>
+    const draggables = document.querySelectorAll('.draggable');
+    const dropZones = document.querySelectorAll('.drop-zone');
+    const msgBox = document.getElementById('msg-box');
+
+    // 拖曳開始：傳遞資料而不是移動 DOM 元素本身（無限取用模式）
+    draggables.forEach(draggable => {
+        draggable.addEventListener('dragstart', (e) => {
+            e.dataTransfer.setData('type', e.target.getAttribute('data-type'));
+            e.dataTransfer.setData('ans', e.target.getAttribute('data-ans'));
+            e.dataTransfer.setData('text', e.target.innerText);
+            
+            // 抓取背景顏色，以便放置時套用
+            const computedStyle = window.getComputedStyle(e.target);
+            e.dataTransfer.setData('bg-color', computedStyle.backgroundColor);
+            
+            setTimeout(() => e.target.style.opacity = '0.7', 0);
+        });
+
+        draggable.addEventListener('dragend', (e) => {
+            e.target.style.opacity = '1';
+        });
+    });
+
+    dropZones.forEach(zone => {
+        zone.addEventListener('dragover', (e) => {
+            e.preventDefault(); 
+            // 只有當該區塊還沒填寫正確答案時，才顯示 Hover 效果
+            if (!zone.classList.contains('correct')) {
+                zone.classList.add('over');
+            }
+        });
+
+        zone.addEventListener('dragleave', () => {
+            zone.classList.remove('over');
+        });
+
+        zone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            zone.classList.remove('over');
+            
+            // 如果已經答對鎖定了，就不允許再覆蓋
+            if (zone.classList.contains('correct')) return;
+
+            const dragType = e.dataTransfer.getData('type');
+            const dragAns = e.dataTransfer.getData('ans');
+            const text = e.dataTransfer.getData('text');
+            const bgColor = e.dataTransfer.getData('bg-color');
+            
+            const targetType = zone.getAttribute('data-target-type');
+            const expectedAns = zone.getAttribute('data-correct');
+
+            if (!dragType) return; // 避免拉入無效元素
+
+            // 1. 邏輯檢查：分類錯誤 (例如把氧化劑放進反應類型的格子)
+            if (dragType !== targetType) {
+                showToast("❌ 概念混淆囉！「反應」與「藥劑」的位置放反了。");
+                errorFeedback(zone);
+                return;
+            }
+
+            // 2. 邏輯檢查：答案錯誤
+            if (dragAns !== expectedAns) {
+                showToast("❌ 推論錯誤。請向上對照活性表，誰比較容易搶到氧？");
+                errorFeedback(zone);
+                return;
+            }
+
+            // 3. 答對處理：改變外觀並鎖定
+            zone.textContent = text;
+            zone.style.backgroundColor = bgColor;
+            zone.classList.add('correct');
+            showToast("✅ 判斷完全正確！");
+            
+            // 檢查是否完成全部分析
+            checkAllCompleted();
+        });
+    });
+
+    function errorFeedback(zone) {
+        zone.style.borderColor = "#e74c3c";
+        zone.style.backgroundColor = "#fadbd8";
+        setTimeout(() => {
+            if (!zone.classList.contains('correct')) {
+                zone.style.borderColor = "#bdc3c7";
+                zone.style.backgroundColor = "#fafafa";
+            }
+        }, 800);
+    }
+
+    function showToast(text) {
+        msgBox.textContent = text;
+        msgBox.style.opacity = '1';
+        setTimeout(() => {
+            msgBox.style.opacity = '0';
+        }, 2500);
+    }
+
+    function checkAllCompleted() {
+        const totalZones = document.querySelectorAll('.drop-zone').length;
+        const correctZones = document.querySelectorAll('.drop-zone.correct').length;
+        if (totalZones === correctZones) {
+            setTimeout(() => {
+                alert("🎉 恭喜！您已成功解析所有氧化還原方程式的微觀角色！");
+            }, 500);
+        }
+    }
+</script>
+
+</body>
+</html>
