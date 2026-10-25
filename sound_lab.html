@@ -1,0 +1,1710 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>聲音模擬實驗室 學生版</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@700;900&display=swap">
+<style>
+/* Layout: 儀器桌面——單欄長頁；每個「實驗台」= 左側畫布＋右側控制面板，窄螢幕上下堆疊；示波器螢幕固定為磷光綠儀器色 */
+:root{
+  --bg:#ecf0f3; --surface:#fbfcfd; --surface-2:#e1e7ed; --ink:#13202c; --muted:#56636f; --line:#c8d1da;
+  --accent:#b45309; --accent-ink:#ffffff; --accent-soft:#f6e3cf;
+  --wave:#1d5fd1; --ok:#177245; --danger:#b42318; --water:#3c86c6; --glass:#7f9ab1; --sky:#c9d8e6;
+  --scope-bg:#07170e; --scope-grid:#1b4730; --scope-trace:#7dffa4; --scope-ref:#ffb547; --scope-text:#9fd9b3;
+  --f-display:"Noto Serif TC","Songti TC","PMingLiU",serif;
+  --f-body:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e141a; --surface:#151e27; --surface-2:#1d2833; --ink:#e4ebf1; --muted:#97a4b1; --line:#2b3947;
+  --accent:#f0a33a; --accent-ink:#1a1206; --accent-soft:#3a2a14;
+  --wave:#6ea8ff; --ok:#4cc38a; --danger:#ff7a6b; --water:#4f9be0; --glass:#8ea7bd; --sky:#22303d; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e141a; --surface:#151e27; --surface-2:#1d2833; --ink:#e4ebf1; --muted:#97a4b1; --line:#2b3947;
+  --accent:#f0a33a; --accent-ink:#1a1206; --accent-soft:#3a2a14;
+  --wave:#6ea8ff; --ok:#4cc38a; --danger:#ff7a6b; --water:#4f9be0; --glass:#8ea7bd; --sky:#22303d; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.65;margin:0}
+.wrap{max-width:1140px;margin:0 auto;padding-inline:16px;padding-block:20px 60px}
+header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px;padding-block:8px 18px;border-bottom:2px solid var(--ink)}
+.top h1{font-family:var(--f-display);font-weight:900;font-size:clamp(28px,4.6vw,44px);line-height:1.1;margin:0;letter-spacing:.02em;text-wrap:balance}
+.top .eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase}
+.top p{margin:6px 0 0;color:var(--muted);max-width:60ch}
+.master{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 12px}
+.master label{font-size:13px;color:var(--muted);white-space:nowrap}
+.master input{width:120px}
+nav.tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);display:flex;gap:6px;padding-block:12px;overflow-x:auto}
+nav.tabs button{font:inherit;font-weight:700;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:8px 14px;border-radius:999px;cursor:pointer;white-space:nowrap}
+nav.tabs button .n{font-family:var(--f-mono);font-weight:700;color:var(--accent);margin-right:6px}
+nav.tabs button[aria-selected="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+nav.tabs button[aria-selected="true"] .n{color:var(--accent-soft)}
+section.sec{display:grid;gap:28px}
+.sec-head h2{font-family:var(--f-display);font-size:clamp(22px,3vw,30px);margin:8px 0 2px}
+.sec-head p{margin:0;color:var(--muted);max-width:70ch}
+.bench{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.bench-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px;padding:14px 18px;border-bottom:1px solid var(--line)}
+.bench-head h3{margin:0;font-size:19px;font-weight:700}
+.tag{font-family:var(--f-mono);font-size:11.5px;letter-spacing:.06em;padding:2px 8px;border-radius:6px;background:var(--accent-soft);color:var(--ink)}
+.bench-body{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:0}
+.stage{padding:14px;display:grid;gap:10px;min-width:0;align-content:start}
+.stage canvas{width:100%;display:block;border-radius:10px;background:var(--surface-2);touch-action:none}
+.stage canvas.scope{background:var(--scope-bg)}
+.panel{border-left:1px solid var(--line);padding:14px 16px;display:grid;gap:14px;align-content:start;min-width:0;background:color-mix(in srgb,var(--surface-2) 35%,var(--surface))}
+@media (max-width:860px){.bench-body{grid-template-columns:1fr}.panel{border-left:0;border-top:1px solid var(--line)}}
+.ctl{display:grid;gap:6px}
+.ctl>.lab{font-size:13px;color:var(--muted);display:flex;justify-content:space-between;gap:8px}
+.ctl>.lab b{font-family:var(--f-mono);color:var(--ink);font-weight:700}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.seg{display:flex;flex-wrap:wrap;gap:4px}
+.seg button,.btn{font:inherit;font-size:14px;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:6px 11px;border-radius:8px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.btn.go{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700}
+.btn[aria-pressed="true"]{background:var(--danger);color:#fff;border-color:var(--danger)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.row{display:flex;flex-wrap:wrap;gap:6px}
+button:focus-visible,input:focus-visible{outline:2px solid var(--wave);outline-offset:2px}
+.chk{display:flex;gap:8px;align-items:flex-start;font-size:14px;cursor:pointer}
+.chk input{margin-top:5px;accent-color:var(--accent)}
+.readout{display:grid;grid-template-columns:auto 1fr;gap:3px 12px;font-size:13.5px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.readout dt{color:var(--muted)}
+.readout dd{margin:0;font-family:var(--f-mono);font-variant-numeric:tabular-nums;text-align:right;font-weight:700}
+.meter{height:10px;border-radius:5px;background:var(--surface-2);overflow:hidden}
+.meter i{display:block;height:100%;width:0;background:var(--accent);transition:width .08s linear}
+.note{font-size:13px;color:var(--muted);margin:0}
+.verdict{font-weight:700;padding:8px 10px;border-radius:8px;background:var(--surface-2);font-size:14px}
+.verdict.ok{color:var(--ok)} .verdict.bad{color:var(--danger)}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:0;border-top:1px solid var(--line)}
+.notes details{padding:12px 18px;border-right:1px solid var(--line);min-width:0}
+.notes details:last-child{border-right:0}
+.notes summary{cursor:pointer;font-weight:700;font-size:14.5px}
+.notes summary .k{font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;color:var(--accent);margin-right:6px}
+.notes ol,.notes ul{margin:8px 0 0;padding-left:1.3em;font-size:14px}
+.notes li{margin-bottom:6px}
+.notes .ans{color:var(--muted);font-size:13px;display:block}
+.subgrid{display:grid;gap:10px}
+.cap{font-size:12.5px;color:var(--muted);margin:-4px 2px 0}
+.keys{display:grid;grid-template-columns:repeat(8,1fr);gap:3px}
+.keys button{font:inherit;font-size:12px;line-height:1.2;padding:8px 0;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:0 0 6px 6px;cursor:pointer}
+.keys button small{display:block;font-family:var(--f-mono);font-size:10px;color:var(--muted)}
+.keys button:active{background:var(--accent-soft)}
+table.t{width:100%;border-collapse:collapse;font-size:14px}
+table.t th,table.t td{border-bottom:1px solid var(--line);padding:7px 8px;text-align:left;vertical-align:middle}
+table.t th{font-size:12.5px;color:var(--muted);font-weight:500}
+table.t td.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.tbl{overflow-x:auto}
+.mini{display:flex;gap:3px}
+.mini button{font:inherit;font-size:12.5px;padding:3px 8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:6px;cursor:pointer}
+.mini button[aria-pressed="true"]{background:var(--wave);border-color:var(--wave);color:#fff}
+.key-ans{font-size:13px;color:var(--ok);font-weight:700}
+.reveal{cursor:pointer;background:var(--surface-2);border-radius:6px;padding:4px 8px;color:transparent;text-shadow:0 0 0 transparent;user-select:none;position:relative}
+.reveal::after{content:"點我";position:absolute;left:8px;color:var(--muted);font-size:12px}
+.reveal.on{color:var(--ink);background:var(--accent-soft)} .reveal.on::after{content:""}
+#sp-log{font-size:12.5px} #sp-log th,#sp-log td{padding:4px 5px}
+.wide{padding:14px 18px;display:grid;gap:10px;border-top:1px solid var(--line)}
+footer{margin-top:36px;color:var(--muted);font-size:13px;border-top:1px solid var(--line);padding-top:14px}
+:root{--violet:#5a44b3}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--violet:#a99bf0}}
+:root[data-theme="dark"]{--violet:#a99bf0}
+.stu{display:inline-block;margin-top:8px;font-family:var(--f-mono);font-size:12px;font-weight:700;letter-spacing:.12em;padding:2px 10px;border-radius:999px;background:var(--ink);color:var(--bg)}
+.cards{border-top:1px solid var(--line);padding:14px 18px 18px;display:grid;gap:10px;background:color-mix(in srgb,var(--surface-2) 30%,var(--surface))}
+.deck-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px}
+.deck-head b{font-size:14.5px}
+.dots{display:flex;flex-wrap:wrap;gap:6px}
+.dots button{width:28px;height:28px;border-radius:50%;border:1.5px solid var(--line);background:var(--surface);color:var(--muted);font:700 12px var(--f-mono);cursor:pointer;padding:0}
+.dots button.seen{border-color:var(--ink);color:var(--ink)}
+.dots button[aria-current="step"]{border-color:var(--ink);background:var(--ink);color:var(--bg)}
+.card{--k:var(--ink);border:1.5px solid var(--k);border-radius:12px;background:var(--surface);padding:14px 16px 16px;display:grid;gap:10px;align-content:start;min-width:0;position:relative}
+.card .kind{justify-self:start;font-size:12.5px;font-weight:700;letter-spacing:.06em;padding:2px 10px;border-radius:6px;color:var(--surface);background:var(--k)}
+.card .no{font-family:var(--f-mono);font-size:11px;color:var(--muted);position:absolute;top:14px;right:16px}
+.card .q{font-size:16.5px;line-height:1.7;margin:0;font-weight:700;text-wrap:pretty}
+.card ol{margin:0;padding-left:1.4em;font-size:15px;display:grid;gap:4px}
+.card .hint{font-size:13.5px;color:var(--muted);margin:0}
+.card .opts{display:flex;flex-wrap:wrap;gap:6px}
+.card .opts button{font:inherit;font-size:14px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);padding:5px 12px;border-radius:999px;cursor:pointer}
+.card .opts button[aria-pressed="true"]{border-color:var(--k);background:var(--k);color:var(--surface)}
+.card .opts span{font-size:14px;padding:4px 0;margin-right:14px}
+.card .mine{font-size:14px;padding:8px 10px;border-radius:8px;background:var(--surface-2)}
+.card .lines{border-bottom:1px dashed var(--line);height:26px}
+.k-pred{--k:var(--wave)} .k-do{--k:var(--accent)} .k-see{--k:var(--ok)} .k-why{--k:var(--violet)} .k-up{--k:var(--danger)}
+.cardnav{display:flex;justify-content:space-between;gap:8px}
+.deck-legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--muted)}
+.deck-legend i{display:inline-block;width:10px;height:10px;border-radius:3px;background:var(--k);margin-right:5px;vertical-align:middle}
+.deck-block{display:grid;gap:10px;margin-block:6px 26px}
+.deck-block h3{margin:0;font-size:18px}
+.deck-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.deck-grid .card{min-height:190px}
+@media print{nav.tabs,.master,footer,.cardnav{display:none!important} body{background:#fff} .deck-grid{grid-template-columns:repeat(2,1fr)} .card,.bench{break-inside:avoid}}
+
+.checkres{display:grid;gap:6px}
+.checkres:empty{display:none}
+.checkres .cr{font-size:14px;padding:6px 10px;border-radius:8px;background:var(--surface-2)}
+.checkres .cr.ok{color:var(--ok)} .checkres .cr.bad{color:var(--danger)} .checkres .cr.na{color:var(--muted)}
+.checkres .btn{justify-self:start}
+
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+<header class="top">
+  <div>
+    <div class="eyebrow">國中自然 2上 · 第3章 波動與聲音 · 3-2～3-4</div>
+    <h1>聲音模擬實驗室</h1>
+    <div class="stu">學生版</div>
+    <p>九個實驗台，每一台都有一疊引導字卡。照著字卡的順序走：先預測，再動手，然後說出你看到的證據和理由。做不到的實驗，在這裡都能試：抽成真空、站到 200 公尺外的牆前、聽 20000 Hz 以上的聲音。</p>
+  </div>
+  <div class="master">
+    <label for="vol">主音量</label>
+    <input type="range" id="vol" min="0" max="100" value="35">
+    <button class="btn" id="mute" aria-pressed="false">靜音</button>
+  </div>
+</header>
+
+<nav class="tabs" role="tablist" aria-label="章節">
+  <button role="tab" data-tab="s32" aria-selected="true"><span class="n">3-2</span>聲音的形成</button>
+  <button role="tab" data-tab="s33" aria-selected="false"><span class="n">3-3</span>多變的聲音</button>
+  <button role="tab" data-tab="s34" aria-selected="false"><span class="n">3-4</span>聲波的傳播與應用</button>
+</nav>
+
+<!-- ======================= 3-2 ======================= -->
+<section class="sec" id="s32">
+  <div class="sec-head">
+    <h2>3-2 聲音的形成</h2>
+    <p>聲音由物體振動產生，靠介質把振動一路傳出去；傳播多快，看介質的種類和溫度。</p>
+  </div>
+
+  <!-- Bench 1 -->
+  <article class="bench" id="b-src">
+    <div class="bench-head"><h3>發聲體在振動嗎？</h3><span class="tag">探討活動 3-2</span><span class="tag">縱波</span></div>
+    <div class="bench-body">
+      <div class="stage">
+        <canvas id="cv-src" aria-label="音叉或橡皮筋振動與空氣粒子動畫"></canvas>
+        <p class="cap" id="src-cap">畫面已放慢。真實音叉（A4）每秒來回振動 440 次，眼睛跟不上。紅點是一顆被標記的空氣粒子。</p>
+      </div>
+      <div class="panel">
+        <div class="ctl"><div class="lab">發聲體</div>
+          <div class="seg" id="src-type"><button data-v="fork" aria-pressed="true">音叉</button><button data-v="band" aria-pressed="false">橡皮筋</button></div></div>
+        <div class="ctl"><div class="lab">觀察畫面</div>
+          <div class="seg" id="src-view"><button data-v="air" aria-pressed="true">空氣粒子</button><button data-v="water" aria-pressed="false">水面</button></div></div>
+        <div class="row">
+          <button class="btn go" id="src-hit">敲擊音叉</button>
+          <button class="btn" id="src-hold" aria-pressed="false">用手握住</button>
+          <button class="btn" id="src-dip" aria-pressed="false">碰觸水面</button>
+        </div>
+        <dl class="readout"><dt>發聲體</dt><dd id="src-state">靜止</dd><dt>振幅</dt><dd id="src-amp">0 %</dd></dl>
+        <div class="meter"><i id="src-meter"></i></div>
+        <p class="note">先「敲擊」，再按「用手握住」或「碰觸水面」，比較聲音和振動的變化。</p>
+      </div>
+    </div>
+    <div class="cards" data-bench="b-src"></div>
+  </article>
+
+  <!-- Bench 2 -->
+  <article class="bench" id="b-jar">
+    <div class="bench-head"><h3>波以耳的真空鐘罩</h3><span class="tag">氣體傳聲</span><span class="tag">介質</span></div>
+    <div class="bench-body">
+      <div class="stage"><canvas id="cv-jar" aria-label="真空鐘罩與抽氣機"></canvas>
+        <p class="cap">1660 年代，波以耳把鈴鐺放進玻璃罩，邊敲邊抽氣，鈴聲愈來愈弱。</p></div>
+      <div class="panel">
+        <div class="row"><button class="btn go" id="jar-ring" aria-pressed="false">開始敲鈴</button></div>
+        <div class="row"><button class="btn" id="jar-out" aria-pressed="false">抽出空氣</button><button class="btn" id="jar-in" aria-pressed="false">放入空氣</button></div>
+        <div class="ctl"><div class="lab">罩內氣壓 <b id="jar-p">101 kPa</b></div><input type="range" id="jar-slider" min="0" max="100" value="100"></div>
+        <label class="chk"><input type="checkbox" id="jar-solid">鈴鐺改架在金屬底座上（不用細線懸吊）</label>
+        <dl class="readout"><dt>鈴鐺</dt><dd id="jar-bell">靜止</dd><dt>你聽到的音量</dt><dd id="jar-hear">0 %</dd></dl>
+        <div class="meter"><i id="jar-meter"></i></div>
+      </div>
+    </div>
+    <div class="cards" data-bench="b-jar"></div>
+  </article>
+
+  <!-- Bench 3 -->
+  <article class="bench" id="b-speed">
+    <div class="bench-head"><h3>聲速賽跑與打雷測距</h3><span class="tag">圖 3-15</span><span class="tag">例題 3-4</span></div>
+    <div class="bench-body">
+      <div class="stage">
+        <canvas id="cv-race" aria-label="三種介質聲速賽跑"></canvas>
+        <canvas id="cv-thunder" aria-label="閃電與雷聲"></canvas>
+      </div>
+      <div class="panel">
+        <div class="ctl"><div class="lab">空氣溫度 <b id="sp-T">25 ℃</b></div><input type="range" id="sp-temp" min="-20" max="40" value="25"></div>
+        <dl class="readout"><dt>空氣中聲速</dt><dd id="sp-v">346.0 m/s</dd><dt>公式</dt><dd>331 + 0.6T</dd></dl>
+        <div class="ctl"><div class="lab">聲音大小（試試看會不會變快）</div>
+          <div class="seg" id="sp-loud"><button data-v="1" aria-pressed="true">小聲</button><button data-v="2" aria-pressed="false">大聲</button></div></div>
+        <div class="ctl"><div class="lab">音調高低</div>
+          <div class="seg" id="sp-pitch"><button data-v="1" aria-pressed="true">低音</button><button data-v="2" aria-pressed="false">高音</button></div></div>
+        <div class="ctl"><div class="lab">動畫速度</div>
+          <div class="seg" id="sp-slow"><button data-v="1" aria-pressed="false">實際速度</button><button data-v="10" aria-pressed="true">放慢 10 倍</button></div></div>
+        <button class="btn go" id="sp-go">發出聲音（賽跑 1000 m）</button>
+        <div class="tbl"><table class="t" id="sp-log" aria-label="賽跑紀錄"><thead><tr><th>聲音條件</th><th>空氣 s</th><th>水 s</th><th>木材 s</th></tr></thead><tbody></tbody></table></div>
+        <hr style="border:0;border-top:1px solid var(--line);margin:2px 0">
+        <div class="ctl"><div class="lab">看到閃電後幾秒聽到雷聲 <b id="th-dt">3.0 s</b></div><input type="range" id="th-delay" min="1" max="10" step="0.5" value="3"></div>
+        <button class="btn go" id="th-go">閃電！</button>
+        <dl class="readout"><dt>經過時間</dt><dd id="th-clock">0.00 s</dd><dt>閃電距離</dt><dd id="th-d">—</dd></dl>
+      </div>
+    </div>
+    <div class="cards" data-bench="b-speed"></div>
+  </article>
+</section>
+
+<!-- ======================= 3-3 ======================= -->
+<section class="sec" id="s33" hidden>
+  <div class="sec-head">
+    <h2>3-3 多變的聲音</h2>
+    <p>音量看振幅，音調看頻率，音色看波形。用示波器把聲音畫成圖來比較。</p>
+  </div>
+
+  <!-- Bench 4 -->
+  <article class="bench" id="b-tube">
+    <div class="bench-head"><h3>試管聲音比一比</h3><span class="tag">探討活動 3-3</span><span class="tag">音調</span></div>
+    <div class="bench-body">
+      <div class="stage">
+        <canvas id="cv-tube" aria-label="五支試管，可拖曳水面"></canvas>
+        <p class="cap">拖曳藍色水面可改變水量；點試管發聲。試管長 15 cm。</p>
+        <canvas id="cv-tubescope" class="scope" aria-label="示波器"></canvas>
+        <p class="cap">示波器：每格 0.5 ms，整個畫面 5 ms。</p>
+      </div>
+      <div class="panel">
+        <div class="ctl"><div class="lab">發聲方式</div>
+          <div class="seg" id="tb-mode"><button data-v="blow" aria-pressed="true">對管口吹氣</button><button data-v="hit" aria-pressed="false">用湯匙敲擊</button></div></div>
+        <div class="ctl"><div class="lab">吹氣／敲擊力量 <b id="tb-fv">5</b></div><input type="range" id="tb-force" min="1" max="10" value="5"></div>
+        <label class="chk"><input type="checkbox" id="tb-show">在試管下方顯示頻率（先預測，再打開）</label>
+        <dl class="readout"><dt>試管</dt><dd id="tb-i">—</dd><dt>空氣柱長</dt><dd id="tb-L">—</dd><dt>頻率</dt><dd id="tb-f">—</dd><dt>接近音名</dt><dd id="tb-n">—</dd></dl>
+        <p class="note" id="tb-modenote">點試管時，注意畫面中哪裡在振動。</p>
+      </div>
+    </div>
+    <div class="cards" data-bench="b-tube"></div>
+  </article>
+
+  <!-- Bench 5 -->
+  <article class="bench" id="b-scope">
+    <div class="bench-head"><h3>聲音三要素示波器</h3><span class="tag">圖 3-18～3-21</span><span class="tag">音量 · 音調 · 音色</span></div>
+    <div class="bench-body">
+      <div class="stage">
+        <canvas id="cv-scope" class="scope" aria-label="示波器波形"></canvas>
+        <p class="cap" id="sc-cap">每格 1 ms，整個畫面 10 ms。橘色虛線是凍結的參考波形。</p>
+        <canvas id="cv-spec" aria-label="聲譜"></canvas>
+        <p class="cap">聲譜：每根長條是聲音裡的一個頻率成分，長條越高，這個成分越強。</p>
+      </div>
+      <div class="panel">
+        <div class="ctl"><div class="lab">頻率 <b id="sc-fv">440 Hz</b></div><input type="range" id="sc-f" min="0" max="1000" value="580"></div>
+        <div class="keys" id="sc-keys"></div>
+        <div class="ctl"><div class="lab">振幅 <b id="sc-av">50 %</b></div><input type="range" id="sc-a" min="5" max="100" value="50"></div>
+        <div class="ctl"><div class="lab">音色（發音體）</div>
+          <div class="seg" id="sc-tim"><button data-v="fork" aria-pressed="true">音叉</button><button data-v="flute" aria-pressed="false">長笛</button><button data-v="clar" aria-pressed="false">單簧管</button><button data-v="violin" aria-pressed="false">小提琴</button><button data-v="noise" aria-pressed="false">噪音</button></div></div>
+        <div class="row">
+          <button class="btn go" id="sc-play" aria-pressed="false">持續發聲</button>
+          <button class="btn" id="sc-ref">凍結參考波形</button>
+          <button class="btn" id="sc-clr">清除</button>
+        </div>
+        <dl class="readout"><dt>週期 T</dt><dd id="sc-T">2.27 ms</dd><dt>畫面中的波數</dt><dd id="sc-n">4.4 個</dd><dt>接近音名</dt><dd id="sc-note">A4（La）</dd></dl>
+        <p class="note" id="sc-cmp">凍結一個參考波形，再改變一個變因來比較。</p>
+        <button class="btn" id="sc-mic" aria-pressed="false">改用麥克風看真實聲音</button>
+        <p class="note" id="sc-micmsg"></p>
+      </div>
+    </div>
+    <div class="wide">
+      <div class="tbl"><table class="t" aria-label="聲音三要素隨堂筆記">
+        <thead><tr><th>隨堂筆記</th><th>音量（響度）</th><th>音調</th><th>音色</th></tr></thead>
+        <tbody>
+          <tr><th>影響因素</th><td><span class="reveal">振幅</span></td><td><span class="reveal">頻率</span></td><td>波形</td></tr>
+          <tr><th>單位</th><td><span class="reveal">分貝 dB</span></td><td><span class="reveal">赫茲 Hz</span></td><td><span class="reveal">無</span></td></tr>
+          <tr><th>示波器上看</th><td><span class="reveal">波的高度</span></td><td><span class="reveal">固定時間內的波數</span></td><td><span class="reveal">波的形狀</span></td></tr>
+        </tbody></table></div>
+    </div>
+    <div class="cards" data-bench="b-scope"></div>
+  </article>
+
+  <!-- Bench 6 -->
+  <article class="bench" id="b-noise">
+    <div class="bench-head"><h3>樂音與噪音</h3><span class="tag">探討活動 3-4（課本 p.76）</span><span class="tag">分貝</span></div>
+    <div class="bench-body">
+      <div class="stage">
+        <canvas id="cv-nscope" class="scope" aria-label="即時波形"></canvas>
+        <p class="cap">即時示波器：顯示正在播放的聲音，每格 2 ms。</p>
+        <canvas id="cv-db" aria-label="分貝尺"></canvas>
+        <p class="cap">分貝尺上的範圍是課本表格的參考值。模擬播放音量經過壓縮，不代表真實分貝。</p>
+      </div>
+      <div class="panel">
+        <p class="note">點音源播放，觀察波形是否規律，並記下你的感受，最後再對照課本。</p>
+        <dl class="readout"><dt>正在播放</dt><dd id="ns-now">—</dd><dt>課本分貝範圍</dt><dd id="ns-db">—</dd></dl>
+        <button class="btn" id="ns-reveal" aria-pressed="false">對照課本答案</button>
+        <p class="note" id="ns-sum"></p>
+      </div>
+    </div>
+    <div class="wide"><div class="tbl"><table class="t" id="ns-table" aria-label="音源記錄表">
+      <thead><tr><th>音源</th><th>分貝數（dB）</th><th>波形是否規律</th><th>你的感受</th><th>課本</th></tr></thead><tbody></tbody></table></div></div>
+    <div class="cards" data-bench="b-noise"></div>
+  </article>
+</section>
+
+<!-- ======================= 3-4 ======================= -->
+<section class="sec" id="s34" hidden>
+  <div class="sec-head">
+    <h2>3-4 聲波的傳播與應用</h2>
+    <p>聲波遇到障礙物會反射；超過 20000 Hz 的超聲波人耳聽不到，卻能用來測距和成像。</p>
+  </div>
+
+  <!-- Bench 7 -->
+  <article class="bench" id="b-echo">
+    <div class="bench-head"><h3>回聲：離牆多遠才聽得出來？</h3><span class="tag">聲波反射</span><span class="tag">圖 3-23</span></div>
+    <div class="bench-body">
+      <div class="stage">
+        <canvas id="cv-echo" aria-label="人對牆敲鼓的回聲動畫"></canvas>
+        <canvas id="cv-echotl" aria-label="即時振幅"></canvas>
+        <p class="cap" id="ec-cap">鼓聲和上方動畫都是真實時間，同步進行。想看清楚聲波怎麼走，按「慢動作重播」（無聲）。下方是耳朵收到的聲音振幅，隨時間記錄。</p>
+      </div>
+      <div class="panel">
+        <div class="ctl"><div class="lab">與牆的距離 <b id="ec-dv">40 m</b></div><input type="range" id="ec-d" min="3" max="200" value="40"></div>
+        <div class="ctl"><div class="lab">牆面材質</div>
+          <div class="seg" id="ec-mat"><button data-v="0" aria-pressed="false">光滑石材</button><button data-v="1" aria-pressed="true">水泥牆</button><button data-v="2" aria-pressed="false">木板</button><button data-v="3" aria-pressed="false">厚窗簾</button><button data-v="4" aria-pressed="false">吸音棉</button></div></div>
+        <div class="row"><button class="btn go" id="ec-go">敲一下鼓</button><button class="btn" id="ec-replay">慢動作重播（無聲）</button></div>
+        <div class="ctl"><div class="lab">即時振幅 <b id="ec-amp">0 %</b></div><div class="meter"><i id="ec-meter"></i></div></div>
+        <dl class="readout"><dt>來回距離</dt><dd id="ec-2d">80 m</dd><dt>回聲延遲 Δt</dt><dd id="ec-dt">0.231 s</dd><dt>反射強度</dt><dd id="ec-R">85 %</dd></dl>
+        <div class="verdict" id="ec-verdict">—</div>
+      </div>
+    </div>
+    <div class="cards" data-bench="b-echo"></div>
+  </article>
+
+  <!-- Bench 8 -->
+  <article class="bench" id="b-sonar">
+    <div class="bench-head"><h3>聲納與倒車雷達</h3><span class="tag">超聲波測距</span><span class="tag">In my life · 例題 3-6</span></div>
+    <div class="bench-body">
+      <div class="stage">
+        <canvas id="cv-sonar" aria-label="聲納測海深或倒車雷達"></canvas>
+        <p class="cap" id="so-cap">海水中聲速約 1500 m/s（課本圖 3-15 的「水」為 1463 m/s；海水含鹽，略快）。下方是聲納螢幕：記錄每個回波抵達的時間。</p>
+      </div>
+      <div class="panel">
+        <div class="ctl"><div class="lab">模式</div>
+          <div class="seg" id="so-mode"><button data-v="sea" aria-pressed="true">聲納測海深</button><button data-v="car" aria-pressed="false">倒車雷達</button></div></div>
+        <div id="so-sea" class="subgrid">
+          <div class="ctl"><div class="lab">船的位置</div><input type="range" id="so-x" min="0" max="100" value="30"></div>
+          <div class="row"><button class="btn go" id="so-ping">發射超聲波</button><button class="btn" id="so-scan">自動掃描</button><button class="btn" id="so-new">換一片海域</button></div>
+          <label class="chk"><input type="checkbox" id="so-fish" checked>海中有魚群</label>
+          <label class="chk"><input type="checkbox" id="so-real" checked>顯示真實海底</label>
+          <label class="chk"><input type="checkbox" id="so-self">只顯示時間（讓學生自己算深度）</label>
+          <dl class="readout" id="so-read"><dt>回波時間</dt><dd id="so-t">—</dd><dt>深度 = v·t ÷ 2</dt><dd id="so-d">—</dd></dl>
+          <p class="note" id="so-msg"></p>
+        </div>
+        <div id="so-car" class="subgrid" hidden>
+          <div class="ctl"><div class="lab">車尾與牆的距離 <b id="so-cdv">2.00 m</b></div><input type="range" id="so-cd" min="20" max="300" value="200"></div>
+          <button class="btn go" id="so-rev" aria-pressed="false">開始倒車</button>
+          <dl class="readout"><dt>超聲波往返時間</dt><dd id="so-ct">11.6 ms</dd><dt>提示音間隔</dt><dd id="so-ci">—</dd></dl>
+          <p class="note">倒車時注意聽，也注意看畫面上的文字。</p>
+        </div>
+      </div>
+    </div>
+    <div class="cards" data-bench="b-sonar"></div>
+  </article>
+
+  <!-- Bench 9 -->
+  <article class="bench" id="b-hear">
+    <div class="bench-head"><h3>誰聽得到？</h3><span class="tag">圖 3-30</span><span class="tag">20～20000 Hz</span></div>
+    <div class="bench-body">
+      <div class="stage"><canvas id="cv-hear" aria-label="各種動物可聽頻率範圍"></canvas>
+        <p class="cap">橫軸為對數刻度，每一大格頻率變為 10 倍。</p></div>
+      <div class="panel">
+        <div class="ctl"><div class="lab">頻率 <b id="hr-fv">1000 Hz</b></div><input type="range" id="hr-f" min="0" max="1000" value="436"></div>
+        <div class="row"><button class="btn go" id="hr-play">播放這個頻率</button></div>
+        <div class="verdict" id="hr-who">—</div>
+        <hr style="border:0;border-top:1px solid var(--line);margin:2px 0">
+        <div class="ctl"><div class="lab">高頻聽力測試（8000 → 20000 Hz）</div>
+          <div class="row"><button class="btn go" id="hr-sweep" aria-pressed="false">開始掃頻</button><button class="btn" id="hr-stop" disabled>我聽不到了</button></div></div>
+        <dl class="readout"><dt>目前頻率</dt><dd id="hr-sf">—</dd><dt>你的上限約</dt><dd id="hr-lim">—</dd></dl>
+        <p class="note">請先把音量調小。筆電喇叭通常放不出很低或很高的頻率，「聽不到」也可能是喇叭的限制。</p>
+      </div>
+    </div>
+    <div class="cards" data-bench="b-hear"></div>
+  </article>
+</section>
+
+<footer>模擬是簡化過的模型：播放的音量不代表真實分貝，樂器音色和試管敲擊聲也只是近似。模擬的結果要和真實實驗互相對照。</footer>
+</div>
+
+<script>
+"use strict";
+/* ---------- utilities ---------- */
+const $ = (s, r = document) => r.querySelector(s);
+const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+const now = () => performance.now() / 1000;
+const TAU = Math.PI * 2;
+let TK = {};
+function readTokens() {
+  const cs = getComputedStyle(document.documentElement);
+  const names = ['bg','surface','surface-2','ink','muted','line','accent','accent-soft','wave','ok','danger','water','glass','sky','scope-bg','scope-grid','scope-trace','scope-ref','scope-text'];
+  const o = {}; names.forEach(n => o[n.replace(/-(\w)/g, (_, c) => c.toUpperCase())] = cs.getPropertyValue('--' + n).trim());
+  TK = o;
+}
+readTokens();
+try { matchMedia('(prefers-color-scheme: dark)').addEventListener('change', readTokens); } catch (e) {}
+new MutationObserver(readTokens).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme', 'class', 'style'] });
+
+const FONT = '"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif';
+const MONO = '"JetBrains Mono",ui-monospace,Menlo,monospace';
+function alpha(hex, a) {
+  if (!hex) return `rgba(0,0,0,${a})`;
+  if (hex.startsWith('#')) {
+    let h = hex.slice(1); if (h.length === 3) h = h.split('').map(c => c + c).join('');
+    const n = parseInt(h, 16); return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
+  }
+  return hex;
+}
+function makeStage(canvas, W, H) {
+  canvas.style.aspectRatio = `${W} / ${H}`;
+  const st = { canvas, W, H, ctx: canvas.getContext('2d'), scale: 1 };
+  function fit() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const cw = canvas.clientWidth || W;
+    canvas.width = Math.max(1, Math.round(cw * dpr));
+    canvas.height = Math.max(1, Math.round(cw * H / W * dpr));
+    st.scale = canvas.width / W;
+  }
+  fit();
+  try { new ResizeObserver(fit).observe(canvas); } catch (e) { addEventListener('resize', fit); }
+  st.begin = (bg) => {
+    const c = st.ctx; c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, canvas.width, canvas.height);
+    c.setTransform(st.scale, 0, 0, st.scale, 0, 0);
+    if (bg) { c.fillStyle = bg; c.fillRect(0, 0, W, H); }
+    return c;
+  };
+  st.local = (e) => { const r = canvas.getBoundingClientRect(); return { x: (e.clientX - r.left) * W / r.width, y: (e.clientY - r.top) * H / r.height }; };
+  return st;
+}
+function text(c, s, x, y, { size = 13, color = TK.ink, align = 'left', weight = 500, font = FONT, base = 'alphabetic' } = {}) {
+  c.font = `${weight} ${size}px ${font}`; c.fillStyle = color; c.textAlign = align; c.textBaseline = base; c.fillText(s, x, y);
+}
+function seg(root, cb) {
+  root.addEventListener('click', e => {
+    const b = e.target.closest('button[data-v]'); if (!b || b.disabled) return;
+    root.querySelectorAll('button[data-v]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    cb(b.dataset.v);
+  });
+}
+function toggleBtn(btn, on) { btn.setAttribute('aria-pressed', String(on)); }
+const SOL = ['Do','Do♯','Re','Re♯','Mi','Fa','Fa♯','Sol','Sol♯','La','La♯','Si'];
+const LET = ['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'];
+function noteName(f) { const m = Math.round(69 + 12 * Math.log2(f / 440)); const n = ((m % 12) + 12) % 12; return `${LET[n]}${Math.floor(m / 12) - 1}（${SOL[n]}）`; }
+const logMap = (v, lo, hi) => lo * Math.pow(hi / lo, v / 1000);
+const logInv = (f, lo, hi) => 1000 * Math.log(f / lo) / Math.log(hi / lo);
+const fmtHz = f => f >= 1000 ? (f >= 10000 ? Math.round(f).toLocaleString() : f.toFixed(0)) + ' Hz' : (f < 100 ? f.toFixed(1) : f.toFixed(0)) + ' Hz';
+
+/* ---------- audio engine ---------- */
+const A = { ctx: null, pre: null, master: null, tap: null, vol: 0.35, muted: false, nb: null, pw: {} };
+function ac() {
+  if (!A.ctx) {
+    const C = window.AudioContext || window.webkitAudioContext; if (!C) return null;
+    A.ctx = new C();
+    A.pre = A.ctx.createGain();
+    A.master = A.ctx.createGain(); A.master.gain.value = A.muted ? 0 : A.vol;
+    const comp = A.ctx.createDynamicsCompressor(); comp.threshold.value = -14; comp.ratio.value = 8;
+    A.tap = A.ctx.createAnalyser(); A.tap.fftSize = 4096;
+    A.pre.connect(A.master); A.pre.connect(A.tap); A.master.connect(comp); comp.connect(A.ctx.destination);
+    A.sink = A.ctx.createGain(); A.sink.gain.value = 0; A.sink.connect(A.ctx.destination); A.tap.connect(A.sink);
+  }
+  if (A.ctx.state === 'suspended') A.ctx.resume();
+  return A.ctx;
+}
+function setVol() { if (A.master) A.master.gain.setTargetAtTime(A.muted ? 0 : A.vol, A.ctx.currentTime, 0.02); }
+$('#vol').addEventListener('input', e => { A.vol = e.target.value / 100; setVol(); });
+$('#mute').addEventListener('click', e => { A.muted = !A.muted; toggleBtn(e.currentTarget, A.muted); e.currentTarget.textContent = A.muted ? '已靜音' : '靜音'; setVol(); });
+function pwave(h) {
+  const key = h.join(','); if (A.pw[key]) return A.pw[key];
+  const re = new Float32Array(h.length + 1), im = new Float32Array(h.length + 1);
+  h.forEach((a, i) => im[i + 1] = a);
+  return (A.pw[key] = A.ctx.createPeriodicWave(re, im));
+}
+function noiseBuf() {
+  if (A.nb) return A.nb;
+  const n = A.ctx.sampleRate * 2, b = A.ctx.createBuffer(1, n, A.ctx.sampleRate), d = b.getChannelData(0);
+  for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
+  return (A.nb = b);
+}
+/* tone: decay = exponential time constant (s); otherwise flat for dur */
+function tone({ f = 440, h = [1], amp = 0.3, attack = 0.005, dur = 0.5, decay = null, when = 0, glideTo = null }) {
+  const ctx = ac(); if (!ctx) return null;
+  const t0 = ctx.currentTime + when;
+  const o = ctx.createOscillator(); o.setPeriodicWave(pwave(h)); o.frequency.setValueAtTime(f, t0);
+  if (glideTo) o.frequency.exponentialRampToValueAtTime(glideTo, t0 + dur);
+  const g = ctx.createGain(); g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(amp, t0 + attack);
+  let end;
+  if (decay) { g.gain.setTargetAtTime(0, t0 + attack, decay); end = t0 + attack + Math.min(decay * 8, 30); }
+  else { g.gain.setValueAtTime(amp, t0 + Math.max(attack, dur - 0.03)); g.gain.linearRampToValueAtTime(0, t0 + dur); end = t0 + dur; }
+  o.connect(g); g.connect(A.pre); o.start(t0); o.stop(end + 0.05);
+  return { o, g, end };
+}
+function noise({ when = 0, dur = 0.2, amp = 0.3, type = 'bandpass', freq = 1000, Q = 0.8, attack = 0.002, decay = null }) {
+  const ctx = ac(); if (!ctx) return null;
+  const t0 = ctx.currentTime + when;
+  const s = ctx.createBufferSource(); s.buffer = noiseBuf(); s.loop = true;
+  const fl = ctx.createBiquadFilter(); fl.type = type; fl.frequency.value = freq; fl.Q.value = Q;
+  const g = ctx.createGain(); g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(amp, t0 + attack);
+  let end;
+  if (decay) { g.gain.setTargetAtTime(0, t0 + attack, decay); end = t0 + attack + decay * 8; }
+  else { g.gain.setValueAtTime(amp, t0 + Math.max(attack, dur - 0.02)); g.gain.linearRampToValueAtTime(0, t0 + dur); end = t0 + dur; }
+  s.connect(fl); fl.connect(g); g.connect(A.pre); s.start(t0, Math.random()); s.stop(end + 0.05);
+  return { s, g, fl };
+}
+function bellDing(amp, when = 0) {
+  [[1, 1, 0.45], [2.32, 0.5, 0.25], [4.25, 0.25, 0.12], [5.4, 0.12, 0.08]].forEach(([r, a, d]) => tone({ f: 1480 * r, amp: amp * a, decay: d, when }));
+}
+function shout(amp, when = 0) {
+  const ctx = ac(); if (!ctx || amp <= 0.001) return;
+  const t0 = ctx.currentTime + when;
+  const o = ctx.createOscillator(); o.type = 'sawtooth'; o.frequency.setValueAtTime(210, t0); o.frequency.linearRampToValueAtTime(170, t0 + 0.16);
+  const f1 = ctx.createBiquadFilter(); f1.type = 'bandpass'; f1.frequency.value = 750; f1.Q.value = 3;
+  const f2 = ctx.createBiquadFilter(); f2.type = 'bandpass'; f2.frequency.value = 1250; f2.Q.value = 4;
+  const g = ctx.createGain(); g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(amp * 2.2, t0 + 0.01); g.gain.setTargetAtTime(0, t0 + 0.09, 0.035);
+  o.connect(f1); o.connect(f2); f1.connect(g); f2.connect(g); g.connect(A.pre); o.start(t0); o.stop(t0 + 0.4);
+  noise({ when, amp: amp * 0.25, freq: 2500, Q: 0.6, decay: 0.03 });
+}
+
+/* ---------- tabs & frame loop ---------- */
+const benches = [];
+let activeTab = 's32';
+function showTab(id) {
+  activeTab = id;
+  document.querySelectorAll('nav.tabs button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === id)));
+  document.querySelectorAll('section.sec').forEach(s => s.hidden = s.id !== id);
+  try { localStorage.setItem('soundlab-stu-tab', id); } catch (e) {}
+}
+document.querySelectorAll('nav.tabs button').forEach(b => b.addEventListener('click', () => { showTab(b.dataset.tab); try { history.replaceState(null, '', '#' + b.dataset.tab); } catch (e) { /* 沙盒框架不允許改網址，略過 */ } }));
+(function initTab() {
+  let id = (location.hash || '').slice(1);
+  if (!['s32', 's33', 's34'].includes(id)) { try { id = localStorage.getItem('soundlab-stu-tab') || 's32'; } catch (e) { id = 's32'; } }
+  if (!['s32', 's33', 's34'].includes(id)) id = 's32';
+  showTab(id);
+})();
+let lastT = now();
+function frame() {
+  const t = now(), dt = Math.min(0.05, t - lastT); lastT = t;
+  for (const b of benches) { if (b.sec === activeTab) { try { b.draw(t, dt); } catch (e) { console.error(e); } } else if (b.bg) b.bg(t, dt); }
+  requestAnimationFrame(frame);
+}
+
+/* ======================================================================
+   Bench 1：發聲體（音叉／橡皮筋）
+   ====================================================================== */
+(function () {
+  const st = makeStage($('#cv-src'), 800, 330);
+  const S = { src: 'fork', view: 'air', A0: 0, segs: [], held: false, dipped: false, snd: null, drops: [], rings: [], dropAcc: 0 };
+  const baseTau = () => S.src === 'fork' ? 3.5 : 0.9;
+  const curTau = () => S.held ? 0.06 : (S.dipped && S.view === 'water' && S.src === 'fork') ? 0.45 : baseTau();
+  function ampAt(te) {
+    if (!S.segs.length || te < S.segs[0].t) return 0;
+    let a = S.A0;
+    for (let i = 0; i < S.segs.length; i++) {
+      const s = S.segs[i], end = i + 1 < S.segs.length ? Math.min(te, S.segs[i + 1].t) : te;
+      if (end <= s.t) break; a *= Math.exp(-(end - s.t) / s.tau);
+    }
+    return a;
+  }
+  const SND_AMP = 0.45;
+  function syncSound() {
+    if (!S.snd || !A.ctx) return;
+    const ct = A.ctx.currentTime, cur = ampAt(now()) * SND_AMP;
+    S.snd.forEach(n => { n.g.gain.cancelScheduledValues(ct); n.g.gain.setValueAtTime(cur * n.k, ct); n.g.gain.setTargetAtTime(0, ct, curTau()); });
+  }
+  function pushSeg() { if (!S.segs.length) return; S.segs.push({ t: now(), tau: curTau() }); if (S.segs.length > 80) S.segs.splice(1, 1); syncSound(); }
+  function strike() {
+    const ctx = ac(); if (!ctx) return;
+    if (S.snd) S.snd.forEach(n => { try { n.o.stop(); } catch (e) {} });
+    S.A0 = 1; S.segs = [{ t: now(), tau: curTau() }];
+    const ct = ctx.currentTime;
+    const parts = S.src === 'fork' ? [[440, 1]] : [[196, 1], [392, 0.55], [588, 0.35], [784, 0.2], [980, 0.12]];
+    S.snd = parts.map(([f, k]) => {
+      const o = ctx.createOscillator(); o.frequency.value = f;
+      if (S.src === 'band') o.frequency.setValueAtTime(f * 1.02, ct), o.frequency.exponentialRampToValueAtTime(f, ct + 0.3);
+      const g = ctx.createGain(); g.gain.setValueAtTime(0, ct); g.gain.linearRampToValueAtTime(SND_AMP * k, ct + 0.004);
+      g.gain.setTargetAtTime(0, ct + 0.004, curTau());
+      o.connect(g); g.connect(A.pre); o.start(ct); o.stop(ct + 40);
+      return { o, g, k };
+    });
+    if (S.src === 'fork') tone({ f: 2620, amp: 0.12, decay: 0.04 });
+    else noise({ amp: 0.08, freq: 1500, decay: 0.02 });
+  }
+  const hitBtn = $('#src-hit'), holdBtn = $('#src-hold'), dipBtn = $('#src-dip');
+  function syncUI() {
+    hitBtn.textContent = S.src === 'fork' ? '敲擊音叉' : '撥彈橡皮筋';
+    dipBtn.disabled = !(S.view === 'water' && S.src === 'fork');
+    $('#src-view').querySelector('[data-v="water"]').disabled = S.src !== 'fork';
+    $('#src-cap').textContent = S.view === 'air'
+      ? (S.src === 'fork' ? '畫面已放慢。真實音叉（A4）每秒來回振動 440 次，眼睛跟不上。紅點是一顆被標記的空氣粒子。' : '畫面已放慢。橡皮筋振動較慢、衰減較快。紅點是一顆被標記的空氣粒子。')
+      : '先敲擊音叉，再按「碰觸水面」把音叉尖端放進水中。';
+  }
+  seg($('#src-type'), v => {
+    S.src = v; if (v === 'band' && S.view === 'water') { S.view = 'air'; $('#src-view').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === 'air'))); }
+    S.dipped = false; toggleBtn(dipBtn, false); S.segs = []; if (S.snd) S.snd.forEach(n => { try { n.o.stop(); } catch (e) {} }); S.snd = null; syncUI();
+  });
+  seg($('#src-view'), v => { S.view = v; if (v === 'air') { S.dipped = false; toggleBtn(dipBtn, false); pushSeg(); } syncUI(); });
+  hitBtn.addEventListener('click', () => { if (S.held) { S.held = false; toggleBtn(holdBtn, false); } strike(); });
+  holdBtn.addEventListener('click', () => { S.held = !S.held; toggleBtn(holdBtn, S.held); holdBtn.textContent = S.held ? '放開手' : '用手握住'; pushSeg(); });
+  dipBtn.addEventListener('click', () => { S.dipped = !S.dipped; toggleBtn(dipBtn, S.dipped); dipBtn.textContent = S.dipped ? '離開水面' : '碰觸水面'; pushSeg(); });
+  syncUI();
+
+  // particles
+  const cols = 44, rows = 10, X0 = 190, DX = 13.6, Y0 = 50, DY = 21;
+  const jit = []; let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  for (let i = 0; i < cols * rows; i++) jit.push([(rnd() - 0.5) * 5, (rnd() - 0.5) * 6]);
+  const CV = 150, FV = 1.5, DISP = 7;
+  const disp = (x, t) => { const te = t - (x - X0) / CV; return ampAt(te) * DISP * Math.sin(TAU * FV * te); };
+
+  function drawFork(c, x, yTop, yBot, a, t, inverted) {
+    const dx = a * 4 * Math.sin(TAU * 13 * t);
+    c.strokeStyle = TK.glass; c.lineWidth = 8; c.lineCap = 'round';
+    c.beginPath();
+    if (!inverted) {
+      c.moveTo(x - 12 - dx, yTop); c.lineTo(x - 12 - dx * 0.4, yBot - 10); c.quadraticCurveTo(x, yBot + 14, x + 12 + dx * 0.4, yBot - 10); c.lineTo(x + 12 + dx, yTop);
+      c.stroke(); c.lineWidth = 7; c.strokeStyle = TK.muted; c.beginPath(); c.moveTo(x, yBot + 2); c.lineTo(x, yBot + 70); c.stroke();
+    } else {
+      c.moveTo(x - 12 - dx, yBot); c.lineTo(x - 12 - dx * 0.4, yTop + 10); c.quadraticCurveTo(x, yTop - 14, x + 12 + dx * 0.4, yTop + 10); c.lineTo(x + 12 + dx, yBot);
+      c.stroke(); c.lineWidth = 7; c.strokeStyle = TK.muted; c.beginPath(); c.moveTo(x, yTop - 2); c.lineTo(x, yTop - 70); c.stroke();
+    }
+    if (a > 0.05) { c.strokeStyle = alpha(TK.accent, a * 0.8); c.lineWidth = 1.5; for (const s of [-1, 1]) { c.beginPath(); c.arc(x + s * 12, inverted ? yBot - 20 : yTop + 20, 16, s > 0 ? -0.6 : Math.PI - 0.6, s > 0 ? 0.6 : Math.PI + 0.6); c.stroke(); } }
+  }
+  function drawAir(c, t) {
+    const a = ampAt(t);
+    if (S.src === 'fork') drawFork(c, 110, 70, 200, a, t, false);
+    else {
+      c.fillStyle = TK.muted; c.beginPath(); c.arc(110, 55, 7, 0, TAU); c.arc(110, 255, 7, 0, TAU); c.fill();
+      const off = a * 26 * Math.sin(TAU * 9 * t);
+      c.strokeStyle = TK.ok; c.lineWidth = 4; c.beginPath(); c.moveTo(110, 55); c.quadraticCurveTo(110 + off * 2, 155, 110, 255); c.stroke();
+    }
+    // particles
+    for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) {
+      const x0 = X0 + i * DX + jit[j * cols + i][0], y = Y0 + j * DY + jit[j * cols + i][1];
+      const x = x0 + disp(x0, t);
+      const mark = i === 10 && j === 4;
+      if (mark) { c.strokeStyle = TK.danger; c.lineWidth = 1; c.beginPath(); c.moveTo(x0, y - 11); c.lineTo(x0, y + 11); c.stroke(); }
+      c.fillStyle = mark ? TK.danger : alpha(TK.ink, 0.55);
+      c.beginPath(); c.arc(x, y, mark ? 5 : 2.6, 0, TAU); c.fill();
+    }
+    // density strip
+    const yS = 268, hS = 16;
+    for (let x = X0; x < 790; x += 3) {
+      const d1 = disp(x - 1.5, t), d2 = disp(x + 1.5, t), comp = -(d2 - d1) / 3; // >0 = compression
+      c.fillStyle = alpha(TK.wave, clamp(0.12 + comp * 1.6, 0.02, 0.85));
+      c.fillRect(x, yS, 3.2, hS);
+    }
+    text(c, '疏密分布：顏色深＝密部，淺＝疏部', X0, yS + hS + 20, { size: 12.5, color: TK.muted });
+    text(c, '傳播方向 →', 790, yS + hS + 20, { size: 12.5, color: TK.muted, align: 'right' });
+    text(c, '紅點：一顆被標記的空氣粒子', 790, 26, { size: 12.5, color: TK.danger, align: 'right' });
+    return a;
+  }
+  function drawWater(c, t, dt) {
+    const a = ampAt(t);
+    const tx0 = 250, tx1 = 560, ty0 = 185, ty1 = 305, wy = 225;
+    c.fillStyle = alpha(TK.water, 0.28); c.fillRect(tx0, wy, tx1 - tx0, ty1 - wy);
+    c.strokeStyle = TK.glass; c.lineWidth = 3; c.beginPath(); c.moveTo(tx0, ty0); c.lineTo(tx0, ty1); c.lineTo(tx1, ty1); c.lineTo(tx1, ty0); c.stroke();
+    c.strokeStyle = TK.water; c.lineWidth = 2; c.beginPath(); c.moveTo(tx0, wy); c.lineTo(tx1, wy); c.stroke();
+    const tip = S.dipped ? wy + 14 : 168;
+    drawFork(c, 405, tip - 110, tip, a, t, true);
+    if (S.dipped && a > 0.03) {
+      S.dropAcc += a * 90 * dt;
+      while (S.dropAcc > 1) {
+        S.dropAcc -= 1; const sx = 405 + (Math.random() < 0.5 ? -12 : 12) + (Math.random() - 0.5) * 6;
+        S.drops.push({ x: sx, y: wy - 1, vx: (Math.random() - 0.5) * 160 * a, vy: -(90 + Math.random() * 260 * a), r: 1.5 + Math.random() * 2 });
+        if (Math.random() < 0.25) S.rings.push({ x: sx, r: 3, a: 0.8 });
+      }
+    }
+    S.drops = S.drops.filter(d => { d.vy += 700 * dt; d.x += d.vx * dt; d.y += d.vy * dt; return d.y < wy + 2; });
+    c.fillStyle = TK.water; S.drops.forEach(d => { c.beginPath(); c.arc(d.x, d.y, d.r, 0, TAU); c.fill(); });
+    S.rings = S.rings.filter(r => { r.r += 40 * dt; r.a -= 0.7 * dt; return r.a > 0; });
+    S.rings.forEach(r => { c.strokeStyle = alpha(TK.water, r.a); c.lineWidth = 1.5; c.beginPath(); c.ellipse(r.x, wy, r.r, r.r * 0.22, 0, 0, TAU); c.stroke(); });
+    if (!S.dipped) text(c, a > 0.05 ? '音叉在振動，按「碰觸水面」' : '先敲擊音叉', 405, 60, { size: 14, color: TK.muted, align: 'center' });
+    else if (a < 0.03) text(c, '音叉沒有振動：水面平靜', 600, 120, { size: 14, color: TK.muted });
+    else text(c, '水花四濺！', 600, 120, { size: 15, color: TK.water, weight: 700 });
+    return a;
+  }
+  benches.push({ sec: 's32', draw(t, dt) {
+    const c = st.begin(TK.surface2);
+    const a = S.view === 'air' ? drawAir(c, t) : drawWater(c, t, dt);
+    $('#src-amp').textContent = Math.round(a * 100) + ' %';
+    $('#src-meter').style.width = (a * 100).toFixed(1) + '%';
+    $('#src-state').textContent = a > 0.02 ? '振動中' : (S.held && S.segs.length ? '被握住，停止' : '靜止');
+  } });
+})();
+
+/* ======================================================================
+   Bench 2：真空鐘罩
+   ====================================================================== */
+(function () {
+  const st = makeStage($('#cv-jar'), 800, 320);
+  const S = { p: 1, pump: 0, ring: false, next: 0, lastDing: -9, solid: false, waves: [] };
+  const N = 140, parts = [];
+  for (let i = 0; i < N; i++) parts.push({ x: 220 + Math.random() * 220, y: 60 + Math.random() * 200, vx: (Math.random() - 0.5) * 90, vy: (Math.random() - 0.5) * 90 });
+  const ringBtn = $('#jar-ring'), outBtn = $('#jar-out'), inBtn = $('#jar-in'), sl = $('#jar-slider');
+  const trans = () => S.solid ? 0.12 + 0.88 * S.p : S.p;
+  ringBtn.addEventListener('click', () => { ac(); S.ring = !S.ring; toggleBtn(ringBtn, S.ring); ringBtn.textContent = S.ring ? '停止敲鈴' : '開始敲鈴'; S.next = now(); });
+  outBtn.addEventListener('click', () => { S.pump = S.pump === -1 ? 0 : -1; toggleBtn(outBtn, S.pump === -1); toggleBtn(inBtn, false); });
+  inBtn.addEventListener('click', () => { S.pump = S.pump === 1 ? 0 : 1; toggleBtn(inBtn, S.pump === 1); toggleBtn(outBtn, false); });
+  sl.addEventListener('input', () => { S.p = sl.value / 100; S.pump = 0; toggleBtn(outBtn, false); toggleBtn(inBtn, false); });
+  $('#jar-solid').addEventListener('change', e => S.solid = e.target.checked);
+  function step(t, dt) {
+    if (S.pump) {
+      S.p = clamp(S.p + S.pump * dt * 0.11, 0, 1);
+      if (S.p <= 0 || S.p >= 1) { S.pump = 0; toggleBtn(outBtn, false); toggleBtn(inBtn, false); }
+      sl.value = Math.round(S.p * 100);
+    }
+    if (S.ring && t >= S.next) {
+      S.next = t + 0.6; S.lastDing = t;
+      const tr = trans(); if (tr > 0.003) bellDing(0.5 * tr);
+      S.waves.push({ r: 0, a: tr });
+    }
+  }
+  benches.push({ sec: 's32', bg: (t, dt) => step(t, dt), draw(t, dt) {
+    step(t, dt);
+    const c = st.begin(TK.surface2);
+    const cx = 330, jx0 = 205, jx1 = 455, jTop = 30, jBot = 270;
+    // base
+    c.fillStyle = TK.muted; c.fillRect(170, jBot, 320, 14);
+    // particles inside
+    const n = Math.round(S.p * N);
+    for (let i = 0; i < N; i++) {
+      const q = parts[i];
+      q.x += q.vx * dt; q.y += q.vy * dt;
+      if (q.x < jx0 + 6 || q.x > jx1 - 6) q.vx *= -1; if (q.y < 70 || q.y > jBot - 6) q.vy *= -1;
+      q.x = clamp(q.x, jx0 + 6, jx1 - 6); q.y = clamp(q.y, 70, jBot - 6);
+      if (i < n) { c.fillStyle = alpha(TK.wave, 0.55); c.beginPath(); c.arc(q.x, q.y, 2.4, 0, TAU); c.fill(); }
+    }
+    // jar
+    c.strokeStyle = TK.glass; c.lineWidth = 3; c.beginPath(); c.moveTo(jx0, jBot); c.lineTo(jx0, 100); c.bezierCurveTo(jx0, jTop, jx1, jTop, jx1, 100); c.lineTo(jx1, jBot); c.stroke();
+    c.fillStyle = alpha(TK.glass, 0.08); c.fill();
+    // bell
+    const since = t - S.lastDing, sw = S.ring ? Math.exp(-since * 6) : 0;
+    const shake = sw * 2.5 * Math.sin(TAU * 25 * t);
+    let bx = cx, by = 150;
+    if (S.solid) { c.strokeStyle = TK.muted; c.lineWidth = 4; c.beginPath(); c.moveTo(cx, jBot); c.lineTo(cx, 182); c.stroke(); by = 150; }
+    else { c.strokeStyle = TK.muted; c.lineWidth = 1.2; c.beginPath(); c.moveTo(cx, 58); c.lineTo(cx, 120); c.stroke(); }
+    c.fillStyle = TK.accent; c.beginPath();
+    c.moveTo(bx - 8 + shake, 120); c.quadraticCurveTo(bx - 30 + shake, 130, bx - 34 + shake, 178); c.lineTo(bx + 34 + shake, 178); c.quadraticCurveTo(bx + 30 + shake, 130, bx + 8 + shake, 120); c.closePath(); c.fill();
+    // hammer
+    const ang = S.ring ? (since < 0.08 ? 0 : Math.min(0.5, (since - 0.08) * 2.5)) : 0.5;
+    c.save(); c.translate(400, 230); c.rotate(-ang); c.strokeStyle = TK.ink; c.lineWidth = 3; c.beginPath(); c.moveTo(0, 0); c.lineTo(-48, -70); c.stroke();
+    c.fillStyle = TK.ink; c.beginPath(); c.arc(-50, -73, 6, 0, TAU); c.fill(); c.restore();
+    c.fillStyle = TK.muted; c.fillRect(392, 228, 16, 42);
+    // vibration marks on bell
+    if (sw > 0.1) { c.strokeStyle = alpha(TK.accent, sw); c.lineWidth = 1.5; for (const s of [-1, 1]) { c.beginPath(); c.arc(cx + s * 40, 155, 10, s > 0 ? -0.8 : Math.PI - 0.8, s > 0 ? 0.8 : Math.PI + 0.8); c.stroke(); } }
+    // outgoing sound waves
+    S.waves = S.waves.filter(w => { w.r += 160 * dt; return w.r < 260; });
+    S.waves.forEach(w => { const a = w.a * (1 - w.r / 260); if (a < 0.01) return; c.strokeStyle = alpha(TK.wave, a); c.lineWidth = 2.5; c.beginPath(); c.arc(jx1, 150, 20 + w.r, -0.5, 0.5); c.stroke(); });
+    // pump & tube
+    c.strokeStyle = TK.muted; c.lineWidth = 6; c.beginPath(); c.moveTo(440, jBot + 7); c.lineTo(650, jBot + 7); c.lineTo(650, 250); c.stroke();
+    c.fillStyle = TK.ink; c.fillRect(605, 200, 90, 52);
+    text(c, '抽氣機', 650, 232, { size: 14, color: TK.surface, align: 'center', weight: 700 });
+    if (S.pump) { const ph = (t * 3) % 1; c.fillStyle = alpha(TK.accent, 0.9); c.beginPath(); c.arc(460 + ph * 180, jBot + 7, 3, 0, TAU); c.fill(); }
+    // gauge
+    const gx = 650, gy = 110, gr = 42;
+    c.fillStyle = TK.surface; c.strokeStyle = TK.ink; c.lineWidth = 2; c.beginPath(); c.arc(gx, gy, gr, 0, TAU); c.fill(); c.stroke();
+    for (let k = 0; k <= 10; k++) { const an = Math.PI * 0.8 + k / 10 * Math.PI * 1.4; c.beginPath(); c.moveTo(gx + Math.cos(an) * (gr - 4), gy + Math.sin(an) * (gr - 4)); c.lineTo(gx + Math.cos(an) * (gr - 10), gy + Math.sin(an) * (gr - 10)); c.lineWidth = 1.2; c.stroke(); }
+    const an = Math.PI * 0.8 + S.p * Math.PI * 1.4;
+    c.strokeStyle = TK.danger; c.lineWidth = 2.5; c.beginPath(); c.moveTo(gx, gy); c.lineTo(gx + Math.cos(an) * (gr - 12), gy + Math.sin(an) * (gr - 12)); c.stroke();
+    text(c, '氣壓計', gx, gy + gr + 18, { size: 12, color: TK.muted, align: 'center' });
+    text(c, `罩內空氣粒子：${n} 顆（示意）`, 210, 300, { size: 12.5, color: TK.muted });
+    // ear
+    text(c, '👂', 760, 160, { size: 26, align: 'center' });
+    const tr = trans();
+    $('#jar-p').textContent = Math.round(101.3 * S.p) + ' kPa';
+    $('#jar-bell').textContent = S.ring ? '持續振動' : '靜止';
+    const hear = S.ring ? tr : 0;
+    $('#jar-hear').textContent = Math.round(hear * 100) + ' %';
+    $('#jar-meter').style.width = (hear * 100) + '%';
+  } });
+})();
+
+/* ======================================================================
+   Bench 3：聲速賽跑＋打雷
+   ====================================================================== */
+(function () {
+  const race = makeStage($('#cv-race'), 800, 230);
+  const th = makeStage($('#cv-thunder'), 800, 190);
+  const S = { T: 25, loud: 1, pitch: 1, slow: 10, t0: null, run: null, arrived: [false, false, false], delay: 3, flashT: -9, thunderAt: null, bolt: [], log: [] };
+  const vAir = () => 331 + 0.6 * S.T;
+  const lanes = () => [
+    { name: '空氣', sub: `${S.T} ℃`, v: vAir(), col: TK.wave },
+    { name: '水', sub: '', v: 1463, col: TK.water },
+    { name: '木材', sub: '固體', v: 3352, col: TK.accent }];
+  const SND = (loud, pitch) => ({ f: pitch === 2 ? 1760 : 220, amp: loud === 2 ? 0.5 : 0.06 });
+  const LABEL = r => `${r.loud === 2 ? '大聲' : '小聲'}・${r.pitch === 2 ? '高音' : '低音'}・${r.T}℃`;
+  const upd = () => { $('#sp-T').textContent = S.T + ' ℃'; $('#sp-v').textContent = vAir().toFixed(1) + ' m/s'; updTh(); };
+  $('#sp-temp').addEventListener('input', e => { S.T = +e.target.value; upd(); });
+  seg($('#sp-loud'), v => S.loud = +v); seg($('#sp-pitch'), v => S.pitch = +v); seg($('#sp-slow'), v => S.slow = +v);
+  function renderLog() {
+    const tb = $('#sp-log tbody');
+    tb.innerHTML = S.log.length ? S.log.map(r => `<tr><td>${LABEL(r)}</td>${r.v.map(v => `<td class="num">${(1000 / v).toFixed(3)}</td>`).join('')}</tr>`).join('')
+      : '<tr><td colspan="4" style="color:var(--muted)">跑完一次就會記錄在這裡</td></tr>';
+  }
+  $('#sp-go').addEventListener('click', () => {
+    if (!ac()) return;
+    S.t0 = now(); S.arrived = [false, false, false];
+    S.run = { loud: S.loud, pitch: S.pitch, T: S.T, v: lanes().map(l => l.v) };
+    const s = SND(S.loud, S.pitch); tone({ f: s.f, h: [1, 0.25], amp: s.amp, attack: 0.005, dur: 0.18 });
+  });
+  function updTh() { $('#th-dt').textContent = S.delay.toFixed(1) + ' s'; $('#th-d').textContent = Math.round(vAir() * S.delay).toLocaleString() + ' m'; }
+  $('#th-delay').addEventListener('input', e => { S.delay = +e.target.value; updTh(); });
+  $('#th-go').addEventListener('click', () => {
+    const ctx = ac(); if (!ctx) return;
+    S.flashT = now(); S.thunderAt = now() + S.delay;
+    S.bolt = []; let x = 140 + Math.random() * 60, y = 0; while (y < 140) { S.bolt.push([x, y]); x += (Math.random() - 0.5) * 34; y += 12 + Math.random() * 14; }
+    noise({ when: S.delay, amp: 0.55, type: 'lowpass', freq: 900, Q: 0.5, decay: 0.12 });
+    noise({ when: S.delay + 0.05, amp: 0.7, type: 'lowpass', freq: 160, Q: 0.7, attack: 0.15, decay: 0.9 });
+    noise({ when: S.delay + 0.5, amp: 0.45, type: 'lowpass', freq: 110, Q: 0.7, attack: 0.3, decay: 0.8 });
+    updTh();
+  });
+  // 聲波包：振幅代表音量，波長代表音調（頻率高→波長短→波比較密）
+  function packet(c, px, y, loud, pitch, col, x0) {
+    const A = loud === 2 ? 22 : 5, lam = pitch === 2 ? 6 : 30, len = 72;
+    c.strokeStyle = col; c.lineWidth = 2; c.beginPath(); let first = true;
+    for (let x = Math.max(x0, px - len); x <= px; x += 0.5) {
+      const u = (px - x) / len, yy = y - A * Math.sin(Math.PI * u) * Math.sin(TAU * (px - x) / lam);
+      if (first) { c.moveTo(x, yy); first = false; } else c.lineTo(x, yy);
+    }
+    c.stroke();
+  }
+  upd(); renderLog();
+  benches.push({ sec: 's32', draw(t) {
+    const c = race.begin(TK.surface2);
+    const x0 = 100, x1 = 770, L = 1000, Ls = lanes();
+    text(c, '0 m', x0, 20, { size: 11, color: TK.muted, align: 'center', font: MONO });
+    text(c, '1000 m', x1, 20, { size: 11, color: TK.muted, align: 'center', font: MONO });
+    c.strokeStyle = TK.danger; c.setLineDash([4, 4]); c.beginPath(); c.moveTo(x1, 28); c.lineTo(x1, 215); c.stroke(); c.setLineDash([]);
+    const R = S.run, el = S.t0 == null ? 0 : (t - S.t0) / S.slow;
+    Ls.forEach((ln, i) => {
+      const y = 60 + i * 60;
+      c.strokeStyle = TK.line; c.lineWidth = 1; c.beginPath(); c.moveTo(x0, y); c.lineTo(x1, y); c.stroke();
+      text(c, ln.name, 14, y + 4, { size: 15, weight: 700 }); if (ln.sub) text(c, ln.sub, 14, y + 22, { size: 11.5, color: TK.muted });
+      if (R) {
+        const v = R.v[i], d = Math.min(v * el, L), px = x0 + d / L * (x1 - x0);
+        if (d < L) packet(c, Math.max(px, x0 + 2), y, R.loud, R.pitch, ln.col, x0);
+        if (d >= L && !S.arrived[i]) {
+          S.arrived[i] = true; const s = SND(R.loud, R.pitch); tone({ f: s.f, h: [1, 0.25], amp: s.amp, attack: 0.005, dur: 0.12 });
+          if (S.arrived.every(Boolean)) { S.log.unshift(R); S.log = S.log.slice(0, 5); renderLog(); }
+        }
+        const tt = L / v;
+        text(c, S.arrived[i] ? `抵達 ${tt.toFixed(3)} s` : `${Math.min(el, tt).toFixed(3)} s`, x1 - 6, y - 26, { size: 12, color: S.arrived[i] ? ln.col : TK.muted, align: 'right', font: MONO, weight: 700 });
+        text(c, `${v.toFixed(v < 1000 ? 1 : 0)} m/s`, x0 + 4, y + 26, { size: 11.5, color: TK.muted, font: MONO });
+      } else {
+        packet(c, x0 + 74, y, S.loud, S.pitch, ln.col, x0);
+        text(c, `${ln.v.toFixed(ln.v < 1000 ? 1 : 0)} m/s`, x0 + 4, y + 26, { size: 11.5, color: TK.muted, font: MONO });
+      }
+    });
+    const cur = R && !S.arrived.every(Boolean) ? R : { loud: S.loud, pitch: S.pitch };
+    text(c, `聲音：${cur.loud === 2 ? '大聲（振幅大）' : '小聲（振幅小）'}・${cur.pitch === 2 ? '高音（波較密）' : '低音（波較疏）'}`, 435, 222, { size: 12.5, align: 'center', color: TK.ink, weight: 700 });
+    // thunder
+    const d = th.begin(TK.sky);
+    const fl = t - S.flashT;
+    if (fl < 0.25) { d.fillStyle = alpha('#ffffff', 0.7 * (1 - fl / 0.25)); d.fillRect(0, 0, 800, 190); }
+    if (fl < 0.4 && S.bolt.length) { d.strokeStyle = alpha(TK.accent, 1 - fl / 0.4); d.lineWidth = 3.5; d.beginPath(); S.bolt.forEach(([x, y], i) => i ? d.lineTo(x, y) : d.moveTo(x, y)); d.stroke(); }
+    d.fillStyle = alpha(TK.ink, 0.18); d.fillRect(0, 150, 800, 40);
+    text(d, '🧍', 690, 150, { size: 30, align: 'center' });
+    const dist = vAir() * S.delay;
+    d.strokeStyle = TK.muted; d.setLineDash([3, 4]); d.beginPath(); d.moveTo(170, 165); d.lineTo(690, 165); d.stroke(); d.setLineDash([]);
+    text(d, `${Math.round(dist).toLocaleString()} m（${(dist / 1000).toFixed(2)} km）`, 430, 182, { size: 12.5, align: 'center', font: MONO, color: TK.ink });
+    let clock = 0;
+    if (S.thunderAt) {
+      clock = Math.min(t - S.flashT, S.delay);
+      const frac = clamp((t - S.flashT) / S.delay, 0, 1), sx = 170 + frac * (690 - 170);
+      if (frac < 1) for (let k = 0; k < 3; k++) { d.strokeStyle = alpha(TK.wave, 0.8 - k * 0.25); d.lineWidth = 2; d.beginPath(); d.arc(sx - k * 10, 120, 18, -0.6, 0.6); d.stroke(); }
+      else if (t - S.thunderAt < 1.2) text(d, '轟隆！', 690, 80, { size: 22, align: 'center', weight: 900, color: TK.accent });
+    }
+    text(d, '光：幾乎瞬間抵達　聲：以聲速前進', 16, 24, { size: 12.5, color: TK.muted });
+    $('#th-clock').textContent = clock.toFixed(2) + ' s';
+  } });
+})();
+
+/* ======================================================================
+   Bench 4：試管
+   ====================================================================== */
+(function () {
+  const st = makeStage($('#cv-tube'), 800, 330);
+  const sc = makeStage($('#cv-tubescope'), 800, 200);
+  const XS = [160, 280, 400, 520, 640], TOP = 40, BOT = 280, HPX = BOT - TOP, HCM = 15, R = 0.008, V = 346;
+  const S = { w: [0.1, 0.3, 0.5, 0.7, 0.85], mode: 'blow', force: 5, show: false, act: null, drag: -1, down: null };
+  const fBlow = w => V / (4 * (HCM / 100 * (1 - w) + 0.6 * R));
+  const fHit = w => 1650 / Math.sqrt(1 + 1.6 * Math.pow(w, 3));
+  const fOf = (i) => S.mode === 'blow' ? fBlow(S.w[i]) : fHit(S.w[i]);
+  const H_BLOW = [1, 0.12, 0.05], H_HIT = [1, 0.35, 0.18, 0.08];
+  function play(i) {
+    if (!ac()) return;
+    const f = fOf(i), a = S.force / 10;
+    if (S.mode === 'blow') {
+      tone({ f, h: H_BLOW, amp: 0.45 * a, attack: 0.07, dur: 0.75 });
+      noise({ amp: 0.06 * a, freq: f, Q: 6, attack: 0.05, dur: 0.75 });
+    } else {
+      [[1, 1, 0.35], [2.71, 0.35, 0.12], [5.1, 0.18, 0.06]].forEach(([r, k, d]) => tone({ f: f * r, amp: 0.5 * a * k, decay: d }));
+      noise({ amp: 0.15 * a, freq: 3500, Q: 1, decay: 0.008 });
+    }
+    S.act = { i, t: now(), f, a, mode: S.mode };
+    $('#tb-i').textContent = `第 ${i + 1} 支`;
+    $('#tb-L').textContent = (HCM * (1 - S.w[i])).toFixed(1) + ' cm';
+    $('#tb-f').textContent = Math.round(f) + ' Hz';
+    $('#tb-n').textContent = noteName(f);
+  }
+  seg($('#tb-mode'), v => { S.mode = v; $('#tb-modenote').textContent = v === 'blow' ? '吹氣模式：注意畫面中哪裡在振動。' : '敲擊模式：注意畫面中哪裡在振動。（敲擊的頻率數字只是示意）'; });
+  $('#tb-force').addEventListener('input', e => { S.force = +e.target.value; $('#tb-fv').textContent = S.force; });
+  $('#tb-show').addEventListener('change', e => S.show = e.target.checked);
+  const cv = st.canvas;
+  const hitTube = p => XS.findIndex(x => Math.abs(p.x - x) < 30 && p.y > TOP - 10 && p.y < BOT + 12);
+  cv.addEventListener('pointerdown', e => {
+    const p = st.local(e), i = hitTube(p); if (i < 0) return;
+    const wy = BOT - S.w[i] * HPX;
+    S.down = { i, x: p.x, y: p.y, moved: false };
+    if (Math.abs(p.y - wy) < 16) { S.drag = i; cv.setPointerCapture(e.pointerId); }
+  });
+  cv.addEventListener('pointermove', e => {
+    const p = st.local(e);
+    if (S.drag >= 0) { S.w[S.drag] = clamp((BOT - p.y) / HPX, 0, 0.9); if (S.down) S.down.moved = true; }
+    cv.style.cursor = (() => { const i = hitTube(p); if (i < 0) return 'default'; return Math.abs(p.y - (BOT - S.w[i] * HPX)) < 16 ? 'ns-resize' : 'pointer'; })();
+  });
+  const up = () => { if (S.down && !S.down.moved) play(S.down.i); S.drag = -1; S.down = null; };
+  cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', () => { S.drag = -1; S.down = null; });
+  benches.push({ sec: 's33', draw(t) {
+    const c = st.begin(TK.surface2);
+    // rack
+    c.fillStyle = alpha(TK.muted, 0.55); c.fillRect(100, 205, 600, 8); c.fillRect(100, 292, 600, 8);
+    const act = S.act, el = act ? t - act.t : 99;
+    XS.forEach((x, i) => {
+      const wy = BOT - S.w[i] * HPX, hw = 22, on = act && act.i === i && el < (act.mode === 'blow' ? 0.8 : 0.6);
+      const env = on ? (act.mode === 'blow' ? Math.min(1, el / 0.07) * (el > 0.72 ? Math.max(0, 1 - (el - 0.72) / 0.08) : 1) : Math.exp(-el / 0.25)) : 0;
+      const shake = on && act.mode === 'hit' ? env * 1.6 * Math.sin(TAU * 30 * t) : 0;
+      // water
+      c.fillStyle = alpha(TK.water, on && act.mode === 'hit' ? 0.45 + 0.3 * env : 0.4);
+      c.beginPath(); c.moveTo(x - hw + shake, wy); c.lineTo(x - hw + shake, BOT - hw); c.arc(x + shake, BOT - hw, hw, Math.PI, 0, true); c.lineTo(x + hw + shake, wy); c.closePath(); c.fill();
+      // air column vibration (displacement antinode at mouth)
+      if (on && act.mode === 'blow') {
+        const g = c.createLinearGradient(0, TOP, 0, wy);
+        g.addColorStop(0, alpha(TK.wave, 0.55 * env)); g.addColorStop(1, alpha(TK.wave, 0.04));
+        c.fillStyle = g; c.fillRect(x - hw + 2, TOP, hw * 2 - 4, wy - TOP);
+        for (let k = 0; k < 4; k++) { const yy = TOP + (wy - TOP) * (k + 0.5) / 4, amp = env * 6 * Math.cos((Math.PI / 2) * (k + 0.5) / 4) * Math.sin(TAU * 8 * t); c.strokeStyle = alpha(TK.wave, 0.7); c.lineWidth = 1.5; c.beginPath(); c.moveTo(x - 10, yy + amp); c.lineTo(x + 10, yy + amp); c.stroke(); }
+      }
+      // tube glass
+      c.strokeStyle = on && act.mode === 'hit' ? TK.accent : TK.glass; c.lineWidth = on && act.mode === 'hit' ? 3.5 : 2.5;
+      c.beginPath(); c.moveTo(x - hw + shake, TOP); c.lineTo(x - hw + shake, BOT - hw); c.arc(x + shake, BOT - hw, hw, Math.PI, 0, true); c.lineTo(x + hw + shake, TOP); c.stroke();
+      c.strokeStyle = TK.water; c.lineWidth = 3; c.beginPath(); c.moveTo(x - hw + 2, wy); c.lineTo(x + hw - 2, wy); c.stroke();
+      c.fillStyle = TK.water; c.beginPath(); c.arc(x + hw + 8, wy, 4, 0, TAU); c.fill();
+      text(c, `${i + 1}`, x, 26, { size: 13, align: 'center', weight: 700, color: TK.muted, font: MONO });
+      if (S.show) text(c, `${Math.round(fOf(i))} Hz`, x, BOT + 36, { size: 12.5, align: 'center', font: MONO, weight: 700, color: TK.ink });
+      if (on && act.mode === 'blow') text(c, '〰', x, TOP - 6, { size: 16, align: 'center', color: TK.wave });
+      if (on && act.mode === 'hit') { c.strokeStyle = TK.muted; c.lineWidth = 4; c.beginPath(); c.moveTo(x + hw + 6, 150); c.lineTo(x + hw + 60, 110); c.stroke(); c.fillStyle = TK.muted; c.beginPath(); c.ellipse(x + hw + 6, 150, 7, 4, -0.6, 0, TAU); c.fill(); }
+    });
+    text(c, '顏色變化的地方＝正在振動的部分', 790, 322, { size: 12, color: TK.muted, align: 'right' });
+    // scope
+    const d = sc.begin(TK.scopeBg); drawGrid(d, 800, 200, 10, 6);
+    if (act) {
+      const env = act.mode === 'blow' ? (el < 0.8 ? 1 : 0) : Math.exp(-el / 0.35);
+      const hh = act.mode === 'blow' ? H_BLOW : H_HIT;
+      const amp = act.a * 80 * Math.max(env, 0.0);
+      const show = el < 4 ? 1 : 0;
+      d.strokeStyle = TK.scopeTrace; d.lineWidth = 2; d.beginPath();
+      const pk = peakOf(hh);
+      for (let px = 0; px <= 800; px += 1) {
+        const tt = px / 800 * 0.005; let y = 0; hh.forEach((a, n) => y += a * Math.sin(TAU * (n + 1) * act.f * tt)); y /= pk;
+        const yy = 100 - y * amp * show; px ? d.lineTo(px, yy) : d.moveTo(px, yy);
+      }
+      d.stroke();
+      text(d, `${Math.round(act.f)} Hz · 5 ms 內 ${(act.f * 0.005).toFixed(1)} 個波`, 10, 18, { size: 12, color: TK.scopeText, font: MONO });
+    } else text(d, '點一支試管', 400, 104, { size: 14, color: TK.scopeText, align: 'center' });
+  } });
+})();
+function drawGrid(c, W, H, nx, ny) {
+  c.strokeStyle = TK.scopeGrid; c.lineWidth = 1;
+  for (let i = 0; i <= nx; i++) { const x = i * W / nx; c.beginPath(); c.moveTo(x, 0); c.lineTo(x, H); c.stroke(); }
+  for (let j = 0; j <= ny; j++) { const y = j * H / ny; c.beginPath(); c.moveTo(0, y); c.lineTo(W, y); c.stroke(); }
+  c.strokeStyle = alpha(TK.scopeTrace, 0.25); c.beginPath(); c.moveTo(0, H / 2); c.lineTo(W, H / 2); c.stroke();
+}
+const _pk = {};
+function peakOf(h) {
+  const k = h.join(','); if (_pk[k]) return _pk[k];
+  let m = 0; for (let i = 0; i < 1024; i++) { let y = 0; const tt = i / 1024; h.forEach((a, n) => y += a * Math.sin(TAU * (n + 1) * tt)); m = Math.max(m, Math.abs(y)); }
+  return (_pk[k] = m || 1);
+}
+
+/* ======================================================================
+   Bench 5：三要素示波器
+   ====================================================================== */
+(function () {
+  const sc = makeStage($('#cv-scope'), 800, 400);
+  const sp = makeStage($('#cv-spec'), 800, 150);
+  const TIM = {
+    fork: { name: '音叉', h: [1] },
+    flute: { name: '長笛', h: [1, 0.5, 0.18, 0.1, 0.05, 0.03] },
+    clar: { name: '單簧管', h: [1, 0.02, 0.65, 0.02, 0.38, 0.02, 0.22, 0.01, 0.12] },
+    violin: { name: '小提琴', h: [1, 0.55, 0.42, 0.33, 0.26, 0.2, 0.16, 0.12, 0.1, 0.08, 0.06, 0.05] },
+    noise: { name: '噪音', h: null }
+  };
+  const FLO = 100, FHI = 2000;
+  const S = { f: 440, A: 0.5, tim: 'fork', on: false, node: null, ref: null, mic: null, micF: null, micLv: null, noiseFrame: [], nT: 0, specN: [] };
+  const fSl = $('#sc-f'), aSl = $('#sc-a');
+  fSl.value = Math.round(logInv(440, FLO, FHI));
+  const KEYS = [['Do', 262], ['Re', 294], ['Mi', 330], ['Fa', 349], ['Sol', 392], ['La', 440], ['Si', 494], ['Do', 524]];
+  KEYS.forEach(([n, f]) => { const b = document.createElement('button'); b.innerHTML = `${n}<small>${f}</small>`; b.addEventListener('click', () => { S.f = f; fSl.value = Math.round(logInv(f, FLO, FHI)); upd(); if (!S.on) blip(); }); $('#sc-keys').appendChild(b); });
+  function blip() { if (S.tim === 'noise') noise({ amp: S.A * 0.4, freq: 2000, Q: 0.3, dur: 0.5 }); else tone({ f: S.f, h: TIM[S.tim].h, amp: S.A * 0.5, attack: 0.01, dur: 0.6 }); }
+  function startNode() {
+    const ctx = ac(); if (!ctx) return; stopNode();
+    const tgt = S.A * (S.tim === 'noise' ? 0.8 : 0.5);
+    const g = ctx.createGain(); g.gain.setValueAtTime(0, ctx.currentTime); g.gain.linearRampToValueAtTime(tgt, ctx.currentTime + 0.03); g.connect(A.pre);
+    let src;
+    if (S.tim === 'noise') { src = ctx.createBufferSource(); src.buffer = noiseBuf(); src.loop = true; const fl = ctx.createBiquadFilter(); fl.type = 'bandpass'; fl.frequency.value = 2000; fl.Q.value = 0.3; src.connect(fl); fl.connect(g); }
+    else { src = ctx.createOscillator(); src.setPeriodicWave(pwave(TIM[S.tim].h)); src.frequency.value = S.f; src.connect(g); }
+    src.start(); S.node = { src, g, tim: S.tim };
+  }
+  function stopNode() { if (!S.node) return; const ct = A.ctx.currentTime; const n = S.node; n.g.gain.cancelScheduledValues(ct); n.g.gain.setValueAtTime(n.g.gain.value, ct); n.g.gain.linearRampToValueAtTime(0, ct + 0.03); try { n.src.stop(ct + 0.05); } catch (e) {} S.node = null; }
+  function upd() {
+    $('#sc-fv').textContent = Math.round(S.f) + ' Hz';
+    $('#sc-av').textContent = Math.round(S.A * 100) + ' %';
+    const noiseMode = S.tim === 'noise';
+    $('#sc-T').textContent = noiseMode ? '無固定週期' : (1000 / S.f).toFixed(2) + ' ms';
+    $('#sc-n').textContent = noiseMode ? '—' : (S.f * 0.01).toFixed(1) + ' 個';
+    $('#sc-note').textContent = noiseMode ? '—' : noteName(S.f);
+    if (S.on && S.node) {
+      if (S.node.tim !== S.tim || (S.tim === 'noise') !== (S.node.tim === 'noise')) startNode();
+      else { const ct = A.ctx.currentTime; if (S.tim !== 'noise') S.node.src.frequency.setTargetAtTime(S.f, ct, 0.01); S.node.g.gain.setTargetAtTime(S.A * (S.tim === 'noise' ? 0.8 : 0.5), ct, 0.02); }
+    }
+    cmp();
+  }
+  function cmp() {
+    const el = $('#sc-cmp');
+    if (!S.ref) { el.textContent = '凍結一個參考波形，再改變一個變因來比較。'; return; }
+    const parts = [];
+    const ra = S.A / S.ref.A, rf = S.f / S.ref.f;
+    parts.push(`振幅 ×${ra.toFixed(2)}（${(20 * Math.log10(ra) >= 0 ? '+' : '') + (20 * Math.log10(ra)).toFixed(1)} dB）`);
+    if (S.tim !== 'noise' && S.ref.tim !== 'noise') parts.push(`頻率 ×${rf.toFixed(2)}${Math.abs(rf - 2) < 0.03 ? '（高八度）' : Math.abs(rf - 0.5) < 0.015 ? '（低八度）' : ''}`);
+    parts.push(S.tim === S.ref.tim ? '音色相同' : `音色：${TIM[S.ref.tim].name} → ${TIM[S.tim].name}`);
+    el.textContent = '與參考相比：' + parts.join('，');
+  }
+  fSl.addEventListener('input', () => { S.f = logMap(+fSl.value, FLO, FHI); upd(); });
+  aSl.addEventListener('input', () => { S.A = aSl.value / 100; upd(); });
+  seg($('#sc-tim'), v => { S.tim = v; upd(); if (!S.on) blip(); });
+  const playBtn = $('#sc-play');
+  playBtn.addEventListener('click', () => { S.on = !S.on; toggleBtn(playBtn, S.on); playBtn.textContent = S.on ? '停止' : '持續發聲'; S.on ? startNode() : stopNode(); });
+  $('#sc-ref').addEventListener('click', () => { S.ref = { f: S.f, A: S.A, tim: S.tim, noise: S.noiseFrame.slice() }; cmp(); });
+  $('#sc-clr').addEventListener('click', () => { S.ref = null; cmp(); });
+  document.querySelectorAll('.reveal').forEach(r => r.addEventListener('click', () => r.classList.toggle('on')));
+  // mic
+  const micBtn = $('#sc-mic'), micMsg = $('#sc-micmsg');
+  micBtn.addEventListener('click', async () => {
+    if (S.mic) { S.mic.stream.getTracks().forEach(t => t.stop()); S.mic = null; toggleBtn(micBtn, false); micBtn.textContent = '改用麥克風看真實聲音'; micMsg.textContent = ''; $('#sc-cap').textContent = '每格 1 ms，整個畫面 10 ms。橘色虛線是凍結的參考波形。'; return; }
+    const ctx = ac();
+    try {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error('nomedia');
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
+      const srcN = ctx.createMediaStreamSource(stream), an = ctx.createAnalyser(); an.fftSize = 4096; srcN.connect(an); an.connect(A.sink);
+      S.mic = { stream, an, buf: new Float32Array(an.fftSize), lastEst: 0 };
+      if (S.on) playBtn.click();
+      toggleBtn(micBtn, true); micBtn.textContent = '關閉麥克風';
+      micMsg.textContent = '麥克風模式：對著麥克風哼歌、吹試管或敲音叉。音量為未校正的相對值（dBFS）。';
+      $('#sc-cap').textContent = '麥克風即時波形，每格 1 ms，整個畫面 10 ms。';
+    } catch (e) {
+      micMsg.textContent = '無法使用麥克風。在 Claude 內開啟時瀏覽器不允許，請把這個頁面放到 GitHub Pages（https）上開啟，或改用 phyphox。';
+    }
+  });
+  function micEstimate(buf, sr) {
+    let rms = 0; for (let i = 0; i < buf.length; i++) rms += buf[i] * buf[i]; rms = Math.sqrt(rms / buf.length);
+    if (rms < 0.01) return { f: null, rms };
+    const minL = Math.floor(sr / 2000), maxL = Math.floor(sr / 70), n = 2048;
+    let best = -1, bestC = 0;
+    for (let L = minL; L <= maxL; L++) { let s = 0; for (let i = 0; i < n; i++) s += buf[i] * buf[i + L]; if (s > bestC) { bestC = s; best = L; } }
+    let e0 = 0; for (let i = 0; i < n; i++) e0 += buf[i] * buf[i];
+    return { f: best > 0 && bestC / e0 > 0.5 ? sr / best : null, rms };
+  }
+  upd();
+  benches.push({ sec: 's33', draw(t) {
+    const W = 800, H = 400, c = sc.begin(TK.scopeBg); drawGrid(c, W, H, 10, 8);
+    const divY = H / 8;
+    if (S.mic) {
+      const { an, buf } = S.mic, sr = A.ctx.sampleRate; an.getFloatTimeDomainData(buf);
+      const N = Math.floor(sr * 0.01); let start = 0;
+      for (let i = 1; i < buf.length - N; i++) if (buf[i - 1] < 0 && buf[i] >= 0) { start = i; break; }
+      c.strokeStyle = TK.scopeTrace; c.lineWidth = 2; c.beginPath();
+      for (let k = 0; k <= N; k++) { const x = k / N * W, y = H / 2 - buf[start + k] * divY * 3.6; k ? c.lineTo(x, y) : c.moveTo(x, y); }
+      c.stroke();
+      if (t - S.mic.lastEst > 0.2) { S.mic.lastEst = t; const e = micEstimate(buf, sr); S.micF = e.f; S.micLv = e.rms; }
+      text(c, `麥克風 · ${S.micF ? '約 ' + Math.round(S.micF) + ' Hz（' + noteName(S.micF) + '）' : '無明顯音高'} · ${S.micLv ? (20 * Math.log10(S.micLv)).toFixed(0) : '-∞'} dBFS`, 12, 22, { size: 13, color: TK.scopeText, font: MONO });
+    } else {
+      const drawWave = (f, Aa, tim, col, dash, nf) => {
+        c.strokeStyle = col; c.lineWidth = dash ? 1.6 : 2.2; c.setLineDash(dash ? [6, 5] : []); c.beginPath();
+        if (tim === 'noise') { nf.forEach((v, k) => { const x = k / (nf.length - 1) * W, y = H / 2 - v * Aa * divY * 3.5; k ? c.lineTo(x, y) : c.moveTo(x, y); }); }
+        else { const hh = TIM[tim].h, pk = peakOf(hh); for (let px = 0; px <= W; px++) { const tt = px / W * 0.01; let y = 0; hh.forEach((a, n) => y += a * Math.sin(TAU * (n + 1) * f * tt)); const yy = H / 2 - y / pk * Aa * divY * 3.5; px ? c.lineTo(px, yy) : c.moveTo(px, yy); } }
+        c.stroke(); c.setLineDash([]);
+      };
+      if (t - S.nT > 0.06) { S.nT = t; S.noiseFrame = []; let v = 0; for (let k = 0; k < 400; k++) { v = 0.4 * v + 0.6 * (Math.random() * 2 - 1); S.noiseFrame.push(v * 1.3); } S.specN = Array.from({ length: 60 }, () => 0.25 + Math.random() * 0.6); }
+      if (S.ref) drawWave(S.ref.f, S.ref.A, S.ref.tim, TK.scopeRef, true, S.ref.noise.length ? S.ref.noise : S.noiseFrame);
+      drawWave(S.f, S.A, S.tim, TK.scopeTrace, false, S.noiseFrame);
+      text(c, `${TIM[S.tim].name} · ${S.tim === 'noise' ? '頻率雜亂' : Math.round(S.f) + ' Hz'} · 振幅 ${(S.A * 3.5).toFixed(1)} 格`, 12, 22, { size: 13, color: TK.scopeText, font: MONO });
+      if (!S.on) text(c, '按「持續發聲」才會出聲；畫面隨時可看', W - 12, H - 12, { size: 12, color: alpha(TK.scopeText, 0.8), align: 'right' });
+    }
+    text(c, '時間 →', W - 12, 22, { size: 12, color: TK.scopeText, align: 'right' });
+    // spectrum
+    const d = sp.begin(TK.surface2), FMAX = 6000, x0 = 40, x1 = 785, yb = 120;
+    d.strokeStyle = TK.line; d.beginPath(); d.moveTo(x0, yb); d.lineTo(x1, yb); d.stroke();
+    for (let k = 0; k <= 6; k++) { const x = x0 + k / 6 * (x1 - x0); text(d, `${k}k`, x, 140, { size: 11, color: TK.muted, align: 'center', font: MONO }); }
+    text(d, 'Hz', x1, 140, { size: 11, color: TK.muted, align: 'right', font: MONO });
+    const bar = (f, h, col, w = 6) => { if (f > FMAX) return; const x = x0 + f / FMAX * (x1 - x0); d.fillStyle = col; d.fillRect(x - w / 2, yb - h, w, h); };
+    if (!S.mic) {
+      if (S.tim === 'noise') S.specN.forEach((v, k) => bar((k + 0.5) / 60 * FMAX, v * S.A * 95, alpha(TK.wave, 0.7), 8));
+      else TIM[S.tim].h.forEach((a, n) => bar(S.f * (n + 1), a * S.A * 100, n === 0 ? TK.accent : TK.wave, n === 0 ? 8 : 6));
+      if (S.tim !== 'noise') text(d, `基音 ${Math.round(S.f)} Hz`, x0 + S.f / FMAX * (x1 - x0) + 8, 20, { size: 12, color: TK.accent, weight: 700 });
+    } else {
+      const an = S.mic.an, fb = new Float32Array(an.frequencyBinCount); an.getFloatFrequencyData(fb); const sr = A.ctx.sampleRate;
+      d.strokeStyle = TK.wave; d.lineWidth = 1.5; d.beginPath(); let first = true;
+      for (let i = 1; i < fb.length; i++) { const f = i * sr / an.fftSize; if (f > FMAX) break; const h = clamp((fb[i] + 100) * 1.1, 0, 110); const x = x0 + f / FMAX * (x1 - x0); first ? d.moveTo(x, yb - h) : d.lineTo(x, yb - h); first = false; }
+      d.stroke();
+    }
+  } });
+})();
+
+/* ======================================================================
+   Bench 6：樂音與噪音
+   ====================================================================== */
+(function () {
+  const sc = makeStage($('#cv-nscope'), 800, 220);
+  const mt = makeStage($('#cv-db'), 800, 130);
+  const SRC = [
+    { k: 'bird', name: '鳥叫聲', lo: 40, hi: 60, reg: true, feel: '愉悅', play: () => { [0, 0.22, 0.44, 0.9, 1.0, 1.1].forEach((w, i) => tone({ f: 2900 + (i % 3) * 300, glideTo: 4300 + (i % 2) * 400, h: [1, 0.08], amp: 0.28, attack: 0.01, dur: 0.12, when: w })); } },
+    { k: 'build', name: '工地施工的聲音', lo: 90, hi: 110, reg: false, feel: '不舒服', play: jackhammer },
+    { k: 'music', name: '有旋律節奏的音樂聲', lo: 50, hi: 65, reg: true, feel: '愉悅', play: () => { [262, 330, 392, 330, 524].forEach((f, i) => { tone({ f, h: [1, 0.5, 0.18, 0.1, 0.05], amp: 0.32, attack: 0.03, dur: 0.26, when: i * 0.28 }); }); [131, 131, 196, 196, 131].forEach((f, i) => tone({ f, h: [1, 0.3, 0.1], amp: 0.2, attack: 0.02, dur: 0.26, when: i * 0.28 })); } },
+    { k: 'piano', name: '鋼琴聲', lo: 60, hi: 80, reg: true, feel: '愉悅', play: () => { [262, 330, 392].forEach((f, i) => tone({ f, h: [1, 0.55, 0.35, 0.22, 0.12, 0.08, 0.05], amp: 0.3, attack: 0.004, decay: 0.7, when: i * 0.06 })); } },
+    { k: 'horn', name: '汽車喇叭聲', lo: 90, hi: 110, reg: false, feel: '不舒服', note: '挑戰：看看示波器，它的波形真的不規律嗎？', play: () => { [415, 520].forEach(f => tone({ f, h: [1, 0.6, 0.45, 0.35, 0.3, 0.22, 0.18, 0.12], amp: 0.3, attack: 0.01, dur: 1.1 })); } },
+    { k: 'fire', name: '鞭炮聲', lo: 120, hi: 140, reg: false, feel: '不舒服', play: () => { let w = 0; for (let i = 0; i < 10; i++) { noise({ when: w, amp: 0.9, type: 'lowpass', freq: 3000 + Math.random() * 3000, Q: 0.5, decay: 0.025 + Math.random() * 0.02 }); w += 0.05 + Math.random() * 0.16; } } }
+  ];
+  function jackhammer() {
+    const ctx = ac(); if (!ctx) return; const t0 = ctx.currentTime;
+    const s = ctx.createBufferSource(); s.buffer = noiseBuf(); s.loop = true;
+    const fl = ctx.createBiquadFilter(); fl.type = 'bandpass'; fl.frequency.value = 900; fl.Q.value = 0.6;
+    const g = ctx.createGain(); g.gain.value = 0.3;
+    const lfo = ctx.createOscillator(); lfo.type = 'square'; lfo.frequency.value = 17; const lg = ctx.createGain(); lg.gain.value = 0.3; lfo.connect(lg); lg.connect(g.gain);
+    const env = ctx.createGain(); env.gain.setValueAtTime(0, t0); env.gain.linearRampToValueAtTime(1, t0 + 0.03); env.gain.setValueAtTime(1, t0 + 1.4); env.gain.linearRampToValueAtTime(0, t0 + 1.6);
+    s.connect(fl); fl.connect(g); g.connect(env); env.connect(A.pre); s.start(t0); lfo.start(t0); s.stop(t0 + 1.65); lfo.stop(t0 + 1.65);
+    [0.1, 0.5, 0.9, 1.3].forEach(w => tone({ f: 55, h: [1, 0.5, 0.3], amp: 0.4, decay: 0.08, when: w }));
+  }
+  const S = { cur: null, reveal: false, my: {} };
+  const tb = $('#ns-table tbody');
+  SRC.forEach(s => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td><button class="btn" data-k="${s.k}">▶ ${s.name}</button></td><td class="num">${s.lo} ～ ${s.hi}</td>
+      <td><div class="mini" data-q="reg"><button data-v="1" aria-pressed="false">是</button><button data-v="0" aria-pressed="false">否</button></div></td>
+      <td><div class="mini" data-q="feel"><button data-v="愉悅" aria-pressed="false">愉悅</button><button data-v="不舒服" aria-pressed="false">不舒服</button></div></td>
+      <td class="key-ans" data-ans hidden>${s.reg ? '規律' : '不規律'}・${s.feel}${s.note ? `<br><span style="color:var(--muted);font-weight:500">${s.note}</span>` : ''}</td>`;
+    tb.appendChild(tr);
+    tr.querySelector('button[data-k]').addEventListener('click', () => { ac(); s.play(); S.cur = s; S.curT = now(); $('#ns-now').textContent = s.name; $('#ns-db').textContent = `${s.lo}～${s.hi} dB`; });
+    tr.querySelectorAll('.mini').forEach(m => m.addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; m.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x === b))); (S.my[s.k] = S.my[s.k] || {})[m.dataset.q] = b.dataset.v; summary(); }));
+  });
+  function summary() {
+    if (!S.reveal) { $('#ns-sum').textContent = ''; return; }
+    let ok = 0, tot = 0;
+    SRC.forEach(s => { const m = S.my[s.k] || {}; if (m.reg != null) { tot++; if ((m.reg === '1') === s.reg) ok++; } if (m.feel) { tot++; if (m.feel === s.feel) ok++; } });
+    $('#ns-sum').textContent = tot ? `你的判斷與課本相同 ${ok} / ${tot} 項。` : '先在表格中做判斷，再對照。';
+  }
+  const rv = $('#ns-reveal');
+  rv.addEventListener('click', () => { S.reveal = !S.reveal; toggleBtn(rv, S.reveal); rv.textContent = S.reveal ? '隱藏課本答案' : '對照課本答案'; tb.querySelectorAll('[data-ans]').forEach(td => td.hidden = !S.reveal); summary(); });
+  let buf = null;
+  benches.push({ sec: 's33', draw(t) {
+    const c = sc.begin(TK.scopeBg); drawGrid(c, 800, 220, 10, 6);
+    if (A.ctx) {
+      if (!buf) buf = new Float32Array(A.tap.fftSize);
+      A.tap.getFloatTimeDomainData(buf);
+      const sr = A.ctx.sampleRate, N = Math.floor(sr * 0.02);
+      let start = 0; for (let i = 1; i < buf.length - N; i++) if (buf[i - 1] < 0 && buf[i] >= 0) { start = i; break; }
+      c.strokeStyle = TK.scopeTrace; c.lineWidth = 1.8; c.beginPath();
+      for (let k = 0; k <= N; k++) { const x = k / N * 800, y = 110 - clamp(buf[start + k], -1.2, 1.2) * 85; k ? c.lineTo(x, y) : c.moveTo(x, y); }
+      c.stroke();
+    }
+    text(c, S.cur ? S.cur.name : '點表格中的音源播放', 12, 20, { size: 13, color: TK.scopeText });
+    // dB ruler
+    const d = mt.begin(TK.surface2), x0 = 30, x1 = 780, X = v => x0 + v / 140 * (x1 - x0);
+    d.fillStyle = alpha(TK.accent, 0.18); d.fillRect(X(70), 30, X(85) - X(70), 40);
+    d.fillStyle = alpha(TK.danger, 0.22); d.fillRect(X(85), 30, X(140) - X(85), 40);
+    text(d, '70 dB 起：煩躁、影響學習', X(70) + 4, 26, { size: 11.5, color: TK.accent, weight: 700 });
+    text(d, '85 dB 以上長期：聽力受損', X(140) - 4, 26, { size: 11.5, color: TK.danger, weight: 700, align: 'right' });
+    if (S.cur) { d.fillStyle = TK.wave; d.fillRect(X(S.cur.lo), 38, X(S.cur.hi) - X(S.cur.lo), 24); text(d, S.cur.name, (X(S.cur.lo) + X(S.cur.hi)) / 2, 54.5, { size: 12, color: '#ffffff', align: 'center', weight: 700 }); }
+    d.strokeStyle = TK.ink; d.lineWidth = 1; d.beginPath(); d.moveTo(x0, 70); d.lineTo(x1, 70); d.stroke();
+    for (let v = 0; v <= 140; v += 10) { d.beginPath(); d.moveTo(X(v), 70); d.lineTo(X(v), 76); d.stroke(); text(d, String(v), X(v), 90, { size: 11, color: TK.muted, align: 'center', font: MONO }); }
+    [['悄悄話', 25], ['一般交談', 60], ['繁忙路口', 80], ['耳機最大聲', 105], ['飛機起降', 130]].forEach(([n, v]) => text(d, n, X(v), 116, { size: 11.5, color: TK.muted, align: 'center' }));
+    text(d, 'dB', x1 + 4, 90, { size: 11, color: TK.muted, font: MONO });
+  } });
+})();
+
+/* ======================================================================
+   Bench 7：回聲
+   ====================================================================== */
+function drum(amp, when = 0) {
+  const ctx = ac(); if (!ctx || amp <= 0.0005) return;
+  const t0 = ctx.currentTime + when;
+  const o = ctx.createOscillator(); o.type = 'sine';
+  o.frequency.setValueAtTime(190, t0); o.frequency.exponentialRampToValueAtTime(95, t0 + 0.12);
+  const g = ctx.createGain(); g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(amp, t0 + 0.003); g.gain.setTargetAtTime(0, t0 + 0.006, 0.055);
+  o.connect(g); g.connect(A.pre); o.start(t0); o.stop(t0 + 0.6);
+  noise({ when, amp: amp * 0.35, freq: 1800, Q: 0.8, decay: 0.022 });
+}
+(function () {
+  const st = makeStage($('#cv-echo'), 800, 260);
+  const tl = makeStage($('#cv-echotl'), 800, 150);
+  const MATS = [['光滑石材', 0.95], ['水泥牆', 0.85], ['木板', 0.6], ['厚窗簾', 0.25], ['吸音棉', 0.08]];
+  const V = 346, HIT = 0.55, FULL = 0.75;
+  const S = { d: 40, m: 1, t0: null, slow: 1, rec: null, lastCt: 0, buf: null, cur: 0 };
+  const dtOf = () => 2 * S.d / V;
+  const echoK = () => MATS[S.m][1] / (1 + 2 * S.d / 300);   // 反射率 × 傳播距離造成的衰減
+  function upd() {
+    const dt = dtOf(), R = MATS[S.m][1];
+    $('#ec-dv').textContent = S.d + ' m'; $('#ec-2d').textContent = 2 * S.d + ' m'; $('#ec-dt').textContent = dt.toFixed(3) + ' s'; $('#ec-R').textContent = Math.round(R * 100) + ' %';
+    const v = $('#ec-verdict');
+    if (dt < 0.1) { v.className = 'verdict bad'; v.textContent = `Δt = ${dt.toFixed(3)} s，小於 0.1 s：回聲和原聲疊在一起，聽起來像同一聲，分辨不出回聲`; }
+    else if (R < 0.3) { v.className = 'verdict bad'; v.textContent = `Δt ≥ 0.1 s，時間上分得開；但牆面吸收了大部分聲音，回聲很弱，幾乎聽不到`; }
+    else { v.className = 'verdict ok'; v.textContent = `Δt = ${dt.toFixed(3)} s，不小於 0.1 s：聽得出一聲清楚的回聲`; }
+  }
+  $('#ec-d').addEventListener('input', e => { S.d = +e.target.value; upd(); });
+  seg($('#ec-mat'), v => { S.m = +v; upd(); });
+  $('#ec-go').addEventListener('click', () => {
+    const ctx = ac(); if (!ctx) return;
+    const dt = dtOf();
+    drum(HIT); drum(HIT * echoK(), dt);
+    // 動畫與聲音同步：都用真實時間，並扣除喇叭輸出延遲
+    const lat = (ctx.outputLatency || 0) + (ctx.baseLatency || 0);
+    S.t0 = now() + lat; S.slow = 1;
+    S.rec = { t0: ctx.currentTime, tmax: Math.max(0.6, Math.min(1.6, dt + 0.45)), pts: [], dt, done: false };
+    S.lastCt = ctx.currentTime;
+    $('#ec-cap').textContent = '鼓聲和上方動畫都是真實時間，同步進行。想看清楚聲波怎麼走，按「慢動作重播」（無聲）。下方是耳朵收到的聲音振幅，隨時間記錄。';
+  });
+  $('#ec-replay').addEventListener('click', () => {
+    const dt = dtOf(); S.t0 = now(); S.slow = Math.max(3, 1.6 / dt);
+    $('#ec-cap').textContent = `慢動作重播：放慢約 ${Math.round(S.slow)} 倍，沒有聲音。要聽真實的回聲，請按「敲一下鼓」。`;
+  });
+  function sample() {
+    if (!A.ctx || !A.tap) return;
+    const ctx = A.ctx, sr = ctx.sampleRate, ct = ctx.currentTime;
+    if (!S.buf) S.buf = new Float32Array(A.tap.fftSize);
+    A.tap.getFloatTimeDomainData(S.buf);
+    const N = S.buf.length;
+    let pk = 0; for (let i = N - 1024; i < N; i++) pk = Math.max(pk, Math.abs(S.buf[i]));
+    S.cur = pk;
+    if (S.rec && !S.rec.done) {
+      const n = Math.min(N, Math.max(0, Math.round((ct - S.lastCt) * sr))); S.lastCt = ct;
+      const BIN = 128;
+      for (let s0 = N - n; s0 < N; s0 += BIN) {
+        let m = 0; for (let i = s0; i < Math.min(N, s0 + BIN); i++) m = Math.max(m, Math.abs(S.buf[i]));
+        const tt = ct - (N - s0) / sr - S.rec.t0;
+        if (tt >= 0 && tt <= S.rec.tmax) S.rec.pts.push([tt, m]);
+      }
+      if (ct - S.rec.t0 > S.rec.tmax + 0.05) S.rec.done = true;
+    }
+  }
+  upd();
+  benches.push({ sec: 's34', draw(t) {
+    sample();
+    const c = st.begin(TK.surface2);
+    const px = 3.2, mx = 104, my = 172, wallX = Math.min(110 + S.d * px, 740) + 8;
+    c.fillStyle = alpha(TK.ink, 0.12); c.fillRect(0, 218, 800, 42);
+    // person + drum
+    c.strokeStyle = TK.ink; c.fillStyle = TK.ink; c.lineWidth = 3; c.beginPath(); c.arc(40, 140, 13, 0, TAU); c.fill();
+    c.beginPath(); c.moveTo(40, 153); c.lineTo(40, 190); c.lineTo(28, 218); c.moveTo(40, 190); c.lineTo(52, 218); c.moveTo(40, 165); c.lineTo(70, 160); c.stroke();
+    const hitAge = S.t0 == null ? 9 : (t - S.t0) / S.slow;
+    c.save(); c.translate(70, 160); c.rotate(hitAge < 0.08 ? 0.5 : -0.2); c.strokeStyle = TK.muted; c.lineWidth = 2.5; c.beginPath(); c.moveTo(0, 0); c.lineTo(22, 4); c.stroke(); c.restore();
+    c.fillStyle = TK.accent; c.fillRect(66, 176, 34, 30); c.fillStyle = TK.surface; c.beginPath(); c.ellipse(83, 176, 17, 5, 0, 0, TAU); c.fill(); c.strokeStyle = TK.accent; c.lineWidth = 2; c.stroke();
+    // wall
+    const R = MATS[S.m][1];
+    c.fillStyle = S.m <= 1 ? TK.muted : S.m === 2 ? alpha(TK.accent, 0.8) : alpha(TK.wave, 0.45);
+    c.fillRect(wallX, 40, 16, 178);
+    if (S.m >= 3) { c.strokeStyle = alpha(TK.surface, 0.8); c.lineWidth = 1.5; for (let y = 46; y < 216; y += 9) { c.beginPath(); c.moveTo(wallX + 2, y); c.quadraticCurveTo(wallX + 8, y + 5, wallX + 14, y); c.stroke(); } }
+    text(c, MATS[S.m][0], wallX + 8, 34, { size: 12, align: 'center', color: TK.muted });
+    c.strokeStyle = TK.muted; c.lineWidth = 1; c.setLineDash([3, 4]); c.beginPath(); c.moveTo(mx, 236); c.lineTo(wallX, 236); c.stroke(); c.setLineDash([]);
+    text(c, `${S.d} m`, (mx + wallX) / 2, 252, { size: 12.5, align: 'center', font: MONO, weight: 700 });
+    if (S.t0 != null) {
+      const s = V * hitAge;
+      c.save(); c.beginPath(); c.rect(0, 0, wallX, 218); c.clip();
+      if (s < S.d * 1.02) { const r = s * px; for (let k = 0; k < 3; k++) { const rr = r - k * 6; if (rr <= 0) continue; c.strokeStyle = alpha(TK.wave, 0.9 - k * 0.3); c.lineWidth = 2.5; c.beginPath(); c.arc(mx, my, rr, -0.7, 0.7); c.stroke(); } }
+      if (s > S.d && s < 2 * S.d + 4) { const r = (s - S.d) * px; for (let k = 0; k < 3; k++) { const rr = r - k * 6; if (rr <= 0) continue; c.strokeStyle = alpha(TK.wave, (0.9 - k * 0.3) * Math.max(R, 0.15)); c.lineWidth = 2.5; c.beginPath(); c.arc(wallX, my, rr, Math.PI - 0.7, Math.PI + 0.7); c.stroke(); } }
+      c.restore();
+      if (hitAge < 0.25) text(c, '咚！', 108, 128, { size: 18, weight: 900, color: TK.accent });
+      if (s >= 2 * S.d && s < 2 * S.d + V * 0.5) text(c, dtOf() < 0.1 ? '（回聲和原聲疊在一起）' : '…咚（回聲）', 108, 108, { size: 14.5, weight: 700, color: alpha(TK.wave, Math.max(R, 0.4)) });
+    }
+    // live amplitude
+    $('#ec-amp').textContent = Math.round(Math.min(1, S.cur / FULL) * 100) + ' %';
+    $('#ec-meter').style.width = (Math.min(1, S.cur / FULL) * 100).toFixed(1) + '%';
+    const d = tl.begin(TK.surface2), x0 = 44, x1 = 780, yb = 112, H = 88;
+    const tmax = S.rec ? S.rec.tmax : Math.max(0.6, Math.min(1.6, dtOf() + 0.45));
+    const X = v => x0 + v / tmax * (x1 - x0);
+    d.fillStyle = alpha(TK.danger, 0.1); d.fillRect(x0, yb - H, X(0.1) - x0, H);
+    text(d, '0.1 s 內：人耳分不開', x0 + 4, yb - H + 14, { size: 11.5, color: TK.danger, weight: 700 });
+    text(d, '即時振幅（耳朵收到的聲音）', x1, 16, { size: 12, color: TK.muted, align: 'right' });
+    d.strokeStyle = TK.ink; d.lineWidth = 1; d.beginPath(); d.moveTo(x0, yb); d.lineTo(x1, yb); d.stroke();
+    const step = tmax > 1.2 ? 0.2 : 0.1;
+    for (let v = 0; v <= tmax + 1e-6; v += step) { d.beginPath(); d.moveTo(X(v), yb); d.lineTo(X(v), yb + 5); d.stroke(); text(d, v.toFixed(1) + ' s', X(v), yb + 19, { size: 11, color: TK.muted, align: 'center', font: MONO }); }
+    if (S.rec && S.rec.pts.length) {
+      const pts = S.rec.pts;
+      d.fillStyle = alpha(TK.wave, 0.35); d.strokeStyle = TK.wave; d.lineWidth = 1.5;
+      d.beginPath(); d.moveTo(X(pts[0][0]), yb);
+      pts.forEach(([tt, m]) => d.lineTo(X(tt), yb - Math.min(1, m / FULL) * H));
+      d.lineTo(X(pts[pts.length - 1][0]), yb); d.closePath(); d.fill(); d.stroke();
+      [[0, '原聲'], [S.rec.dt, '回聲應到達']].forEach(([tt, lab], k) => { if (tt > tmax) return; const x = X(tt); d.fillStyle = k ? TK.wave : TK.accent; d.beginPath(); d.moveTo(x, yb + 1); d.lineTo(x - 5, yb + 9); d.lineTo(x + 5, yb + 9); d.closePath(); d.fill(); text(d, lab, x + (k ? 6 : 6), yb + 34, { size: 11.5, color: k ? TK.wave : TK.accent, weight: 700 }); });
+    } else text(d, '敲一下鼓，這裡會畫出耳朵收到的振幅隨時間的變化', (x0 + x1) / 2, yb - 40, { size: 13, color: TK.muted, align: 'center' });
+  } });
+})();
+
+/* ======================================================================
+   Bench 8：聲納／倒車雷達
+   ====================================================================== */
+(function () {
+  const STU = !!document.querySelector('.stu');
+  const st = makeStage($('#cv-sonar'), 800, 410);
+  const VS = 1500, SURF = 52, KPX = 0.22, VA = 346, FISH_W = 0.08, TL = 1.6;
+  const S = { mode: 'sea', x: 0.3, ping: null, pts: [], fish: true, real: true, self: false, scan: null, last: null,
+    cd: 2, rev: false, nextBeep: 0, arcs: [], nextArc: 0 };
+  let ph = [];
+  function newSea() { ph = [Math.random() * TAU, Math.random() * TAU, Math.random() * TAU]; S.fishX = 0.3 + Math.random() * 0.4; S.fishD = 150 + Math.random() * 80; S.pts = []; S.last = null; read(); }
+  const depth = u => clamp(640 + 260 * Math.sin(u * 5.2 + ph[0]) + 140 * Math.sin(u * 11.7 + ph[1]) + 70 * Math.sin(u * 23 + ph[2]), 300, 1150);
+  const X = u => 30 + u * 740;
+  const overFish = u => S.fish && Math.abs(u - S.fishX) < FISH_W;
+  function read() {
+    if (!S.last) { $('#so-t').textContent = '—'; $('#so-d').textContent = '—'; $('#so-msg').textContent = ''; return; }
+    $('#so-t').textContent = S.last.map(e => e.t.toFixed(3) + ' s').join('、');
+    $('#so-d').textContent = S.self ? '自己算' : S.last.map(e => Math.round(VS * e.t / 2) + ' m').join('、');
+    $('#so-msg').textContent = S.last.length > 1
+      ? (STU ? '收到兩個回波！看下方聲納螢幕：哪一個是海底？' : '收到兩個回波：先回來、較弱的是魚群，後回來、較強的是海底。')
+      : '';
+  }
+  function fire(fast) {
+    if (!ac()) return;
+    const u = S.x, D = depth(u), echoes = [];
+    if (overFish(u)) echoes.push({ t: 2 * S.fishD / VS, kind: 'fish', a: 0.45 });
+    echoes.push({ t: 2 * D / VS, kind: 'floor', a: 1 });
+    S.ping = { t0: now(), u, D, echoes, speed: fast ? 6 : 1, got: 0 };
+    tone({ f: 1800, h: [1], amp: 0.15, decay: 0.04 });
+  }
+  $('#so-ping').addEventListener('click', () => { if (!S.scan) fire(false); });
+  $('#so-scan').addEventListener('click', () => { if (S.scan) { S.scan = null; $('#so-scan').textContent = '自動掃描'; return; } S.pts = []; S.scan = { k: 0 }; S.x = 0.02; $('#so-scan').textContent = '停止掃描'; fire(true); });
+  $('#so-new').addEventListener('click', () => newSea());
+  $('#so-x').addEventListener('input', e => { S.x = e.target.value / 100; });
+  $('#so-fish').addEventListener('change', e => { S.fish = e.target.checked; });
+  $('#so-real').addEventListener('change', e => S.real = e.target.checked);
+  $('#so-self').addEventListener('change', e => { S.self = e.target.checked; read(); });
+  const cdSl = $('#so-cd'), revBtn = $('#so-rev');
+  seg($('#so-mode'), v => { S.mode = v; $('#so-sea').hidden = v !== 'sea'; $('#so-car').hidden = v !== 'car'; $('#so-cap').textContent = v === 'sea' ? '海水中聲速約 1500 m/s（課本圖 3-15 的「水」為 1463 m/s；海水含鹽，略快）。下方是聲納螢幕：記錄每個回波抵達的時間。' : '空氣中聲速以 346 m/s（25 ℃）計算。'; if (v === 'sea' && S.rev) revBtn.click(); });
+  const beepInt = d => d > 1.5 ? 1.0 : d > 1.0 ? 0.5 : d > 0.5 ? 0.25 : 0;
+  function updCar() {
+    $('#so-cdv').textContent = S.cd.toFixed(2) + ' m'; $('#so-ct').textContent = (2 * S.cd / VA * 1000).toFixed(1) + ' ms';
+    const bi = beepInt(S.cd); $('#so-ci').textContent = bi ? bi + ' s' : '連續長音';
+  }
+  cdSl.addEventListener('input', () => { S.cd = cdSl.value / 100; updCar(); });
+  revBtn.addEventListener('click', () => { ac(); S.rev = !S.rev; toggleBtn(revBtn, S.rev); revBtn.textContent = S.rev ? '停車' : '開始倒車'; S.nextBeep = now(); if (!S.rev && S.cont) { S.cont.g.gain.setTargetAtTime(0, A.ctx.currentTime, 0.02); S.cont = null; } });
+  newSea(); updCar();
+  function stepSea(t) {
+    const p = S.ping; if (!p) return;
+    const el = (t - p.t0) * p.speed;
+    while (p.got < p.echoes.length && el >= p.echoes[p.got].t) {
+      const e = p.echoes[p.got]; p.got++;
+      tone({ f: e.kind === 'fish' ? 2200 : 1200, h: [1], amp: e.kind === 'fish' ? 0.08 : 0.16, decay: 0.05 });
+      if (p.got === p.echoes.length) {
+        S.last = p.echoes.map(e => ({ t: e.t, kind: e.kind }));
+        const f = p.echoes.find(e => e.kind === 'fish');
+        S.pts.push({ u: p.u, d: p.D, fish: f ? VS * f.t / 2 : null }); read();
+        if (S.scan) { S.scan.k++; S.x = 0.02 + S.scan.k * 0.024; $('#so-x').value = Math.round(S.x * 100); if (S.x > 0.99) { S.scan = null; $('#so-scan').textContent = '自動掃描'; } }
+      }
+    }
+    if (p.got === p.echoes.length && el > p.echoes[p.echoes.length - 1].t + 0.05) { S.ping = null; if (S.scan) fire(true); }
+  }
+  function drawSea(c, t) {
+    const BOT = 318;
+    c.fillStyle = alpha(TK.sky, 0.9); c.fillRect(0, 0, 800, SURF);
+    const g = c.createLinearGradient(0, SURF, 0, BOT); g.addColorStop(0, alpha(TK.water, 0.25)); g.addColorStop(1, alpha(TK.water, 0.55)); c.fillStyle = g; c.fillRect(0, SURF, 800, BOT - SURF);
+    if (S.real) { c.fillStyle = alpha(TK.muted, 0.85); c.beginPath(); c.moveTo(0, BOT); for (let px = 0; px <= 800; px += 4) { const u = clamp((px - 30) / 740, 0, 1); c.lineTo(px, SURF + depth(u) * KPX); } c.lineTo(800, BOT); c.closePath(); c.fill(); }
+    else text(c, '海底已隱藏：靠測量畫出地形', 400, 300, { size: 13, color: TK.muted, align: 'center' });
+    for (let m = 0; m <= 1200; m += 300) { const y = SURF + m * KPX; c.strokeStyle = alpha(TK.ink, 0.15); c.beginPath(); c.moveTo(0, y); c.lineTo(800, y); c.stroke(); text(c, m + ' m', 4, y - 3, { size: 10.5, color: TK.muted, font: MONO }); }
+    // fish school
+    if (S.fish) {
+      const fx = X(S.fishX), fy = SURF + S.fishD * KPX, w = FISH_W * 740;
+      c.fillStyle = alpha(TK.ink, 0.07); c.beginPath(); c.ellipse(fx, fy, w, 16, 0, 0, TAU); c.fill();
+      for (let k = 0; k < 16; k++) { const ox = ((k * 37) % 100) / 100 * 2 - 1, oy = ((k * 53) % 100) / 100 * 2 - 1; text(c, '🐟', fx + ox * (w - 10) + Math.sin(t * 2 + k) * 2, fy + oy * 10 + 5, { size: 12, align: 'center' }); }
+    }
+    // measured profile + fish echoes
+    if (!S.self && S.pts.length) {
+      const pts = S.pts.slice().sort((a, b) => a.u - b.u);
+      c.strokeStyle = TK.accent; c.lineWidth = 2; c.setLineDash([5, 4]); c.beginPath(); pts.forEach((p, i) => { const x = X(p.u), y = SURF + p.d * KPX; i ? c.lineTo(x, y) : c.moveTo(x, y); }); c.stroke(); c.setLineDash([]);
+      c.fillStyle = TK.accent; pts.forEach(p => { c.beginPath(); c.arc(X(p.u), SURF + p.d * KPX, 3.5, 0, TAU); c.fill(); });
+      c.fillStyle = TK.danger; pts.forEach(p => { if (p.fish != null) { c.beginPath(); c.arc(X(p.u), SURF + p.fish * KPX, 4, 0, TAU); c.fill(); } });
+    }
+    // ship
+    const sx = X(S.x); c.fillStyle = TK.ink; c.beginPath(); c.moveTo(sx - 30, SURF - 12); c.lineTo(sx + 30, SURF - 12); c.lineTo(sx + 22, SURF + 2); c.lineTo(sx - 22, SURF + 2); c.closePath(); c.fill(); c.fillRect(sx - 8, SURF - 24, 16, 12);
+    // ping
+    const p = S.ping;
+    if (p) {
+      const el = (t - p.t0) * p.speed, s = VS * el, x = X(p.u);
+      c.save(); c.beginPath(); c.rect(0, SURF, 800, BOT - SURF); c.clip();
+      if (s < p.D) { const r = s * KPX; c.strokeStyle = TK.accent; c.lineWidth = 2.5; c.beginPath(); c.arc(x, SURF, Math.max(r, 1), Math.PI * 0.3, Math.PI * 0.7); c.stroke(); }
+      if (s > p.D && s < 2 * p.D) { const r = (s - p.D) * KPX; c.strokeStyle = alpha(TK.accent, 0.85); c.lineWidth = 2.5; c.beginPath(); c.arc(x, SURF + p.D * KPX, Math.max(r, 1), Math.PI * 1.3, Math.PI * 1.7); c.stroke(); }
+      if (p.echoes.some(e => e.kind === 'fish') && s > S.fishD && s < 2 * S.fishD) { const r = (s - S.fishD) * KPX; c.strokeStyle = alpha(TK.danger, 0.85); c.lineWidth = 2; c.setLineDash([4, 3]); c.beginPath(); c.arc(x, SURF + S.fishD * KPX, Math.max(r, 1), Math.PI * 1.25, Math.PI * 1.75); c.stroke(); c.setLineDash([]); }
+      c.restore();
+      text(c, `${el.toFixed(3)} s`, x + 34, SURF - 14, { size: 12, font: MONO, weight: 700, color: TK.ink });
+    }
+    if (S.scan) text(c, '自動掃描中（動畫加速 6 倍）', 790, 20, { size: 12, color: TK.ink, align: 'right' });
+    if (!S.self && S.pts.some(q => q.fish != null)) { c.fillStyle = TK.accent; c.beginPath(); c.arc(20, 18, 4, 0, TAU); c.fill(); text(c, '海底回波', 28, 22, { size: 12, color: TK.ink }); c.fillStyle = TK.danger; c.beginPath(); c.arc(100, 18, 4, 0, TAU); c.fill(); text(c, STU ? '比較早回來的回波' : '魚群回波', 108, 22, { size: 12, color: TK.ink }); }
+    // sonar screen
+    const y0 = 326, x0 = 60, x1 = 780, Xt = v => x0 + v / TL * (x1 - x0), yb = 388;
+    c.fillStyle = TK.scopeBg; c.fillRect(0, y0, 800, 410 - y0);
+    text(c, '聲納螢幕', 8, y0 + 16, { size: 11.5, color: TK.scopeText, weight: 700 });
+    c.strokeStyle = TK.scopeGrid; c.lineWidth = 1;
+    for (let v = 0; v <= TL + 1e-6; v += 0.2) { c.beginPath(); c.moveTo(Xt(v), y0 + 6); c.lineTo(Xt(v), yb); c.stroke(); text(c, v.toFixed(1), Xt(v), 404, { size: 10, color: TK.scopeText, align: 'center', font: MONO }); }
+    text(c, 's', x1 + 8, 404, { size: 10, color: TK.scopeText, font: MONO });
+    c.strokeStyle = alpha(TK.scopeTrace, 0.5); c.beginPath(); c.moveTo(x0, yb); c.lineTo(x1, yb); c.stroke();
+    let show = [], cursor = null;
+    if (p) { show = p.echoes.slice(0, p.got); cursor = Math.min((t - p.t0) * p.speed, TL); }
+    else if (S.last) show = S.last.map(e => ({ t: e.t, kind: e.kind, a: e.kind === 'fish' ? 0.45 : 1 }));
+    if (p || S.last) { c.fillStyle = TK.scopeTrace; c.fillRect(Xt(0) - 2, yb - 50, 4, 50); text(c, '發射', Xt(0) + 6, y0 + 16, { size: 11, color: TK.scopeText }); }
+    show.forEach(e => {
+      const h = 50 * (e.a || (e.kind === 'fish' ? 0.45 : 1)), x = Xt(e.t);
+      c.fillStyle = e.kind === 'fish' ? TK.scopeRef : TK.scopeTrace; c.fillRect(x - 2.5, yb - h, 5, h);
+      text(c, STU ? `${e.t.toFixed(3)} s` : `${e.kind === 'fish' ? '魚群' : '海底'} ${e.t.toFixed(3)} s`, x + 6, yb - h + 10, { size: 11, color: TK.scopeText, font: MONO });
+    });
+    if (cursor != null) { c.strokeStyle = alpha(TK.scopeTrace, 0.7); c.beginPath(); c.moveTo(Xt(cursor), y0 + 6); c.lineTo(Xt(cursor), yb); c.stroke(); }
+    if (!p && !S.last) text(c, '發射超聲波後，回波抵達的時間會顯示在這裡', 420, 370, { size: 12, color: TK.scopeText, align: 'center' });
+  }
+  function drawCar(c, t, dt) {
+    if (S.rev) {
+      S.cd = Math.max(0.2, S.cd - 0.22 * dt); cdSl.value = Math.round(S.cd * 100); updCar();
+      const bi = beepInt(S.cd);
+      if (bi === 0) { if (!S.cont) { const ctx = ac(); const o = ctx.createOscillator(); o.frequency.value = 1900; const g = ctx.createGain(); g.gain.value = 0; g.gain.setTargetAtTime(0.12, ctx.currentTime, 0.01); o.connect(g); g.connect(A.pre); o.start(); S.cont = { o, g }; } }
+      else { if (S.cont) { S.cont.g.gain.setTargetAtTime(0, A.ctx.currentTime, 0.01); try { S.cont.o.stop(A.ctx.currentTime + 0.1); } catch (e) {} S.cont = null; } if (t >= S.nextBeep) { tone({ f: 1900, amp: 0.12, attack: 0.005, dur: 0.08 }); S.nextBeep = t + bi; } }
+    }
+    const wallX = 740, px = 200, rear = wallX - S.cd * px;
+    c.fillStyle = alpha(TK.ink, 0.12); c.fillRect(0, 280, 800, 130);
+    c.fillStyle = TK.muted; c.fillRect(wallX, 90, 22, 190);
+    c.fillStyle = TK.wave; c.beginPath(); c.roundRect ? c.roundRect(rear - 230, 200, 230, 56, 10) : c.rect(rear - 230, 200, 230, 56); c.fill();
+    c.beginPath(); c.moveTo(rear - 190, 200); c.lineTo(rear - 160, 165); c.lineTo(rear - 60, 165); c.lineTo(rear - 25, 200); c.closePath(); c.fill();
+    c.fillStyle = TK.ink; [rear - 180, rear - 50].forEach(x => { c.beginPath(); c.arc(x, 258, 20, 0, TAU); c.fill(); });
+    c.fillStyle = TK.accent; c.fillRect(rear - 4, 228, 6, 10);
+    if (t >= S.nextArc) { S.arcs.push({ t0: t }); S.nextArc = t + 0.35; }
+    const slowV = 60;
+    S.arcs = S.arcs.filter(a => (t - a.t0) * slowV < (wallX - rear) * 2 + 10);
+    S.arcs.forEach(a => { const s = (t - a.t0) * slowV, gap = wallX - rear; c.lineWidth = 2; if (s < gap) { c.strokeStyle = alpha(TK.accent, 0.85); c.beginPath(); c.arc(rear + 2, 233, s + 4, -0.5, 0.5); c.stroke(); } else { c.strokeStyle = alpha(TK.accent, 0.5); c.beginPath(); c.arc(wallX, 233, s - gap + 4, Math.PI - 0.5, Math.PI + 0.5); c.stroke(); } });
+    c.strokeStyle = TK.muted; c.setLineDash([3, 4]); c.lineWidth = 1; c.beginPath(); c.moveTo(rear, 300); c.lineTo(wallX, 300); c.stroke(); c.setLineDash([]);
+    text(c, `${S.cd.toFixed(2)} m`, (rear + wallX) / 2, 318, { size: 13, align: 'center', font: MONO, weight: 700 });
+    text(c, '40 kHz 超聲波（人耳聽不到，動畫放慢）', 16, 30, { size: 12.5, color: TK.accent, weight: 700 });
+    const bi = beepInt(S.cd);
+    text(c, S.rev ? (bi ? `嗶…嗶…（每 ${bi} s）` : '嗶————') : '按「開始倒車」', 16, 54, { size: 14, color: TK.ink, weight: 700 });
+  }
+  benches.push({ sec: 's34', draw(t, dt) {
+    const c = st.begin(TK.surface2);
+    if (S.mode === 'sea') { stepSea(t); drawSea(c, t); } else drawCar(c, t, dt);
+  } });
+})();
+
+/* ======================================================================
+   Bench 9：聽覺範圍
+   ====================================================================== */
+(function () {
+  const st = makeStage($('#cv-hear'), 800, 300);
+  const FLO = 10, FHI = 150000, x0 = 120, x1 = 780;
+  const RANGES = [['人', 20, 20000], ['狗', 15, 50000], ['貓', 60, 65000], ['海豚', 2000, 100000], ['蝙蝠', 1000, 120000]];
+  const X = f => x0 + Math.log10(f / FLO) / Math.log10(FHI / FLO) * (x1 - x0);
+  const S = { f: 1000, sweep: null, lim: null };
+  const sl = $('#hr-f'); sl.value = Math.round(logInv(1000, FLO, FHI));
+  function upd() {
+    $('#hr-fv').textContent = fmtHz(S.f);
+    const who = RANGES.filter(r => S.f >= r[1] && S.f <= r[2]).map(r => r[0]);
+    const kind = S.f < 20 ? '次聲波' : S.f > 20000 ? '超聲波' : '人耳可聽範圍';
+    const el = $('#hr-who'); el.className = 'verdict ' + (who.includes('人') ? 'ok' : 'bad');
+    el.textContent = `${kind}：${who.length ? who.join('、') + ' 聽得到' : '圖中動物都聽不到'}`;
+  }
+  sl.addEventListener('input', () => { S.f = logMap(+sl.value, FLO, FHI); upd(); });
+  $('#hr-play').addEventListener('click', () => {
+    const ctx = ac(); if (!ctx) return; const maxF = Math.min(20000, ctx.sampleRate / 2 - 500);
+    if (S.f < 20) { $('#hr-who').textContent = '次聲波：人耳聽不到，喇叭也放不出來，所以不播放。'; return; }
+    if (S.f > maxF) { $('#hr-who').textContent = '超聲波：人耳聽不到，喇叭也放不出來，所以不播放。'; return; }
+    tone({ f: S.f, amp: S.f > 8000 ? 0.12 : 0.3, attack: 0.03, dur: 0.9 });
+  });
+  const sw = $('#hr-sweep'), stop = $('#hr-stop');
+  function endSweep(record) {
+    if (!S.sweep) return; const ct = A.ctx.currentTime;
+    if (record) { S.lim = curSweepF(); $('#hr-lim').textContent = Math.round(S.lim).toLocaleString() + ' Hz'; }
+    S.sweep.g.gain.cancelScheduledValues(ct); S.sweep.g.gain.setValueAtTime(S.sweep.g.gain.value, ct); S.sweep.g.gain.linearRampToValueAtTime(0, ct + 0.05);
+    try { S.sweep.o.stop(ct + 0.1); } catch (e) {}
+    S.sweep = null; toggleBtn(sw, false); sw.textContent = '開始掃頻'; stop.disabled = true;
+  }
+  function curSweepF() { if (!S.sweep) return null; const el = clamp(A.ctx.currentTime - S.sweep.t0, 0, S.sweep.T); return S.sweep.f0 * Math.pow(S.sweep.f1 / S.sweep.f0, el / S.sweep.T); }
+  sw.addEventListener('click', () => {
+    if (S.sweep) { endSweep(false); return; }
+    const ctx = ac(); if (!ctx) return;
+    const f0 = 8000, f1 = Math.min(20000, ctx.sampleRate / 2 - 500), T = 24, t0 = ctx.currentTime + 0.05;
+    const o = ctx.createOscillator(); o.frequency.setValueAtTime(f0, t0); o.frequency.exponentialRampToValueAtTime(f1, t0 + T);
+    const g = ctx.createGain(); g.gain.setValueAtTime(0, ctx.currentTime); g.gain.linearRampToValueAtTime(0.1, t0 + 0.1); g.gain.setValueAtTime(0.1, t0 + T - 0.1); g.gain.linearRampToValueAtTime(0, t0 + T);
+    o.connect(g); g.connect(A.pre); o.start(); o.stop(t0 + T + 0.05);
+    S.sweep = { o, g, t0, T, f0, f1 }; o.onended = () => { if (S.sweep && S.sweep.o === o) endSweep(false); };
+    toggleBtn(sw, true); sw.textContent = '取消'; stop.disabled = false;
+  });
+  stop.addEventListener('click', () => endSweep(true));
+  upd();
+  benches.push({ sec: 's34', draw() {
+    const c = st.begin(TK.surface2);
+    c.fillStyle = alpha(TK.danger, 0.08); c.fillRect(x0, 20, X(20) - x0, 230); c.fillRect(X(20000), 20, x1 - X(20000), 230);
+    text(c, '次聲波', (x0 + X(20)) / 2, 36, { size: 12, color: TK.danger, align: 'center', weight: 700 });
+    text(c, '超聲波', (X(20000) + x1) / 2, 36, { size: 12, color: TK.danger, align: 'center', weight: 700 });
+    const cols = [TK.ok, TK.danger, TK.wave, TK.water, TK.accent];
+    RANGES.forEach(([n, lo, hi], i) => {
+      const y = 62 + i * 36, on = S.f >= lo && S.f <= hi;
+      c.fillStyle = alpha(cols[i], on ? 0.9 : 0.35); c.fillRect(X(lo), y, X(hi) - X(lo), 20);
+      text(c, n, 16, y + 15, { size: 15, weight: 700, color: on ? TK.ink : TK.muted });
+      text(c, `${lo.toLocaleString()}～${hi.toLocaleString()}`, X(lo) + 6, y + 14.5, { size: 11, color: '#ffffff', font: MONO, weight: 700 });
+    });
+    c.strokeStyle = TK.ink; c.lineWidth = 1; c.beginPath(); c.moveTo(x0, 250); c.lineTo(x1, 250); c.stroke();
+    [10, 100, 1000, 10000, 100000].forEach(f => { c.beginPath(); c.moveTo(X(f), 250); c.lineTo(X(f), 256); c.stroke(); text(c, f >= 1000 ? (f / 1000) + 'k' : String(f), X(f), 272, { size: 11, color: TK.muted, align: 'center', font: MONO }); });
+    text(c, 'Hz', x1, 290, { size: 11, color: TK.muted, align: 'right', font: MONO });
+    const sf = S.sweep ? curSweepF() : null;
+    const mark = (f, col, lab) => { const x = X(f); c.strokeStyle = col; c.lineWidth = 2; c.beginPath(); c.moveTo(x, 46); c.lineTo(x, 250); c.stroke(); text(c, lab, x, 290, { size: 12, color: col, align: 'center', weight: 700, font: MONO }); };
+    mark(S.f, TK.ink, fmtHz(S.f));
+    if (sf) { mark(sf, TK.accent, ''); $('#hr-sf').textContent = Math.round(sf).toLocaleString() + ' Hz'; }
+    if (S.lim) { const x = X(S.lim); c.strokeStyle = TK.accent; c.setLineDash([4, 4]); c.beginPath(); c.moveTo(x, 46); c.lineTo(x, 250); c.stroke(); c.setLineDash([]); }
+  } });
+})();
+
+/* ======================================================================
+   引導字卡（學生版）
+   ====================================================================== */
+const KIND = { pred: '預測', do: '操作', see: '觀察', why: '解釋', up: '挑戰' };
+const CARDS = {
+  'b-src': { title: '發聲體在振動嗎？', cards: [
+    { k: 'pred', q: '音叉發出「嗡——」的聲音時，你覺得音叉本身在做什麼？', opts: ['快速來回振動', '完全靜止', '不確定'], ans: '快速來回振動', tip: '回看第 3 張卡：振動中的音叉碰到水面會濺起水花。' },
+    { k: 'do', q: '敲敲看，握握看', steps: ['選「音叉」、畫面選「空氣粒子」，按「敲擊音叉」，仔細聽。', '看振幅條，等幾秒：聲音和振幅怎麼變？', '再敲一次，馬上按「用手握住」。聲音和振幅發生什麼事？'] },
+    { k: 'see', q: '讓看不見的振動現形', steps: ['畫面切到「水面」，先按「敲擊音叉」。', '再按「碰觸水面」，觀察水面。', '不敲擊就直接碰水面，會怎樣？比較兩次結果。'], hint: '想一想：為什麼要借用水？眼睛看得出音叉在振動嗎？' },
+    { k: 'see', q: '追蹤那顆紅點', steps: ['回到「空氣粒子」，敲擊音叉，盯著紅點。', '紅點有跟著聲音一路跑到右邊嗎？', '紅點來回動的方向，和聲音前進的方向是平行還是垂直？'], hint: '也看看下方色帶：深色（密）和淺色（疏）怎麼移動？' },
+    { k: 'why', q: '用一兩句話說明：聲音是怎麼產生、又怎麼傳到耳朵的？請用到「振動」和「介質」。' },
+    { k: 'up', q: '握住音叉後，畫面最右邊的粒子還會再動一下才停。為什麼？' } ] },
+  'b-jar': { title: '波以耳的真空鐘罩', cards: [
+    { k: 'pred', q: '如果把玻璃罩裡的空氣全部抽掉，鈴聲會怎樣？', opts: ['變大', '變小', '完全聽不到', '不變'], ans: '完全聽不到', tip: '抽到 0 kPa 時音量條是多少？真實的抽氣機抽不到完全真空，所以實驗中通常只會變小。' },
+    { k: 'do', q: '邊敲邊抽氣', steps: ['按「開始敲鈴」，聽聽鈴聲。', '按「抽出空氣」，觀察氣壓計、罩內粒子數和音量條。', '抽到 0 kPa 後，再按「放入空氣」。'] },
+    { k: 'see', q: '鈴鐺還在振動嗎？', steps: ['氣壓 0 kPa 時，畫面中的鈴鐺和小鎚還在動嗎？', '那為什麼聽不到？差別出在哪裡？'] },
+    { k: 'do', q: '改變一個條件', steps: ['勾選「鈴鐺改架在金屬底座上」。', '再抽到 0 kPa，這次聽得到嗎？', '聲音是經由什麼傳出來的？'] },
+    { k: 'why', q: '用證據回答：聲音傳播需要什麼？太空中為什麼看得到爆炸的火光，卻聽不到聲音？' },
+    { k: 'up', q: '真實的抽氣機抽不到完全真空，鈴聲只會「變小」。只憑「越抽越小聲」，可以說「真空中聽不到聲音」嗎？' } ] },
+  'b-speed': { title: '聲速賽跑與打雷測距', cards: [
+    { k: 'pred', q: '同一個聲音同時在空氣、水、木材中跑 1000 公尺，誰最先到？', opts: ['空氣', '水', '木材', '同時到'], ans: '木材', tip: '看賽跑紀錄表裡三種介質的抵達時間。' },
+    { k: 'do', q: '開跑', steps: ['按「發出聲音」，看三條跑道。', '記下三種介質的抵達時間。', '動畫改成「實際速度」再跑一次，聽三聲「嗶」的先後。'] },
+    { k: 'do', q: '大聲會跑比較快嗎？', steps: ['先用「小聲・低音」跑一次。', '只改成「大聲」跑一次：看跑道上的波，什麼變了？', '再只改成「高音」跑一次：波又有什麼不同？', '比較賽跑紀錄表裡三次的抵達時間。'], hint: '一次只改一個條件，才知道是誰造成的。' },
+    { k: 'see', q: '溫度的影響', steps: ['把空氣溫度調到 0 ℃，記下聲速。', '再調到 30 ℃，聲速增加多少？', '用 331 + 0.6T 算算看，和畫面一樣嗎？'] },
+    { k: 'do', q: '打雷測距', steps: ['延遲設成 3 秒，按「閃電！」。', '看到閃光後幾秒聽到雷聲？閃電大約多遠？'] },
+    { k: 'why', q: '整理：聲速和哪些因素有關？和哪些無關？用你剛剛的數據當證據。' },
+    { k: 'up', q: '算閃電距離時，為什麼可以不管光傳過來的時間？' } ] },
+  'b-tube': { title: '試管聲音比一比', cards: [
+    { k: 'pred', q: '對管口吹氣時，試管裡的水越多，音調會？', opts: ['越高', '越低', '不變'], ans: '越高', tip: '吹氣時哪裡有顏色變化？水越多，那個部分變長還是變短？' },
+    { k: 'pred', q: '用湯匙敲擊時，試管裡的水越多，音調會？', opts: ['越高', '越低', '不變'], ans: '越低', tip: '敲擊時哪裡有顏色變化？水越多，一起振動的東西變重還是變輕？' },
+    { k: 'do', q: '吹吹看', steps: ['選「對管口吹氣」，從 1 號點到 5 號。', '依音調由高到低排出順序。', '點下去時，畫面哪個部分有顏色變化？'] },
+    { k: 'do', q: '敲敲看', steps: ['切換「用湯匙敲擊」，再點一次 5 支試管。', '排序和吹氣時一樣嗎？', '這次畫面哪個部分有顏色變化？'] },
+    { k: 'see', q: '力量大小', steps: ['挑一支試管，力量調到 2 點一次，再調到 10 點一次。', '比較下方示波器：什麼變了？什麼沒變？'] },
+    { k: 'why', q: '為什麼吹氣和敲擊的高低順序相反？用「是誰在振動」說明。' },
+    { k: 'up', q: '勾選「顯示頻率」，算出每支試管的「頻率 × 空氣柱長」。你發現什麼規律？' } ] },
+  'b-scope': { title: '聲音三要素示波器', cards: [
+    { k: 'pred', q: '頻率變成 2 倍時，示波器畫面中的波會怎麼變？', opts: ['波變高', '波變密（數量變多）', '形狀改變', '不變'], ans: '波變密（數量變多）', tip: '比較 Do（262）和高音 Do（524）畫面中的波數。' },
+    { k: 'do', q: '比較音調', steps: ['按琴鍵 Do（262），再按「凍結參考波形」。', '按高音 Do（524），數一數橘線和綠線各有幾個波。', '看讀數：週期變成多少？'] },
+    { k: 'do', q: '比較音量', steps: ['按「清除」，選 La（440），凍結參考波形。', '只調整「振幅」，不碰頻率。', '什麼變了？什麼沒變？看下方比較文字的 dB。'] },
+    { k: 'see', q: '比較音色', steps: ['頻率固定在 La（440），凍結「音叉」的波形。', '依序切換長笛、單簧管、小提琴。', '週期一樣嗎？形狀呢？聲譜有什麼不同？'] },
+    { k: 'why', q: '音量、音調、音色各和波的哪一個特徵有關？先寫下來，再點下方「隨堂筆記」表格對答案。' },
+    { k: 'up', q: '振幅變成 2 倍時，音量增加大約幾 dB？用「凍結參考波形」實際試試看。' } ] },
+  'b-noise': { title: '樂音與噪音', cards: [
+    { k: 'pred', q: '你覺得「噪音」在示波器上的波形長什麼樣子？', opts: ['很高', '很密', '雜亂、沒有規律', '和樂音一樣'], ans: '雜亂、沒有規律', tip: '比較「工地施工」和「鋼琴」的波形。' },
+    { k: 'do', q: '聽聽看、看看看', steps: ['依序播放表格中的 6 種音源，一邊看示波器。', '每一種都在表格中選「波形是否規律」和「你的感受」。'] },
+    { k: 'see', q: '分貝', steps: ['看分貝尺：哪些聲音超過 85 dB？', '長期待在這種環境裡，會有什麼影響？'] },
+    { k: 'do', q: '對照', steps: ['按「對照課本答案」。', '哪一項和你的判斷不同？為什麼？'] },
+    { k: 'why', q: '樂音和噪音的差別是什麼？請從「波形」和「音量」兩方面說明。' },
+    { k: 'up', q: '仔細看汽車喇叭的波形，它真的沒有規律嗎？如果有規律，為什麼還算噪音？' } ] },
+  'b-echo': { title: '回聲：離牆多遠才聽得出來？', cards: [
+    { k: 'pred', q: '站在牆前大喊，至少要離牆多遠，才聽得出清楚的回聲？', opts: ['3 公尺', '約 17 公尺', '50 公尺', '100 公尺以上'], ans: '約 17 公尺', tip: '回聲要比原聲晚 0.1 秒以上才分得出來：346 × 0.1 ÷ 2 ≈ 17 m。' },
+    { k: 'do', q: '遠近比較', steps: ['距離調到 100 m，按「敲一下鼓」，仔細聽。', '再調到 10 m，敲一次。', '兩次聽起來有什麼不同？看下方即時振幅圖有幾個高峰。'] },
+    { k: 'do', q: '找出臨界距離', steps: ['從 40 m 開始慢慢縮短距離，每次都敲一下。', '看即時振幅圖：兩個高峰什麼時候開始連在一起？', '記下這個距離，和判斷框的說法比較。'] },
+    { k: 'see', q: '換牆面', steps: ['距離固定 60 m，依序換成光滑石材、厚窗簾、吸音棉。', '即時振幅圖中，第二個高峰的高度怎麼變？'] },
+    { k: 'why', q: '在教室裡敲鼓，為什麼通常聽不到回聲？用「時間差」和「牆面材質」兩個證據說明。' },
+    { k: 'up', q: '人耳約需 0.1 秒才能分辨兩個聲音，聲速 346 m/s。算出臨界距離，和你找到的一樣嗎？' } ] },
+  'b-sonar': { title: '聲納與倒車雷達', cards: [
+    { k: 'pred', q: '船發出超聲波，回波時間越長，代表海越深還是越淺？', opts: ['越深', '越淺', '沒有關係'], ans: '越深', tip: '海越深，聲波來回要走的路越長，花的時間也越長。' },
+    { k: 'do', q: '自己測海深', steps: ['勾選「只顯示時間」。', '移動船的位置，按「發射超聲波」，記下回波時間。', '用「深度 = 1500 × 時間 ÷ 2」算出深度。為什麼要除以 2？'] },
+    { k: 'do', q: '畫出海底地形', steps: ['取消「只顯示時間」，按「自動掃描」。', '比較橘色虛線和真實海底，像不像？'] },
+    { k: 'see', q: '兩個回波', steps: ['把船移到魚群正上方，發射一次。', '看下方聲納螢幕：收到幾個回波？', '哪一個是海底、哪一個是魚群？從「時間先後」和「回波大小」判斷。', '取消「海中有魚群」再發射一次，比較聲納螢幕。'] },
+    { k: 'do', q: '倒車雷達', steps: ['切到「倒車雷達」，按「開始倒車」。', '提示音的間隔怎麼變？', '你聽到的嗶嗶聲，就是感測器發出的超聲波嗎？'] },
+    { k: 'why', q: '說明聲納測海深的原理：利用了聲波的什麼性質？需要知道哪兩個數字？' },
+    { k: 'up', q: '回波時間 0.8 秒，海深多少公尺？' } ] },
+  'b-hear': { title: '誰聽得到？', cards: [
+    { k: 'pred', q: '狗哨吹起來人聽不到，狗卻有反應。你覺得狗哨的頻率是？', opts: ['低於 20 Hz', '20～20000 Hz', '高於 20000 Hz'], ans: '高於 20000 Hz', tip: '看狗的長條範圍到多少 Hz，人的又到多少 Hz。' },
+    { k: 'do', q: '找範圍', steps: ['拖動頻率滑桿，看哪些動物的長條亮起來。', '找一個只有海豚和蝙蝠聽得到的頻率。'] },
+    { k: 'do', q: '聽聽看', steps: ['先把主音量調小。', '依序播放 100 Hz、1000 Hz、10000 Hz。', '哪一個聽起來最尖？'] },
+    { k: 'see', q: '我的聽力上限', steps: ['按「開始掃頻」，聽不到時立刻按「我聽不到了」。', '記下你的上限，和同學、老師比較。'], hint: '喇叭也有極限，聽不到不一定是耳朵的問題。' },
+    { k: 'why', q: '什麼是超聲波？什麼是次聲波？各舉一個生活中的例子。' } ] }
+};
+let PRED = {};
+try { PRED = JSON.parse(localStorage.getItem('soundlab-pred') || '{}') || {}; } catch (e) { PRED = {}; }
+const savePred = () => { try { localStorage.setItem('soundlab-pred', JSON.stringify(PRED)); } catch (e) {} };
+function predSummary(bid) {
+  const D = CARDS[bid], picks = [];
+  D.cards.forEach((c, i) => { if (c.k === 'pred') { const v = PRED[bid + ':' + i]; picks.push(v ? `「${v}」` : '（還沒選）'); } });
+  return picks.join('、');
+}
+function cardEl(bid, i, live) {
+  const c = CARDS[bid].cards[i], n = CARDS[bid].cards.length;
+  const el = document.createElement('div'); el.className = 'card k-' + c.k;
+  el.innerHTML = `<span class="kind">${KIND[c.k]}</span><span class="no">${live ? '' : CARDS[bid].title + ' · '}${i + 1} / ${n}</span><p class="q"></p>`;
+  el.querySelector('.q').textContent = c.q;
+  if (c.steps) { const ol = document.createElement('ol'); c.steps.forEach(s => { const li = document.createElement('li'); li.textContent = s; ol.appendChild(li); }); el.appendChild(ol); }
+  if (c.opts) {
+    const box = document.createElement('div'); box.className = 'opts';
+    c.opts.forEach(o => {
+      if (live) {
+        const b = document.createElement('button'); b.textContent = o; b.setAttribute('aria-pressed', String(PRED[bid + ':' + i] === o));
+        b.addEventListener('click', () => { PRED[bid + ':' + i] = o; savePred(); box.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x === b))); });
+        box.appendChild(b);
+      } else { const s = document.createElement('span'); s.textContent = '□ ' + o; box.appendChild(s); }
+    });
+    el.appendChild(box);
+    const h = document.createElement('p'); h.className = 'hint'; h.textContent = '先選一個，再動手做實驗。'; el.appendChild(h);
+  }
+  if (c.hint) { const h = document.createElement('p'); h.className = 'hint'; h.textContent = c.hint; el.appendChild(h); }
+  if (c.k === 'why') {
+    if (live) {
+      const m = document.createElement('div'); m.className = 'mine'; m.textContent = `你一開始的預測：${predSummary(bid)}。對照實驗結果，需要修改嗎？為什麼？`; el.appendChild(m);
+      const b = document.createElement('button'); b.className = 'btn go'; b.style.justifySelf = 'start'; b.textContent = '寫完解釋後，對答案'; el.appendChild(b);
+      const res = document.createElement('div'); res.className = 'checkres'; el.appendChild(res);
+      b.addEventListener('click', () => checkPreds(bid, res));
+    }
+    else { const m = document.createElement('p'); m.className = 'hint'; m.textContent = '對照你一開始的預測：需要修改嗎？為什麼？'; el.appendChild(m); }
+  }
+  if (!live && (c.k === 'why' || c.k === 'up')) for (let k = 0; k < 2; k++) { const l = document.createElement('div'); l.className = 'lines'; el.appendChild(l); }
+  return el;
+}
+function mountDeck(host) {
+  const bid = host.dataset.bench, D = CARDS[bid]; if (!D) return;
+  let i = 0; const seen = new Set([0]);
+  host.innerHTML = `<div class="deck-head"><b>引導字卡</b><div class="dots" role="tablist" aria-label="字卡"></div></div><div class="slot"></div>
+    <div class="cardnav"><button class="btn" data-a="prev">上一張</button><button class="btn go" data-a="next">下一張</button></div>`;
+  const dots = host.querySelector('.dots'), slot = host.querySelector('.slot');
+  D.cards.forEach((c, k) => { const b = document.createElement('button'); b.textContent = k + 1; b.title = KIND[c.k]; b.addEventListener('click', () => go(k)); dots.appendChild(b); });
+  function go(k) {
+    i = clamp(k, 0, D.cards.length - 1); seen.add(i);
+    slot.replaceChildren(cardEl(bid, i, true));
+    dots.querySelectorAll('button').forEach((b, k2) => { b.classList.toggle('seen', seen.has(k2)); if (k2 === i) b.setAttribute('aria-current', 'step'); else b.removeAttribute('aria-current'); });
+    host.querySelector('[data-a="prev"]').disabled = i === 0;
+    const nx = host.querySelector('[data-a="next"]'); nx.disabled = i === D.cards.length - 1; nx.textContent = i === D.cards.length - 1 ? '最後一張' : '下一張';
+  }
+  host.querySelector('[data-a="prev"]').addEventListener('click', () => go(i - 1));
+  host.querySelector('[data-a="next"]').addEventListener('click', () => go(i + 1));
+  go(0);
+}
+document.querySelectorAll('.cards[data-bench]').forEach(mountDeck);
+
+/* ---------- 對答案 ---------- */
+function checkPreds(bid, res) {
+  const D = CARDS[bid]; res.replaceChildren();
+  D.cards.forEach((card, i) => {
+    if (card.k !== 'pred') return;
+    const v = PRED[bid + ':' + i], row = document.createElement('div'); row.className = 'cr';
+    if (!v) { row.textContent = `第 ${i + 1} 張：你還沒選預測，先回去選一個。`; row.classList.add('na'); }
+    else if (v === card.ans) { row.textContent = `第 ${i + 1} 張：預測「${v}」，和實驗結果一致 ✓`; row.classList.add('ok'); }
+    else { row.textContent = `第 ${i + 1} 張：預測「${v}」，正確是「${card.ans}」✗　提示：${card.tip}`; row.classList.add('bad'); }
+    res.appendChild(row);
+  });
+}
+
+requestAnimationFrame(frame);
+</script>
+
+</body>
+</html>
