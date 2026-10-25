@@ -38,6 +38,8 @@ header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:spac
 .master{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 12px}
 .master label{font-size:13px;color:var(--muted);white-space:nowrap}
 .master input{width:120px}
+.master{flex-wrap:wrap}
+#snd-msg{flex-basis:100%;font-size:12px;color:var(--muted);margin:0}
 nav.tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);display:flex;gap:6px;padding-block:12px;overflow-x:auto}
 nav.tabs button{font:inherit;font-weight:700;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:8px 14px;border-radius:999px;cursor:pointer;white-space:nowrap}
 nav.tabs button .n{font-family:var(--f-mono);font-weight:700;color:var(--accent);margin-right:6px}
@@ -161,8 +163,10 @@ footer{margin-top:36px;color:var(--muted);font-size:13px;border-top:1px solid va
   </div>
   <div class="master">
     <label for="vol">主音量</label>
-    <input type="range" id="vol" min="0" max="100" value="35">
+    <input type="range" id="vol" min="0" max="100" value="55">
     <button class="btn" id="mute" aria-pressed="false">靜音</button>
+    <button class="btn" id="snd-test">測試聲音</button>
+    <p id="snd-msg" hidden>聽到「嗶」聲就正常。聽不到：調大手機音量；iPhone 請確認側邊靜音鍵沒有開啟，或重新整理頁面再試一次。</p>
   </div>
 </header>
 
@@ -495,8 +499,16 @@ const logInv = (f, lo, hi) => 1000 * Math.log(f / lo) / Math.log(hi / lo);
 const fmtHz = f => f >= 1000 ? (f >= 10000 ? Math.round(f).toLocaleString() : f.toFixed(0)) + ' Hz' : (f < 100 ? f.toFixed(1) : f.toFixed(0)) + ' Hz';
 
 /* ---------- audio engine ---------- */
-const A = { ctx: null, pre: null, master: null, tap: null, vol: 0.35, muted: false, nb: null, pw: {} };
+const A = { ctx: null, pre: null, master: null, tap: null, vol: 0.55, muted: false, nb: null, pw: {} };
+const SILENT_WAV = 'data:audio/wav;base64,UklGRmQGAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YUAGAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA';
+/* iPhone：網頁音訊預設會被靜音鍵擋掉。改成「播放」類型，並先播一段無聲音檔來解鎖。 */
+function unlockMobileAudio() {
+  if (A.unlocked) return; A.unlocked = true;
+  try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) {}
+  try { const el = new Audio(SILENT_WAV); el.setAttribute('playsinline', ''); const p = el.play(); if (p && p.catch) p.catch(() => {}); } catch (e) {}
+}
 function ac() {
+  unlockMobileAudio();
   if (!A.ctx) {
     const C = window.AudioContext || window.webkitAudioContext; if (!C) return null;
     A.ctx = new C();
@@ -504,14 +516,17 @@ function ac() {
     A.master = A.ctx.createGain(); A.master.gain.value = A.muted ? 0 : A.vol;
     const comp = A.ctx.createDynamicsCompressor(); comp.threshold.value = -14; comp.ratio.value = 8;
     A.tap = A.ctx.createAnalyser(); A.tap.fftSize = 4096;
-    A.pre.connect(A.master); A.pre.connect(A.tap); A.master.connect(comp); comp.connect(A.ctx.destination);
+    A.pre.connect(A.master); A.pre.connect(A.tap); const makeup = A.ctx.createGain(); makeup.gain.value = 1.6; A.master.connect(comp); comp.connect(makeup); makeup.connect(A.ctx.destination);
     A.sink = A.ctx.createGain(); A.sink.gain.value = 0; A.sink.connect(A.ctx.destination); A.tap.connect(A.sink);
   }
-  if (A.ctx.state === 'suspended') A.ctx.resume();
+  if (A.ctx.state !== 'running') { try { A.ctx.resume(); } catch (e) {} }
   return A.ctx;
 }
+/* 第一次碰觸畫面就先建立並喚醒音訊，避免第一聲被吃掉 */
+['pointerdown', 'touchend', 'keydown'].forEach(ev => document.addEventListener(ev, () => ac(), { once: true, passive: true }));
 function setVol() { if (A.master) A.master.gain.setTargetAtTime(A.muted ? 0 : A.vol, A.ctx.currentTime, 0.02); }
 $('#vol').addEventListener('input', e => { A.vol = e.target.value / 100; setVol(); });
+$('#snd-test').addEventListener('click', () => { const ctx = ac(); if (!ctx) return; tone({ f: 880, h: [1, 0.3], amp: 0.5, attack: 0.01, dur: 0.35 }); $('#snd-msg').hidden = false; });
 $('#mute').addEventListener('click', e => { A.muted = !A.muted; toggleBtn(e.currentTarget, A.muted); e.currentTarget.textContent = A.muted ? '已靜音' : '靜音'; setVol(); });
 function pwave(h) {
   const key = h.join(','); if (A.pw[key]) return A.pw[key];
@@ -843,7 +858,7 @@ function frame() {
     if (!ac()) return;
     S.t0 = now(); S.arrived = [false, false, false];
     S.run = { loud: S.loud, pitch: S.pitch, T: S.T, v: lanes().map(l => l.v) };
-    const s = SND(S.loud, S.pitch); tone({ f: s.f, h: [1, 0.25], amp: s.amp, attack: 0.005, dur: 0.18 });
+    const s = SND(S.loud, S.pitch); tone({ f: s.f, h: [1, 0.6, 0.45, 0.3, 0.2], amp: s.amp, attack: 0.005, dur: 0.18 });
   });
   function updTh() { $('#th-dt').textContent = S.delay.toFixed(1) + ' s'; $('#th-d').textContent = Math.round(vAir() * S.delay).toLocaleString() + ' m'; }
   $('#th-delay').addEventListener('input', e => { S.delay = +e.target.value; updTh(); });
@@ -852,8 +867,8 @@ function frame() {
     S.flashT = now(); S.thunderAt = now() + S.delay;
     S.bolt = []; let x = 140 + Math.random() * 60, y = 0; while (y < 140) { S.bolt.push([x, y]); x += (Math.random() - 0.5) * 34; y += 12 + Math.random() * 14; }
     noise({ when: S.delay, amp: 0.55, type: 'lowpass', freq: 900, Q: 0.5, decay: 0.12 });
-    noise({ when: S.delay + 0.05, amp: 0.7, type: 'lowpass', freq: 160, Q: 0.7, attack: 0.15, decay: 0.9 });
-    noise({ when: S.delay + 0.5, amp: 0.45, type: 'lowpass', freq: 110, Q: 0.7, attack: 0.3, decay: 0.8 });
+    noise({ when: S.delay + 0.05, amp: 0.7, type: 'lowpass', freq: 380, Q: 0.7, attack: 0.15, decay: 0.9 });
+    noise({ when: S.delay + 0.5, amp: 0.45, type: 'lowpass', freq: 260, Q: 0.7, attack: 0.3, decay: 0.8 });
     updTh();
   });
   // 聲波包：振幅代表音量，波長代表音調（頻率高→波長短→波比較密）
@@ -882,7 +897,7 @@ function frame() {
         const v = R.v[i], d = Math.min(v * el, L), px = x0 + d / L * (x1 - x0);
         if (d < L) packet(c, Math.max(px, x0 + 2), y, R.loud, R.pitch, ln.col, x0);
         if (d >= L && !S.arrived[i]) {
-          S.arrived[i] = true; const s = SND(R.loud, R.pitch); tone({ f: s.f, h: [1, 0.25], amp: s.amp, attack: 0.005, dur: 0.12 });
+          S.arrived[i] = true; const s = SND(R.loud, R.pitch); tone({ f: s.f, h: [1, 0.6, 0.45, 0.3, 0.2], amp: s.amp, attack: 0.005, dur: 0.12 });
           if (S.arrived.every(Boolean)) { S.log.unshift(R); S.log = S.log.slice(0, 5); renderLog(); }
         }
         const tt = L / v;
@@ -1235,8 +1250,8 @@ function peakOf(h) {
 function drum(amp, when = 0) {
   const ctx = ac(); if (!ctx || amp <= 0.0005) return;
   const t0 = ctx.currentTime + when;
-  const o = ctx.createOscillator(); o.type = 'sine';
-  o.frequency.setValueAtTime(190, t0); o.frequency.exponentialRampToValueAtTime(95, t0 + 0.12);
+  const o = ctx.createOscillator(); o.type = 'triangle';   // 三角波帶有泛音，手機喇叭也聽得到
+  o.frequency.setValueAtTime(220, t0); o.frequency.exponentialRampToValueAtTime(120, t0 + 0.12);
   const g = ctx.createGain(); g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(amp, t0 + 0.003); g.gain.setTargetAtTime(0, t0 + 0.006, 0.055);
   o.connect(g); g.connect(A.pre); o.start(t0); o.stop(t0 + 0.6);
   noise({ when, amp: amp * 0.35, freq: 1800, Q: 0.8, decay: 0.022 });
