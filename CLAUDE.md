@@ -22,7 +22,7 @@
    | `soundlab-` | sound_lab.html |
    | `pc-` | 另一個 repo：課程站（同一個來源，不要用這個前綴） |
    | `periodic_game_scores`（舊，未加前綴） | game_periodtable.html |
-   | `sciUltraS…`（舊，兩頁共用） | students/ 的兩個遊戲 |
+   | `sciUltraS…`（舊，未加前綴） | students/student_kai_game_202601012.html |
    | `hrv-`、`hre-` | 另一個 repo：history-review（不要用這兩個前綴） |
 
 4. **著作權。** 題目和圖片只能用自己原創或有授權的內容。不能把參考書或課本的題目改寫後放上來（公開網站不適用授課合理使用）。
