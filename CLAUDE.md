@@ -20,6 +20,7 @@
    | --- | --- |
    | `sci8-` | exam_review_g8.html |
    | `soundlab-` | sound_lab.html |
+   | `optics-`、`optlab-` | optics_lab.html |
    | `pc-` | 另一個 repo：課程站（同一個來源，不要用這個前綴） |
    | `periodic_game_scores`（舊，未加前綴） | game_periodtable.html |
    | `sciUltraS…`（舊，未加前綴） | students/student_kai_game_202601012.html |
