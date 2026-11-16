@@ -1,0 +1,918 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>光與顏色實驗室</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+TC:wght@400;700&family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* 沿用「光的探究實驗室」主站的 token 與元件樣式 */
+:root{
+  --bg:#eef1f3; --surface:#ffffff; --surface-2:#f5f7f8; --ink:#17202a; --muted:#5b6774; --line:#d4dbe1;
+  --accent:#c2410c; --accent-ink:#ffffff; --accent-soft:#fbe6da;
+  --select:#0e5a73; --select-soft:#dcedf3;
+  --ok:#2b8a3e; --warn:#c92a2a; --virtual:#7a8794; --glass:#74c0fc;
+  --room:#07090c; --room-2:#14181d; --room-ink:#e9edf1; --room-muted:#8b96a1;
+  --font-display:'LXGW WenKai TC','Noto Sans TC',serif;
+  --font-body:'Noto Sans TC',system-ui,-apple-system,'PingFang TC','Microsoft JhengHei',sans-serif;
+  --font-mono:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e1317; --surface:#151c22; --surface-2:#1a232a; --ink:#e4e9ee; --muted:#93a0ac; --line:#29343d;
+  --accent:#ff8b4d; --accent-ink:#1a0c04; --accent-soft:#3a2317;
+  --select:#5cc3e6; --select-soft:#14313c; --ok:#69db7c; --warn:#ff8787; --virtual:#8d99a6; --glass:#4dabf7; color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#0e1317; --surface:#151c22; --surface-2:#1a232a; --ink:#e4e9ee; --muted:#93a0ac; --line:#29343d;
+  --accent:#ff8b4d; --accent-ink:#1a0c04; --accent-soft:#3a2317;
+  --select:#5cc3e6; --select-soft:#14313c; --ok:#69db7c; --warn:#ff8787; --virtual:#8d99a6; --glass:#4dabf7; color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:15px;line-height:1.65}
+.wrap{max-width:1280px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3,h4{font-family:var(--font-display);text-wrap:balance;margin:0;font-weight:700;line-height:1.3}
+p{margin:0}
+button,select,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--select);outline-offset:2px}
+.mast{padding-block:24px 16px;border-bottom:1px solid var(--line);background:var(--surface)}
+.eyebrow{font-family:var(--font-mono);font-size:12px;letter-spacing:.08em;color:var(--muted);text-transform:uppercase}
+.mast h1{font-size:clamp(28px,4.4vw,44px);margin-top:4px}
+.mast .lead{color:var(--muted);max-width:62ch;margin-top:6px}
+.spec-rule{margin-top:16px;height:6px;border-radius:3px;background:linear-gradient(90deg,#7a00c8,#2b3cff,#00a6ff,#00d26a,#d8f000,#ffb000,#ff3a00,#b00000)}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:6px 12px;cursor:pointer;font-size:14px}
+.btn:hover{border-color:var(--select)}
+.switch{display:inline-flex;gap:8px;align-items:center;font-size:14px;cursor:pointer;user-select:none}
+.switch input{accent-color:var(--accent);width:16px;height:16px}
+.stations{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}
+.tabs{display:flex;gap:4px;overflow-x:auto;padding-block:8px;scrollbar-width:thin}
+.tab{flex:0 0 auto;border:1px solid transparent;background:transparent;border-radius:8px;padding:6px 12px;cursor:pointer;display:flex;gap:8px;align-items:baseline;white-space:nowrap}
+.tab .sec{font-family:var(--font-mono);font-size:12px;color:var(--muted)}
+.tab[aria-selected="true"]{background:var(--surface);border-color:var(--line);box-shadow:0 1px 0 var(--line)}
+.tab[aria-selected="true"] .sec{color:var(--accent)}
+main{padding-block:22px 40px}
+.lab{display:flex;flex-direction:column;gap:12px;min-width:0}
+.lab-head{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.lab-head h2{font-size:22px}
+.tag{font-family:var(--font-mono);font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:6px;padding:1px 8px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:9px;padding:2px;background:var(--surface);flex-wrap:wrap;align-self:flex-start}
+.seg button{border:0;background:transparent;padding:5px 12px;border-radius:7px;cursor:pointer;font-size:14px}
+.seg button[aria-pressed="true"]{background:var(--select);color:var(--surface)}
+.canvas-box{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--surface)}
+.canvas-box.dark{background:var(--room);border-color:var(--room-2)}
+.canvas-box canvas{display:block;width:100%;touch-action:none}
+.cols{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;align-items:start}
+@media (min-width:860px){.cols.two{grid-template-columns:minmax(0,1.7fr) minmax(0,1fr)}}
+.side{display:flex;flex-direction:column;gap:10px;min-width:0}
+.controls{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px 18px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.ctl{display:flex;flex-direction:column;gap:2px;font-size:13.5px;min-width:0}
+.ctl.wide{grid-column:1/-1}
+.ctl .top{display:flex;justify-content:space-between;gap:8px}
+.ctl output{font-family:var(--font-mono);font-variant-numeric:tabular-nums;color:var(--accent)}
+.ctl input[type=range]{width:100%;accent-color:var(--accent)}
+.ctl select{border:1px solid var(--line);border-radius:7px;padding:4px 6px;background:var(--surface-2)}
+.ctl>span{font-size:13.5px}
+.row-btns{display:flex;gap:8px;flex-wrap:wrap}
+.readout{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;margin:0}
+.readout div{background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:8px 10px;min-width:0}
+.readout dt{font-size:12px;color:var(--muted)}
+.readout dd{margin:0;font-family:var(--font-mono);font-variant-numeric:tabular-nums;font-size:15px;overflow-wrap:anywhere}
+.readout dd.zh{font-family:var(--font-body);font-weight:500}
+.hint{font-size:13px;color:var(--muted)}
+.design-card{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--select);border-radius:10px;padding:10px 14px;font-size:14px;line-height:1.55}
+.design-card h4{font-size:15px;color:var(--select);margin:0 0 4px}
+.design-card ol{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px}
+.swatch{display:inline-block;width:1.1em;height:1.1em;border-radius:4px;border:1px solid var(--line);vertical-align:-.18em;margin-right:6px}
+.strip-box{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 12px 10px}
+.strip-box h4,.panel h4{font-size:14px;font-family:var(--font-body);font-weight:500;color:var(--muted);margin-bottom:6px}
+.strip-box canvas{display:block;width:100%;border-radius:6px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.panel canvas{display:block;width:100%}
+/* 顏料：光的旅程 */
+.pipe{display:flex;flex-direction:column;gap:8px}
+.stage{display:grid;grid-template-columns:7.2em minmax(0,1fr);gap:4px 10px;align-items:center;font-size:13.5px}
+.stage .nm{font-weight:500;line-height:1.3}
+.stage .nm small{display:block;color:var(--muted);font-weight:400;font-size:12px}
+.bars{display:flex;flex-direction:column;gap:3px}
+.bar{height:10px;border-radius:3px;background:var(--surface-2);border:1px solid var(--line);position:relative;overflow:hidden}
+.bar i{position:absolute;inset:0 auto 0 0;border-radius:2px}
+.pipe .arrow{color:var(--muted);font-size:12px;padding-left:7.2em;margin-left:10px;line-height:1}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:4px 12px;cursor:pointer;font-size:13.5px;display:inline-flex;gap:6px;align-items:center}
+.chip i{width:11px;height:11px;border-radius:50%;display:inline-block;border:1px solid var(--line)}
+.chip[aria-pressed="true"]{border-color:var(--select);background:var(--select-soft);color:var(--ink)}
+.lab > .lab-head{order:-3}
+.lab > .controls{order:-2}
+footer{border-top:1px solid var(--line);padding-block:18px 28px;color:var(--muted);font-size:13px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+@media (pointer:coarse){
+  .tab,.seg button,.btn,.chip,select{min-height:44px}
+  input[type=range]{height:44px}
+}
+@media (max-width:600px){
+  body{font-size:16px}
+  .design-card,.design-card h4,.hint,.readout dt,.readout dd,.ctl,.ctl label,.ctl output,.ctl span,.switch,.tab,.tab .sec,.seg button,.btn,.chip,.eyebrow,.tag,select,footer,.stage,.strip-box h4,.panel h4{font-size:16px}
+}
+#ob-lamp{position:fixed;inset:0;z-index:9999;background:#00f;cursor:pointer;touch-action:manipulation}
+#ob-lamp[hidden]{display:none}
+#ob-lamp .lamp-hit{position:absolute;top:0;bottom:0;width:50%}#ob-lamp .lamp-prev{left:0}#ob-lamp .lamp-next{right:0}
+#ob-lamp .lamp-tip{position:absolute;left:50%;top:16px;transform:translateX(-50%);max-width:min(92vw,520px);background:rgba(0,0,0,.72);color:#fff;border-radius:10px;padding:10px 14px;font-size:16px;line-height:1.5;text-align:center;pointer-events:none;transition:opacity .6s}
+#ob-lamp .lamp-tip b{display:block;font-size:20px}#ob-lamp .lamp-tip.fade{opacity:0}
+#ob-lamp .lamp-x{position:absolute;right:12px;bottom:12px;width:44px;height:44px;border-radius:50%;border:0;background:rgba(0,0,0,.55);color:#fff;font-size:18px;cursor:pointer}
+</style>
+</head>
+<body>
+<header class="mast">
+  <div class="wrap">
+    <p class="eyebrow">自然 第三冊 · 4-5 色散與顏色</p>
+    <h1>光與顏色實驗室</h1>
+    <p class="lead">三稜鏡色散、色光三原色、顏料三原色與物體顏色的成因。顏色由光譜計算（CIE 1931 配色函數），可投影或讓學生用平板操作。</p>
+    <div class="spec-rule" aria-hidden="true"></div>
+  </div>
+</header>
+
+<nav class="stations" aria-label="實驗">
+  <div class="wrap">
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" data-tab="disp"><span class="sec">1</span>三稜鏡色散</button>
+      <button class="tab" role="tab" data-tab="add"><span class="sec">2</span>色光三原色</button>
+      <button class="tab" role="tab" data-tab="sub"><span class="sec">3</span>顏料三原色</button>
+      <button class="tab" role="tab" data-tab="obj"><span class="sec">4</span>物體的顏色</button>
+    </div>
+  </div>
+</nav>
+
+<main class="wrap">
+
+<!-- 1 色散 -->
+<section class="lab" id="st-disp" data-st="disp" hidden>
+  <div class="lab-head"><h2>三稜鏡色散</h2><span class="tag">折射率隨波長改變</span></div>
+  <div class="controls">
+    <div class="ctl"><span>光源</span><div class="seg" id="ds-src"><button data-v="white" aria-pressed="true">白光</button><button data-v="mono" aria-pressed="false">單色光</button><button data-v="rg" aria-pressed="false">紅＋綠混成的黃</button></div></div>
+    <div class="ctl" id="ds-mono-ctl" hidden><div class="top"><label for="ds-mono">單色光波長</label><output id="ds-mono-v"></output></div><input type="range" id="ds-mono" min="400" max="700" value="589"></div>
+    <div class="ctl"><div class="top"><label for="ds-i">入射角</label><output id="ds-i-v"></output></div><input type="range" id="ds-i" min="40" max="80" step="0.5" value="50"></div>
+    <div class="ctl"><label for="ds-glass">稜鏡材質</label><select id="ds-glass"><option value="crown">冕牌玻璃（n≈1.52）</option><option value="flint">火石玻璃（n≈1.72，色散較大）</option></select></div>
+    <div class="ctl"><span>實驗</span><div class="seg" id="ds-exp"><button data-v="one" aria-pressed="true">一塊稜鏡</button><button data-v="recomb" aria-pressed="false">再倒放一塊</button><button data-v="slit" aria-pressed="false">狹縫選色＋第二塊</button></div></div>
+    <div class="ctl" id="ds-sel-ctl" hidden><div class="top"><label for="ds-sel">讓哪種色光通過狹縫</label><output id="ds-sel-v"></output></div><input type="range" id="ds-sel" min="410" max="690" value="530"></div>
+    <div class="ctl"><span>色散畫面</span><div class="seg" id="ds-k"><button data-v="1" aria-pressed="false">真實比例</button><button data-v="3" aria-pressed="true">放大 3 倍</button><button data-v="6" aria-pressed="false">放大 6 倍</button></div></div>
+  </div>
+  <div class="canvas-box dark"><canvas id="ds-cv" data-w="1000" data-h="500" aria-label="白光通過三稜鏡分成各種色光"></canvas></div>
+  <div class="strip-box"><h4>屏幕上看到的</h4><canvas id="ds-strip" data-w="1000" data-h="70" aria-label="屏幕上的光譜"></canvas></div>
+  <dl class="readout" id="ds-out"></dl>
+  <p class="hint" id="ds-hint"></p>
+</section>
+
+<!-- 2 色光加法 -->
+<section class="lab" id="st-add" data-st="add" hidden>
+  <div class="lab-head"><h2>色光三原色</h2><span class="tag">色光相加：越混越亮</span></div>
+  <div class="controls">
+    <div class="ctl"><div class="top"><label for="ad-r">紅燈 R</label><output id="ad-r-v"></output></div><input type="range" id="ad-r" min="0" max="255" value="255"></div>
+    <div class="ctl"><div class="top"><label for="ad-g">綠燈 G</label><output id="ad-g-v"></output></div><input type="range" id="ad-g" min="0" max="255" value="255"></div>
+    <div class="ctl"><div class="top"><label for="ad-b">藍燈 B</label><output id="ad-b-v"></output></div><input type="range" id="ad-b" min="0" max="255" value="255"></div>
+    <div class="ctl wide"><span>快速設定</span><div class="row-btns" id="ad-pre"><button class="btn" data-rgb="255,255,255">三盞全開</button><button class="btn" data-rgb="255,255,0">紅＋綠</button><button class="btn" data-rgb="0,255,255">綠＋藍</button><button class="btn" data-rgb="255,0,255">紅＋藍</button><button class="btn" data-rgb="255,128,0">紅＋半亮綠</button><button class="btn" id="ad-reset">燈的位置重設</button></div></div>
+  </div>
+  <div class="cols two">
+    <div class="canvas-box dark"><canvas id="ad-cv" data-w="1000" data-h="620" aria-label="紅綠藍三盞燈照在白牆上，可拖曳燈光"></canvas></div>
+    <div class="side">
+      <div class="panel"><h4>放大看螢幕（十字點的顏色）</h4><canvas id="ad-px" data-w="480" data-h="400" aria-label="螢幕像素放大圖與光譜"></canvas></div>
+      <dl class="readout" id="ad-out"></dl>
+    </div>
+  </div>
+  <p class="hint">拖曳圓心的 R、G、B 可以移動燈；點牆上其他地方可移動十字。</p>
+</section>
+
+<!-- 3 顏料減法 -->
+<section class="lab" id="st-sub" data-st="sub" hidden>
+  <div class="lab-head"><h2>顏料三原色</h2><span class="tag">顏料吸收色光：越混越暗</span></div>
+  <div class="controls">
+    <div class="ctl"><div class="top"><label for="sb-c">青色 C 濃度</label><output id="sb-c-v"></output></div><input type="range" id="sb-c" min="0" max="100" value="100"></div>
+    <div class="ctl"><div class="top"><label for="sb-m">洋紅色 M 濃度</label><output id="sb-m-v"></output></div><input type="range" id="sb-m" min="0" max="100" value="100"></div>
+    <div class="ctl"><div class="top"><label for="sb-y">黃色 Y 濃度</label><output id="sb-y-v"></output></div><input type="range" id="sb-y" min="0" max="100" value="100"></div>
+    <div class="ctl"><span>顏料</span><div class="seg" id="sb-kind"><button data-v="ideal" aria-pressed="true">理想顏料</button><button data-v="real" aria-pressed="false">真實顏料</button></div></div>
+    <div class="ctl wide"><span>照在紙上的光</span><div class="seg" id="sb-light"><button data-v="w" aria-pressed="true">白光</button><button data-v="r" aria-pressed="false">紅光</button><button data-v="g" aria-pressed="false">綠光</button><button data-v="b" aria-pressed="false">藍光</button></div></div>
+  </div>
+  <div class="cols two">
+    <div class="canvas-box"><canvas id="sb-cv" data-w="1000" data-h="620" aria-label="白紙上三種顏料重疊，可拖曳"></canvas></div>
+    <div class="side">
+      <div class="panel"><h4>十字點：光的旅程</h4><div class="pipe" id="sb-pipe"></div></div>
+      <div class="design-card"><h4>為什麼顏料混色和色光不同</h4><ol>
+        <li>色光混合是把光<b>加</b>在一起，進入眼睛的光變多，越混越亮；紅綠藍全加成白光。</li>
+        <li>顏料自己不發光，靠反射照來的光；每種顏料都會<b>吸收</b>一部分色光，混得越多，被吸收的越多，越混越暗，三種全混接近黑色。</li>
+        <li>青吸收紅光、洋紅吸收綠光、黃吸收藍光，所以顏料三原色正好是色光三原色兩兩相加的顏色。</li>
+      </ol></div>
+    </div>
+  </div>
+  <p class="hint">拖曳圓心的 C、M、Y 可以移動顏料；點紙上其他地方可移動十字。「真實顏料」吸收不完全、也會吸收一點別的色光，混出來的顏色較暗、較混濁。</p>
+</section>
+
+<!-- 4 物體顏色 -->
+<section class="lab" id="st-obj" data-st="obj" hidden>
+  <div class="lab-head"><h2>物體的顏色</h2><span class="tag">探討活動 4-4</span></div>
+  <div class="controls">
+    <div class="ctl wide"><span>① 光源</span><div class="chips" id="ob-lights"></div></div>
+    <div class="ctl wide"><span>② 玻璃紙</span><div class="chips" id="ob-filters"></div></div>
+    <div class="ctl"><span>玻璃紙放在</span><div class="seg" id="ob-pos"><button data-v="lamp" aria-pressed="true">燈的前面</button><button data-v="eye" aria-pressed="false">眼睛前面</button></div></div>
+    <div class="ctl"><label for="ob-f2">再疊一張</label><select id="ob-f2"></select></div>
+    <div class="ctl wide"><span>③ 被照物：數位時鐘的 8（選顏色，再點圖中的一段來塗色）</span><div class="chips" id="ob-papers"></div></div>
+    <div class="ctl wide"><div class="row-btns"><button class="btn" id="ob-all">整個 8 塗成這個顏色</button><button class="btn" id="ob-demo">範例：紅光下變 3、綠光下變 4</button></div></div>
+    <div class="ctl wide"><div class="row-btns" style="align-items:center"><label class="switch"><input type="checkbox" id="ob-hide"> 先預測：遮住 8 的顏色</label><button class="btn" id="ob-reveal" hidden>揭曉</button><button class="btn" id="ob-lamp-open">開啟純色光源（手機／平板當燈）</button></div></div>
+  </div>
+  <div class="cols two">
+    <div class="canvas-box dark"><canvas id="ob-cv" data-w="1000" data-h="560" aria-label="暗室中：光源、玻璃紙、數位時鐘的 8 與眼睛"></canvas></div>
+    <div class="side">
+      <div class="panel"><h4>光譜：光源 × 玻璃紙 × 選中那一段 ＝ 進入眼睛的光</h4><canvas id="ob-sp" data-w="520" data-h="500" aria-label="光源、玻璃紙穿透率、色塊反射率與進入眼睛的光譜"></canvas></div>
+      <dl class="readout" id="ob-out"></dl>
+    </div>
+  </div>
+  <div id="ob-lamp" hidden role="dialog" aria-label="純色光源">
+    <div class="lamp-hit lamp-prev" data-d="-1"></div><div class="lamp-hit lamp-next" data-d="1"></div>
+    <div class="lamp-tip"><b id="ob-lamp-nm">藍光</b><span>點右半邊換下一色、左半邊換上一色。關掉護眼模式與自動亮度，亮度調到最高。</span></div>
+    <button class="lamp-x" id="ob-lamp-x" aria-label="關閉">✕</button>
+  </div>
+  <div class="design-card"><h4>顏色的成因</h4><ol>
+    <li>我們看到的顏色，由進入眼睛的光決定。</li>
+    <li>不透明物體：反射哪些色光、吸收哪些色光，決定它的顏色；白色物體反射各種色光，黑色物體吸收各種色光。</li>
+    <li>透明物體（玻璃紙）：讓哪些色光穿透，決定它的顏色；其他色光被吸收。透明玻璃紙讓各種色光都通過。</li>
+    <li>光源、玻璃紙、被照物三者一起決定進入眼睛的光：只有「光源有、玻璃紙讓它過、物體也反射」的色光才看得到；一種也沒有就是黑色，在黑底上就「消失」了。</li>
+  </ol></div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">依翰林版國中自然第三冊 4-5〈色散與顏色〉設計。折射率用 Cauchy 公式（冕牌 n = 1.5046 + 0.0042/λ²，火石 n = 1.681 + 0.0135/λ²，λ 以 μm 計）；物體顏色以 380–720 nm 光譜乘上反射率或穿透率，經 CIE 1931 配色函數換算成螢幕顏色。色紙與玻璃紙的光譜是示意曲線。</div>
+</footer>
+
+<script>
+(() => {
+'use strict';
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const DPR = () => Math.min(window.devicePixelRatio || 1, 2);
+const FONT = "'Noto Sans TC',system-ui,sans-serif", MONO = "'JetBrains Mono',ui-monospace,monospace";
+const D2R = Math.PI / 180, R2D = 180 / Math.PI;
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const store = { get(k) { try { return localStorage.getItem('colorlab-' + k); } catch (e) { return null; } }, set(k, v) { try { localStorage.setItem('colorlab-' + k, v); } catch (e) {} } };
+
+/* ---------- 色彩科學：光譜 → 螢幕顏色 ---------- */
+function gs(x, m, s1, s2) { const t = (x - m) / (x < m ? s1 : s2); return Math.exp(-0.5 * t * t); }
+function cmf(l) { // CIE 1931 2° 配色函數的解析近似（Wyman, Sloan & Shirley 2013）
+  return [1.056 * gs(l, 599.8, 37.9, 31.0) + 0.362 * gs(l, 442.0, 16.0, 26.7) - 0.065 * gs(l, 501.1, 20.4, 26.2),
+          0.821 * gs(l, 568.8, 46.9, 40.5) + 0.286 * gs(l, 530.9, 16.3, 31.1),
+          1.217 * gs(l, 437.0, 11.8, 36.0) + 0.681 * gs(l, 459.0, 26.0, 13.8)];
+}
+function xyz2lin([X, Y, Z]) { return [3.2406 * X - 1.5372 * Y - 0.4986 * Z, -0.9689 * X + 1.8758 * Y + 0.0415 * Z, 0.0557 * X - 0.2040 * Y + 1.0570 * Z]; }
+const LAM = []; for (let l = 380; l <= 720; l += 5) LAM.push(l);
+const CMF = LAM.map(cmf);
+const WB = (() => { const s = xyz2lin(CMF.reduce((a, c) => [a[0] + c[0], a[1] + c[1], a[2] + c[2]], [0, 0, 0])); return s.map(v => 1 / v); })();
+function specToLin(S) { // S：與 LAM 對應的光譜；等能白光（S≡1）→ (1,1,1)
+  let X = 0, Y = 0, Z = 0;
+  for (let i = 0; i < LAM.length; i++) { const c = CMF[i]; X += S[i] * c[0]; Y += S[i] * c[1]; Z += S[i] * c[2]; }
+  return xyz2lin([X, Y, Z]).map((v, k) => Math.max(0, v * WB[k]));
+}
+function lamLin(l) { return xyz2lin(cmf(l)).map((v, k) => Math.max(0, v * WB[k])); }
+const enc = v => { v = clamp(v, 0, 1); return v <= 0.0031308 ? 12.92 * v : 1.055 * Math.pow(v, 1 / 2.4) - 0.055; };
+function fitLin(c) { const m = Math.max(c[0], c[1], c[2]); return m > 1 ? c.map(v => v / m) : c.slice(); } // 保留色相的削峰
+function linToRGB(c) { return fitLin(c).map(v => Math.round(enc(v) * 255)); }
+const css = (rgb, a = 1) => a === 1 ? `rgb(${rgb[0]},${rgb[1]},${rgb[2]})` : `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${a})`;
+const linCSS = (c, a = 1) => css(linToRGB(c), a);
+const SPEC_RGB = {}; // 單一波長的顯示色（亮度拉滿）
+for (let l = 370; l <= 730; l++) { const c = lamLin(l), m = Math.max(...c, 1e-9); SPEC_RGB[l] = linToRGB(c.map(v => v / m)); }
+const specCSS = (l, a = 1) => css(SPEC_RGB[clamp(Math.round(l), 370, 730)], a);
+
+function colorName(lin) { // 以 sRGB 的色相、飽和度粗分顏色名稱
+  const m = Math.max(...lin);
+  if (m < 0.06) return '黑色（幾乎沒有光）';
+  const [r, g, b] = fitLin(lin).map(enc);
+  const mx = Math.max(r, g, b), mn = Math.min(r, g, b), s = mx ? (mx - mn) / mx : 0;
+  const dark = m < 0.12 ? '暗' : '';
+  if (s < 0.16) return mx > 0.82 ? '白色' : mx < 0.3 ? '黑色（很暗）' : '灰色';
+  let h; const d = mx - mn;
+  if (mx === r) h = 60 * (((g - b) / d) % 6); else if (mx === g) h = 60 * ((b - r) / d + 2); else h = 60 * ((r - g) / d + 4);
+  if (h < 0) h += 360;
+  const nm = h < 14 ? '紅色' : h < 40 ? '橙色' : h < 68 ? '黃色' : h < 95 ? '黃綠色' : h < 155 ? '綠色' : h < 195 ? '青色' : h < 255 ? '藍色' : h < 285 ? '紫色' : h < 340 ? '洋紅色' : '紅色';
+  return dark + nm;
+}
+
+/* ---------- 畫布工具 ---------- */
+function setupCanvas(cv) {
+  const W = +cv.dataset.w, H = +cv.dataset.h;
+  const o = { cv, W, H, ctx: cv.getContext('2d'), k: 1, cw: 0, ch: 0 };
+  o.resize = () => {
+    const cw = cv.clientWidth || cv.parentElement.clientWidth; if (!cw) return false;
+    const ch = cw * H / W; cv.style.height = ch + 'px';
+    const d = DPR(); cv.width = Math.round(cw * d); cv.height = Math.round(ch * d);
+    o.cw = cw; o.ch = ch; o.k = cw / W; o.ctx.setTransform(d * o.k, 0, 0, d * o.k, 0, 0); return true;
+  };
+  o.pt = e => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) / r.width * W, (e.clientY - r.top) / r.height * H]; };
+  return o;
+}
+let FS = 1; // 畫布縮得很小（手機）時放大文字
+const setFS = o => { FS = clamp(0.8 / o.k, 1, 1.8); };
+function text(c, s, x, y, { size = 14, color = '#e9edf1', align = 'left', weight = 500, font = FONT, base = 'alphabetic' } = {}) {
+  c.font = `${weight} ${size * FS}px ${font}`; c.fillStyle = color; c.textAlign = align; c.textBaseline = base; c.fillText(s, x, y);
+}
+function label(c, s, x, y, opt = {}) { // 有底色的文字，避免和光線重疊看不清
+  const size = (opt.size || 14) * FS; c.font = `${opt.weight || 500} ${size}px ${opt.font || FONT}`;
+  const w = c.measureText(s).width, al = opt.align || 'left';
+  const x0 = al === 'center' ? x - w / 2 : al === 'right' ? x - w : x;
+  c.fillStyle = opt.bg || 'rgba(7,9,12,.72)'; c.fillRect(x0 - 4, y - size * 0.9, w + 8, size * 1.25);
+  text(c, s, x, y, opt);
+}
+const raf = fn => { let q = false; return () => { if (q) return; q = true; requestAnimationFrame(() => { q = false; fn(); }); }; };
+function seg(el, cb) {
+  el.addEventListener('click', e => { const b = e.target.closest('button'); if (!b || !el.contains(b)) return; $$('button', el).forEach(x => x.setAttribute('aria-pressed', x === b ? 'true' : 'false')); cb(b.dataset.v); });
+}
+// 圓形光斑／顏料的柔邊
+const soft = (d, R, w) => clamp((R - d) / w + 0.5, 0, 1);
+
+/* ================================================================
+   1. 三稜鏡色散：逐波長光線追跡
+   ================================================================ */
+const DS = { src: 'white', mono: 589, i: 50, glass: 'crown', exp: 'one', sel: 530, k: 3 };
+const GLASS = { crown: { A: 1.5046, B: 0.0042, nm: '冕牌玻璃' }, flint: { A: 1.681, B: 0.0135, nm: '火石玻璃' } };
+const nReal = l => { const g = GLASS[DS.glass], u = l / 1000; return g.A + g.B / (u * u); };
+const nDraw = l => { const n0 = nReal(589); return n0 + DS.k * (nReal(l) - n0); };
+const SIDE = 150, BEAM = 11;
+function prismAt(hit, phi) { // 頂角朝上的正三角稜鏡，旋轉 phi 度，左面中點對準 hit
+  const h = SIDE * Math.sqrt(3) / 2, c = Math.cos(phi * D2R), s = Math.sin(phi * D2R);
+  const r = [[0, 2 * h / 3], [-SIDE / 2, -h / 3], [SIDE / 2, -h / 3]].map(([x, y]) => [x * c - y * s, x * s + y * c]);
+  const mx = (r[0][0] + r[1][0]) / 2, my = (r[0][1] + r[1][1]) / 2;
+  return r.map(([x, y]) => [x + hit[0] - mx, y + hit[1] - my]); // A、左下、右下（逆時針）
+}
+function edgeOut(a, b) { const ex = b[0] - a[0], ey = b[1] - a[1], L = Math.hypot(ex, ey); return [ey / L, -ex / L]; }
+function segHit(p, d, a, b) {
+  const ex = b[0] - a[0], ey = b[1] - a[1], den = -d[0] * ey + d[1] * ex;
+  if (Math.abs(den) < 1e-12) return -1;
+  const qx = a[0] - p[0], qy = a[1] - p[1], t = (-qx * ey + ex * qy) / den, u = (d[0] * qy - d[1] * qx) / den;
+  return u >= -1e-9 && u <= 1 + 1e-9 ? t : -1;
+}
+function refract(d, nr, n1, n2) { // nr：朝向入射側的單位法線
+  const ci = -(d[0] * nr[0] + d[1] * nr[1]), r = n1 / n2, k = 1 - r * r * (1 - ci * ci);
+  if (k < 0) return { d: [d[0] + 2 * ci * nr[0], d[1] + 2 * ci * nr[1]], tir: true };
+  const t = r * ci - Math.sqrt(k); return { d: [r * d[0] + t * nr[0], r * d[1] + t * nr[1]], tir: false };
+}
+function trace(p0, d0, l, sc) {
+  let p = p0.slice(), d = d0.slice(), inside = -1, tir = false;
+  const pts = [p.slice()], ids = []; let s = null, stopped = false;
+  for (let it = 0; it < 24; it++) {
+    let best = Infinity, hit = null;
+    sc.prisms.forEach((poly, pi) => { for (let e = 0; e < 3; e++) { const t = segHit(p, d, poly[e], poly[(e + 1) % 3]); if (t > 1e-6 && t < best) { best = t; hit = { k: 'p', pi, e }; } } });
+    if (sc.barrier && inside < 0) { const t = segHit(p, d, sc.barrier.a, sc.barrier.b); if (t > 1e-6 && t < best) { best = t; hit = { k: 'b' }; } }
+    if (sc.screen && inside < 0) { const t = segHit(p, d, sc.screen.a, sc.screen.b); if (t > 1e-6 && t < best) { best = t; hit = { k: 's' }; } }
+    if (!hit) { pts.push([p[0] + d[0] * 2600, p[1] + d[1] * 2600]); break; }
+    p = [p[0] + d[0] * best, p[1] + d[1] * best]; pts.push(p);
+    if (hit.k === 's') { const S = sc.screen; s = (p[0] - S.c[0]) * S.u[0] + (p[1] - S.c[1]) * S.u[1]; ids.push('s'); break; }
+    if (hit.k === 'b') { ids.push('b'); if (!sc.barrier.pass(l)) { stopped = true; break; } continue; }
+    const poly = sc.prisms[hit.pi], out = edgeOut(poly[hit.e], poly[(hit.e + 1) % 3]), n = nDraw(l);
+    let r;
+    if (inside === hit.pi) { r = refract(d, [-out[0], -out[1]], n, 1); if (!r.tir) inside = -1; else tir = true; }
+    else { r = refract(d, out, 1, n); inside = hit.pi; }
+    d = r.d; ids.push(hit.pi + ':' + hit.e + (r.tir ? 't' : ''));
+  }
+  return { pts, ids, s, d, stopped, tir, trapped: inside >= 0 };
+}
+function lastExit(tr) { return tr.pts[tr.pts.length - 2] || tr.pts[0]; }
+function devAnalytic(n, i) { // 正三角稜鏡（頂角 60°）的偏向角；全反射回傳 null
+  const r1 = Math.asin(Math.sin(i * D2R) / n), r2 = 60 * D2R - r1, se = n * Math.sin(r2);
+  if (se > 1 || r2 < 0) return null; return i + Math.asin(se) * R2D - 60;
+}
+function buildScene(i) {
+  const sc = { prisms: [], barrier: null, screen: null };
+  let th0;
+  if (DS.exp === 'slit') {
+    const D = devAnalytic(nDraw(DS.sel), i) ?? 40;
+    th0 = D * 0.95; const P1 = prismAt([0, 0], th0 + 30 - i); sc.prisms.push(P1);
+    const d0 = [Math.cos(th0 * D2R), Math.sin(th0 * D2R)];
+    const t1 = trace([-d0[0] * 50, -d0[1] * 50], d0, DS.sel, sc);
+    const E1 = lastExit(t1), d1 = t1.d;
+    if (!t1.trapped) {
+      const bc = [E1[0] + d1[0] * 150, E1[1] + d1[1] * 150], u = [-d1[1], d1[0]];
+      sc.barrier = { a: [bc[0] + u[0] * 120, bc[1] + u[1] * 120], b: [bc[0] - u[0] * 120, bc[1] - u[1] * 120], c: bc, u, pass: l => Math.abs(l - DS.sel) <= 8 };
+      const h2 = [E1[0] + d1[0] * 250, E1[1] + d1[1] * 250], th1 = Math.atan2(d1[1], d1[0]) * R2D;
+      sc.prisms.push(prismAt(h2, th1 + 30 - i));
+    }
+  } else {
+    th0 = i - 30; const P1 = prismAt([0, 0], 0); sc.prisms.push(P1);
+    if (DS.exp === 'recomb') { // 以右面中點（往外推 3）為中心轉 180°，得到倒放、面互相平行的第二塊
+      const a = P1[2], b = P1[0], o = edgeOut(a, b), P = [(a[0] + b[0]) / 2 + o[0] * 3, (a[1] + b[1]) / 2 + o[1] * 3];
+      sc.prisms.push(P1.map(v => [2 * P[0] - v[0], 2 * P[1] - v[1]]));
+    }
+  }
+  sc.th0 = th0; sc.d0 = [Math.cos(th0 * D2R), Math.sin(th0 * D2R)];
+  sc.p0 = [-sc.d0[0] * 230, -sc.d0[1] * 230];
+  // 屏幕：垂直於參考光線，放在最後一個面之後
+  const refL = DS.exp === 'slit' ? DS.sel : DS.src === 'mono' ? DS.mono : 589;
+  let ref = trace(sc.p0, sc.d0, refL, { prisms: sc.prisms, barrier: null, screen: null });
+  if (ref.trapped) ref = trace(sc.p0, sc.d0, 700, { prisms: sc.prisms });
+  if (!ref.trapped) {
+    const E = lastExit(ref), L = DS.exp === 'slit' ? 210 : DS.exp === 'recomb' ? 300 : 360;
+    const c = [E[0] + ref.d[0] * L, E[1] + ref.d[1] * L], u = [-ref.d[1], ref.d[0]], half = 110;
+    sc.screen = { c, u, half, a: [c[0] + u[0] * half, c[1] + u[1] * half], b: [c[0] - u[0] * half, c[1] - u[1] * half] };
+  }
+  return sc;
+}
+// 每種光源的波長與權重（白光加總 = (1,1,1)）
+function sources() {
+  if (DS.src === 'mono') { const c = lamLin(DS.mono), m = Math.max(...c); return [{ l: DS.mono, w: c.map(v => v / m * 0.6) }]; }
+  if (DS.src === 'rg') return [630, 532].map(l => { const c = lamLin(l), m = Math.max(...c); return { l, w: c.map(v => v / m * 0.6) }; });
+  const ls = []; for (let l = 400; l <= 700; l += 4) ls.push(l);
+  const cs = ls.map(lamLin), sum = cs.reduce((a, c) => [a[0] + c[0], a[1] + c[1], a[2] + c[2]], [0, 0, 0]);
+  return ls.map((l, j) => ({ l, w: cs[j].map((v, k) => v / sum[k]) }));
+}
+const dsCv = setupCanvas($('#ds-cv')), dsStrip = setupCanvas($('#ds-strip'));
+let dsView = null, dsViewKey = '';
+function dsFit() { // 每種實驗設定固定一個比例尺（拖動入射角時畫面不縮放）
+  const key = [DS.exp, DS.glass, DS.k, DS.src, DS.mono, DS.sel].join('|');
+  if (key === dsViewKey && dsView) return dsView;
+  let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+  const add = p => { x0 = Math.min(x0, p[0]); x1 = Math.max(x1, p[0]); y0 = Math.min(y0, p[1]); y1 = Math.max(y1, p[1]); };
+  for (let i = 40; i <= 80; i += 5) {
+    const sc = buildScene(i); add(sc.p0); sc.prisms.forEach(P => P.forEach(add));
+    if (sc.barrier) { add(sc.barrier.a); add(sc.barrier.b); } if (sc.screen) { add(sc.screen.a); add(sc.screen.b); }
+  }
+  const m = 36, W = dsCv.W, H = dsCv.H, s = Math.min((W - 2 * m) / (x1 - x0), (H - 2 * m) / (y1 - y0));
+  dsView = { s, ox: W / 2 - s * (x0 + x1) / 2, oy: H / 2 + s * (y0 + y1) / 2 }; dsViewKey = key; return dsView;
+}
+let dsBuf = null;
+function drawDisp() {
+  if (!dsCv.resize() || !dsStrip.resize()) return; setFS(dsCv);
+  const V = dsFit(), X = p => V.ox + V.s * p[0], Y = p => V.oy - V.s * p[1];
+  const sc = buildScene(DS.i);
+  // 浮點緩衝區累加各波長光束，再保留色相削峰
+  const bs = Math.min(DPR(), 1.5), BW = Math.round(dsCv.cw * bs), BH = Math.round(dsCv.ch * bs), f = dsCv.k * bs;
+  if (!dsBuf || dsBuf.w !== BW || dsBuf.h !== BH) dsBuf = { w: BW, h: BH, a: new Float32Array(BW * BH * 3), img: new ImageData(BW, BH), off: document.createElement('canvas') };
+  const A = dsBuf.a; A.fill(0);
+  const P = p => [X(p) * f, Y(p) * f];
+  function fillPoly(pts, w) {
+    let ymin = Infinity, ymax = -Infinity; pts.forEach(p => { ymin = Math.min(ymin, p[1]); ymax = Math.max(ymax, p[1]); });
+    const ya = Math.max(0, Math.ceil(ymin - 0.5)), yb = Math.min(BH - 1, Math.floor(ymax - 0.5));
+    for (let y = ya; y <= yb; y++) {
+      const yc = y + 0.5; let xl = Infinity, xr = -Infinity;
+      for (let k = 0; k < pts.length; k++) {
+        const a = pts[k], b = pts[(k + 1) % pts.length];
+        if ((a[1] <= yc && b[1] > yc) || (b[1] <= yc && a[1] > yc)) { const x = a[0] + (yc - a[1]) / (b[1] - a[1]) * (b[0] - a[0]); xl = Math.min(xl, x); xr = Math.max(xr, x); }
+      }
+      if (xl > xr) continue;
+      const xa = Math.max(0, Math.floor(xl)), xb = Math.min(BW - 1, Math.floor(xr));
+      for (let x = xa; x <= xb; x++) {
+        const cov = clamp(Math.min(x + 1, xr) - Math.max(x, xl), 0, 1); if (cov <= 0) continue;
+        const o = (y * BW + x) * 3; A[o] += w[0] * cov; A[o + 1] += w[1] * cov; A[o + 2] += w[2] * cov;
+      }
+    }
+  }
+  function strokeLine(a, b, w, wid) { // 備用：光束分裂（部分全反射）時改畫細線
+    const n = [a[1] - b[1], b[0] - a[0]], L = Math.hypot(...n) || 1, h = wid / 2 / L;
+    fillPoly([[a[0] + n[0] * h, a[1] + n[1] * h], [b[0] + n[0] * h, b[1] + n[1] * h], [b[0] - n[0] * h, b[1] - n[1] * h], [a[0] - n[0] * h, a[1] - n[1] * h]], w);
+  }
+  const BW0 = DS.src === 'white' ? BEAM : 6, src = sources(), nrm = [-sc.d0[1], sc.d0[0]], hw = BW0 / 2;
+  const strip = new Float32Array(Math.round(dsStrip.cw * bs) * 3), SW = strip.length / 3;
+  const hits = {}; let anyTIR = false, lost = 0;
+  const sToX = s => (s / sc.screen.half * 0.5 + 0.5) * SW;
+  for (const { l, w } of src) {
+    const pa = [sc.p0[0] + nrm[0] * hw, sc.p0[1] + nrm[1] * hw], pb = [sc.p0[0] - nrm[0] * hw, sc.p0[1] - nrm[1] * hw];
+    const ta = trace(pa, sc.d0, l, sc), tb = trace(pb, sc.d0, l, sc), tc = trace(sc.p0, sc.d0, l, sc);
+    if (tc.tir) anyTIR = true;
+    hits[l] = tc;
+    if (ta.ids.join() === tb.ids.join()) {
+      for (let k = 0; k + 1 < ta.pts.length; k++) fillPoly([P(ta.pts[k]), P(ta.pts[k + 1]), P(tb.pts[k + 1]), P(tb.pts[k])], w);
+      if (sc.screen && ta.s != null && tb.s != null) {
+        const xa = sToX(Math.min(ta.s, tb.s)), xb = sToX(Math.max(ta.s, tb.s));
+        for (let x = Math.max(0, Math.floor(xa)); x <= Math.min(SW - 1, Math.floor(xb)); x++) { const cov = clamp(Math.min(x + 1, xb) - Math.max(x, xa), 0, 1); strip[x * 3] += w[0] * cov; strip[x * 3 + 1] += w[1] * cov; strip[x * 3 + 2] += w[2] * cov; }
+      } else if (tc.s == null) lost++;
+    } else {
+      const M = 9, wid = BW0 * V.s * f / M;
+      for (let j = 0; j < M; j++) {
+        const o = hw - (j + 0.5) * BW0 / M, tr = trace([sc.p0[0] + nrm[0] * o, sc.p0[1] + nrm[1] * o], sc.d0, l, sc);
+        for (let k = 0; k + 1 < tr.pts.length; k++) strokeLine(P(tr.pts[k]), P(tr.pts[k + 1]), w, wid);
+        if (sc.screen && tr.s != null) { const x = Math.floor(sToX(tr.s)); for (let dx = -1; dx <= 1; dx++) if (x + dx >= 0 && x + dx < SW) { const q = (x + dx) * 3; strip[q] += w[0] / 3 * 1.5; strip[q + 1] += w[1] / 3 * 1.5; strip[q + 2] += w[2] / 3 * 1.5; } }
+      }
+    }
+  }
+  // 色調對應
+  const G = 2.2, img = dsBuf.img.data, bg = [7, 9, 12];
+  for (let p = 0, q = 0; p < A.length; p += 3, q += 4) {
+    let r = A[p] * G, g = A[p + 1] * G, b = A[p + 2] * G; const m = Math.max(r, g, b);
+    if (m > 1) { r /= m; g /= m; b /= m; }
+    img[q] = Math.max(bg[0], enc(r) * 255); img[q + 1] = Math.max(bg[1], enc(g) * 255); img[q + 2] = Math.max(bg[2], enc(b) * 255); img[q + 3] = 255;
+  }
+  const off = dsBuf.off; off.width = BW; off.height = BH; off.getContext('2d').putImageData(dsBuf.img, 0, 0);
+  const c = dsCv.ctx; c.save(); c.setTransform(1, 0, 0, 1, 0, 0); c.imageSmoothingEnabled = true; c.drawImage(off, 0, 0, dsCv.cv.width, dsCv.cv.height); c.restore();
+  // 向量疊圖：稜鏡、光源、法線、狹縫板、屏幕
+  sc.prisms.forEach(Pg => {
+    c.beginPath(); Pg.forEach((p, k) => k ? c.lineTo(X(p), Y(p)) : c.moveTo(X(p), Y(p))); c.closePath();
+    c.fillStyle = 'rgba(116,192,252,.10)'; c.fill(); c.strokeStyle = 'rgba(165,216,255,.85)'; c.lineWidth = 1.6; c.stroke();
+  });
+  const P1 = sc.prisms[0], hit0 = [(P1[0][0] + P1[1][0]) / 2, (P1[0][1] + P1[1][1]) / 2], on = edgeOut(P1[0], P1[1]);
+  c.setLineDash([5, 5]); c.strokeStyle = 'rgba(233,237,241,.5)'; c.lineWidth = 1.2; c.beginPath();
+  c.moveTo(X(hit0) + on[0] * 60, Y(hit0) - on[1] * 60); c.lineTo(X(hit0) - on[0] * 40, Y(hit0) + on[1] * 40); c.stroke(); c.setLineDash([]);
+  { // 入射角弧
+    const a0 = Math.atan2(on[1], on[0]); let da = Math.atan2(-sc.d0[1], -sc.d0[0]) - a0; da = Math.atan2(Math.sin(da), Math.cos(da)); const a1 = a0 + da;
+    c.strokeStyle = '#ffd43b'; c.lineWidth = 1.5; c.beginPath(); c.arc(X(hit0), Y(hit0), 34, -Math.max(a0, a1), -Math.min(a0, a1)); c.stroke();
+    const am = (a0 + a1) / 2; label(c, 'i', X(hit0) + Math.cos(am) * 48, Y(hit0) - Math.sin(am) * 48 + 5, { color: '#ffd43b', align: 'center', font: MONO, weight: 600 });
+  }
+  { // 光源
+    const s0 = [X(sc.p0), Y(sc.p0)], ang = -sc.th0 * D2R; c.save(); c.translate(s0[0], s0[1]); c.rotate(ang);
+    c.fillStyle = '#2a323b'; c.strokeStyle = '#8b96a1'; c.lineWidth = 1.2; c.beginPath(); c.roundRect(-44, -14, 46, 28, 4); c.fill(); c.stroke();
+    c.fillStyle = '#d0d7de'; c.fillRect(0, -BW0 * V.s / 2 - 2, 4, BW0 * V.s + 4); c.restore();
+    const lbl = DS.src === 'white' ? '白光' : DS.src === 'mono' ? `單色光 ${DS.mono} nm` : '紅＋綠（看起來黃）';
+    label(c, lbl, s0[0] - 8, s0[1] + 34, { size: 14, align: 'center' });
+  }
+  if (sc.barrier) {
+    const B = sc.barrier, tc = trace(sc.p0, sc.d0, DS.sel, { prisms: [sc.prisms[0]] });
+    const t = segHit(lastExit(tc), tc.d, B.a, B.b), hp = t > 0 ? [lastExit(tc)[0] + tc.d[0] * t, lastExit(tc)[1] + tc.d[1] * t] : B.c;
+    const gap = BEAM * 0.75; const g1 = [hp[0] + B.u[0] * gap, hp[1] + B.u[1] * gap], g2 = [hp[0] - B.u[0] * gap, hp[1] - B.u[1] * gap];
+    c.strokeStyle = '#9aa5b1'; c.lineWidth = 5; c.lineCap = 'butt'; c.beginPath(); c.moveTo(X(B.a), Y(B.a)); c.lineTo(X(g1), Y(g1)); c.moveTo(X(g2), Y(g2)); c.lineTo(X(B.b), Y(B.b)); c.stroke();
+    label(c, '狹縫板', X(B.a), Y(B.a) - 10, { align: 'center', size: 13 });
+  }
+  if (sc.screen) {
+    const S = sc.screen; c.strokeStyle = '#e9edf1'; c.lineWidth = 4; c.beginPath(); c.moveTo(X(S.a), Y(S.a)); c.lineTo(X(S.b), Y(S.b)); c.stroke();
+    const tp = Y(S.a) < Y(S.b) ? S.a : S.b; label(c, '屏幕', X(tp), Y(tp) - 10, { align: 'center', size: 13 });
+    // 在屏幕旁標出紅、紫
+    const mark = (l, nm) => { const t = hits[l]; if (!t || t.s == null) return; const p = [S.c[0] + S.u[0] * t.s, S.c[1] + S.u[1] * t.s], dir = t.d; label(c, nm, X(p) + dir[0] * 26, Y(p) - dir[1] * 26 + 5, { color: specCSS(l), align: 'center', size: 14, weight: 700 }); };
+    if (DS.src === 'white' && DS.exp === 'one') { mark(400, '紫'); mark(700, '紅'); }
+  }
+  // 屏幕條
+  const sc2 = dsStrip.ctx, SH = Math.round(dsStrip.ch * bs), im = new ImageData(SW, 1);
+  for (let x = 0; x < SW; x++) { let r = strip[x * 3] * G, g = strip[x * 3 + 1] * G, b = strip[x * 3 + 2] * G; const m = Math.max(r, g, b); if (m > 1) { r /= m; g /= m; b /= m; } im.data[x * 4] = Math.max(22, enc(r) * 255); im.data[x * 4 + 1] = Math.max(25, enc(g) * 255); im.data[x * 4 + 2] = Math.max(29, enc(b) * 255); im.data[x * 4 + 3] = 255; }
+  const o2 = document.createElement('canvas'); o2.width = SW; o2.height = 1; o2.getContext('2d').putImageData(im, 0, 0);
+  sc2.save(); sc2.setTransform(1, 0, 0, 1, 0, 0); sc2.imageSmoothingEnabled = false; sc2.drawImage(o2, 0, 0, dsStrip.cv.width, dsStrip.cv.height); sc2.restore();
+  if (sc.screen && DS.src === 'white' && DS.exp === 'one' && !anyTIR) {
+    [[700, '紅'], [589, '黃'], [530, '綠'], [470, '藍'], [400, '紫']].forEach(([l, nm]) => { const t = hits[l] || trace(sc.p0, sc.d0, l, sc); if (t.s == null) return; const x = sToX(t.s) / bs / dsStrip.k; label(sc2, nm, x, 66, { size: 13, align: 'center', color: '#e9edf1', bg: 'rgba(7,9,12,.6)' }); });
+  }
+  if (!sc.screen) text(sc2, '光在稜鏡裡全反射，沒有射到屏幕', 500, 42, { align: 'center', color: '#ffd43b' });
+  // 讀數（真實折射率）
+  const nr = nReal(700), nv = nReal(400), dr = devAnalytic(nr, DS.i), dv = devAnalytic(nv, DS.i);
+  const f2 = v => v == null ? '全反射' : v.toFixed(1) + '°';
+  let rows = [['紅光 700 nm 折射率', nr.toFixed(4)], ['紫光 400 nm 折射率', nv.toFixed(4)], ['紅光偏折（偏向角）', f2(dr)], ['紫光偏折（偏向角）', f2(dv)], ['紅、紫分開的角度', dr != null && dv != null ? (dv - dr).toFixed(2) + '°' : '—']];
+  if (DS.src === 'mono') rows = [[`${DS.mono} nm 折射率`, nReal(DS.mono).toFixed(4)], ['偏向角', f2(devAnalytic(nReal(DS.mono), DS.i))], ['屏幕上', '只有一條色光']];
+  if (DS.src === 'rg') rows = [['紅光 630 nm 偏向角', f2(devAnalytic(nReal(630), DS.i))], ['綠光 532 nm 偏向角', f2(devAnalytic(nReal(532), DS.i))], ['屏幕上', '分成紅、綠兩條，沒有黃色的光']];
+  if (DS.exp === 'slit') rows.push(['通過狹縫的色光', `${DS.sel} nm`], ['經過第二塊稜鏡', '再偏折，但不再分色']);
+  if (DS.exp === 'recomb') rows.push(['射出的光', '和入射光平行']);
+  $('#ds-out').innerHTML = rows.map(([a, b]) => `<div><dt>${a}</dt><dd>${b}</dd></div>`).join('');
+  $('#ds-hint').textContent = (DS.k > 1 ? `畫面上的色散放大了 ${DS.k} 倍，讀數用真實折射率計算。` : '真實比例：光束有寬度時，中間仍重疊成白色，只有邊緣出現顏色。') + (anyTIR ? ' 部分光在稜鏡第二面發生全反射。' : '');
+}
+const dsDraw = raf(drawDisp);
+seg($('#ds-src'), v => { DS.src = v; $('#ds-mono-ctl').hidden = v !== 'mono'; dsDraw(); });
+seg($('#ds-exp'), v => { DS.exp = v; $('#ds-sel-ctl').hidden = v !== 'slit'; dsDraw(); });
+seg($('#ds-k'), v => { DS.k = +v; dsDraw(); });
+$('#ds-glass').addEventListener('change', e => { DS.glass = e.target.value; dsDraw(); });
+const bindRange = (id, fn, fmt) => { const el = $('#' + id), out = $('#' + id + '-v'); const up = () => { fn(+el.value); if (out) out.textContent = fmt(+el.value); }; el.addEventListener('input', up); up(); return up; };
+bindRange('ds-i', v => { DS.i = v; dsDraw(); }, v => v.toFixed(1) + '°');
+bindRange('ds-mono', v => { DS.mono = v; $('#ds-mono-v').style.color = specCSS(v); dsDraw(); }, v => v + ' nm');
+bindRange('ds-sel', v => { DS.sel = v; $('#ds-sel-v').style.color = specCSS(v); dsDraw(); }, v => v + ' nm');
+
+/* ================================================================
+   2. 色光三原色：加法混色
+   ================================================================ */
+const AD_HOME = [[420, 250], [580, 250], [500, 390]];
+const AD = { lv: [255, 255, 255], pos: AD_HOME.map(p => p.slice()), R: 175, probe: [500, 300] };
+const adCv = setupCanvas($('#ad-cv')), adPx = setupCanvas($('#ad-px'));
+let adBuf = null;
+function adAt(x, y) { return AD.pos.map((p, k) => AD.lv[k] * soft(Math.hypot(x - p[0], y - p[1]), AD.R, 10)); }
+function drawAdd() {
+  if (!adCv.resize()) return; setFS(adCv);
+  const bs = Math.min(DPR(), 1.25), BW = Math.round(adCv.cw * bs), BH = Math.round(adCv.ch * bs), sx = adCv.W / BW;
+  if (!adBuf || adBuf.width !== BW || adBuf.height !== BH) { adBuf = new ImageData(BW, BH); }
+  const d = adBuf.data;
+  for (let y = 0; y < BH; y++) for (let x = 0; x < BW; x++) {
+    const v = adAt((x + 0.5) * sx, (y + 0.5) * sx), q = (y * BW + x) * 4;
+    d[q] = Math.max(14, v[0]); d[q + 1] = Math.max(16, v[1]); d[q + 2] = Math.max(20, v[2]); d[q + 3] = 255; // 牆面本身極暗
+  }
+  const off = document.createElement('canvas'); off.width = BW; off.height = BH; off.getContext('2d').putImageData(adBuf, 0, 0);
+  const c = adCv.ctx; c.save(); c.setTransform(1, 0, 0, 1, 0, 0); c.drawImage(off, 0, 0, adCv.cv.width, adCv.cv.height); c.restore();
+  const nm = ['R', 'G', 'B'], col = ['#ff6b6b', '#69db7c', '#74c0fc'];
+  AD.pos.forEach((p, k) => { c.beginPath(); c.arc(p[0], p[1], 22, 0, 7); c.fillStyle = 'rgba(7,9,12,.55)'; c.fill(); c.lineWidth = 2.5; c.strokeStyle = col[k]; c.stroke(); text(c, nm[k], p[0], p[1] + 1, { size: 20, align: 'center', base: 'middle', weight: 700, font: MONO, color: col[k] }); });
+  const [px, py] = AD.probe; c.lineWidth = 3; c.strokeStyle = 'rgba(0,0,0,.7)';
+  const cross = () => { c.beginPath(); c.arc(px, py, 12, 0, 7); c.moveTo(px - 22, py); c.lineTo(px - 6, py); c.moveTo(px + 6, py); c.lineTo(px + 22, py); c.moveTo(px, py - 22); c.lineTo(px, py - 6); c.moveTo(px, py + 6); c.lineTo(px, py + 22); c.stroke(); };
+  cross(); c.lineWidth = 1.5; c.strokeStyle = '#fff'; cross();
+  text(c, '暗室中的白牆', 18, 32, { size: 16, color: '#8b96a1' });
+  drawPixels(adAt(px, py).map(Math.round));
+}
+function drawPixels(v) {
+  if (!adPx.resize()) return; FS = 1;
+  const c = adPx.ctx, W = adPx.W; c.clearRect(0, 0, W, adPx.H);
+  const dark = matchMedia('(prefers-color-scheme: dark)').matches && document.documentElement.dataset.theme !== 'light';
+  const ink = getComputedStyle(document.body).color, muted = getComputedStyle(document.documentElement).getPropertyValue('--muted').trim();
+  // 像素放大：每個像素由紅、綠、藍三個子像素組成
+  const ox = 10, oy = 26, cell = 54, cols = 4, rows = 3;
+  c.fillStyle = '#050607'; c.fillRect(ox - 4, oy - 4, cols * cell + 8, rows * cell + 8);
+  for (let r = 0; r < rows; r++) for (let q = 0; q < cols; q++) for (let k = 0; k < 3; k++) {
+    const x = ox + q * cell + k * cell / 3 + 2, y = oy + r * cell + 3, a = v[k] / 255;
+    c.fillStyle = k === 0 ? `rgb(${Math.round(255 * a)},0,0)` : k === 1 ? `rgb(0,${Math.round(255 * a)},0)` : `rgb(0,0,${Math.round(255 * a)})`;
+    c.beginPath(); c.roundRect(x, y, cell / 3 - 4, cell - 6, 3); c.fill();
+  }
+  text(c, '近看：子像素', ox, 18, { size: 14, color: muted });
+  const sx = ox + cols * cell + 26; text(c, '遠看', sx, 18, { size: 14, color: muted });
+  c.fillStyle = `rgb(${v[0]},${v[1]},${v[2]})`; c.beginPath(); c.roundRect(sx, oy - 4, W - sx - 10, rows * cell + 8, 8); c.fill(); c.strokeStyle = muted; c.lineWidth = 1; c.stroke();
+  // 光譜：三個窄峰
+  const gy = 330, gh = 110 - 30, gx0 = 40, gx1 = W - 14, Xl = l => gx0 + (l - 400) / 300 * (gx1 - gx0);
+  text(c, '這個顏色的光譜（用三稜鏡分開會看到）', ox, gy - gh - 14, { size: 14, color: muted });
+  const peaks = [[625, 11, v[0]], [530, 15, v[1]], [455, 10, v[2]]];
+  for (let l = 400; l <= 700; l += 1) {
+    let s = 0; peaks.forEach(([m, sg, a]) => { s += a / 255 * Math.exp(-0.5 * ((l - m) / sg) ** 2); });
+    if (s < 0.01) continue; c.fillStyle = specCSS(l); c.fillRect(Xl(l), gy - s * gh, (gx1 - gx0) / 300 + 1.2, s * gh);
+  }
+  c.strokeStyle = muted; c.lineWidth = 1; c.beginPath(); c.moveTo(gx0, gy); c.lineTo(gx1, gy); c.stroke();
+  [400, 500, 600, 700].forEach(l => text(c, l + '', Xl(l), gy + 18, { size: 13, align: 'center', color: muted, font: MONO }));
+  text(c, 'nm', gx1, gy + 36, { size: 12, align: 'right', color: muted, font: MONO });
+  const hex = '#' + v.map(x => x.toString(16).padStart(2, '0')).join('').toUpperCase();
+  const lin = v.map(x => { x /= 255; return x <= 0.04045 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4; });
+  $('#ad-out').innerHTML = `<div><dt>十字點 (R, G, B)</dt><dd>${v.join(', ')}</dd></div><div><dt>色碼</dt><dd>${hex}</dd></div><div><dt>看起來是</dt><dd class="zh"><span class="swatch" style="background:${hex}"></span>${colorName(lin)}</dd></div>`;
+}
+const adDraw = raf(drawAdd);
+['r', 'g', 'b'].forEach((ch, k) => bindRange('ad-' + ch, v => { AD.lv[k] = v; adDraw(); }, v => v));
+$('#ad-pre').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  if (b.id === 'ad-reset') { AD.pos = AD_HOME.map(p => p.slice()); AD.probe = [500, 300]; adDraw(); return; }
+  b.dataset.rgb.split(',').forEach((v, k) => { const el = $('#ad-' + 'rgb'[k]); el.value = v; el.dispatchEvent(new Event('input')); });
+});
+function dragger(cvo, state, onMove) {
+  let drag = null;
+  cvo.cv.addEventListener('pointerdown', e => {
+    const p = cvo.pt(e), reach = Math.max(30, 22 / cvo.k); let k = -1, best = reach;
+    state.pos.forEach((q, j) => { const d = Math.hypot(p[0] - q[0], p[1] - q[1]); if (d < best) { best = d; k = j; } });
+    drag = k >= 0 ? { k } : { probe: true };
+    if (drag.probe) state.probe = [clamp(p[0], 0, cvo.W), clamp(p[1], 0, cvo.H)];
+    cvo.cv.setPointerCapture(e.pointerId); onMove();
+  });
+  cvo.cv.addEventListener('pointermove', e => {
+    if (!drag) return; const p = [clamp(cvo.pt(e)[0], 0, cvo.W), clamp(cvo.pt(e)[1], 0, cvo.H)];
+    if (drag.probe) state.probe = p; else state.pos[drag.k] = p; onMove();
+  });
+  const end = () => { drag = null; };
+  cvo.cv.addEventListener('pointerup', end); cvo.cv.addEventListener('pointercancel', end);
+}
+dragger(adCv, AD, adDraw);
+
+/* ================================================================
+   3. 顏料三原色：減法混色（Beer–Lambert：穿透率 = 10^(−濃度×吸收度)）
+   ================================================================ */
+const SB_HOME = [[420, 250], [580, 250], [500, 390]];
+const SB = { c: [1, 1, 1], pos: SB_HOME.map(p => p.slice()), R: 175, probe: [500, 300], kind: 'ideal', light: 'w' };
+const PIG = [ // 吸收度（紅、綠、藍）
+  { nm: '青色 C', ab: '紅光', ideal: [3, 0, 0], real: [1.5, 0.32, 0.12], col: '#00a3d9' },
+  { nm: '洋紅色 M', ab: '綠光', ideal: [0, 3, 0], real: [0.12, 1.4, 0.45], col: '#d6338f' },
+  { nm: '黃色 Y', ab: '藍光', ideal: [0, 0, 3], real: [0.04, 0.16, 1.5], col: '#e0b000' },
+];
+const PAPER = 0.88, LIGHTS3 = { w: [1, 1, 1], r: [1, 0, 0], g: [0, 1, 0], b: [0, 0, 1] };
+const sbCv = setupCanvas($('#sb-cv'));
+function sbAt(x, y) { // 回傳 [線性 RGB, 各顏料有效濃度]
+  const cs = SB.pos.map((p, k) => SB.c[k] * soft(Math.hypot(x - p[0], y - p[1]), SB.R, 6));
+  const L = LIGHTS3[SB.light];
+  const rgb = [0, 1, 2].map(ch => { let D = 0; cs.forEach((cc, k) => { D += cc * PIG[k][SB.kind][ch]; }); return L[ch] * PAPER * Math.pow(10, -D); });
+  return [rgb, cs];
+}
+let sbBuf = null;
+function drawSub() {
+  if (!sbCv.resize()) return; setFS(sbCv);
+  const bs = Math.min(DPR(), 1.25), BW = Math.round(sbCv.cw * bs), BH = Math.round(sbCv.ch * bs), sx = sbCv.W / BW;
+  if (!sbBuf || sbBuf.width !== BW || sbBuf.height !== BH) sbBuf = new ImageData(BW, BH);
+  const d = sbBuf.data, LUT = new Uint8Array(1025); for (let i = 0; i <= 1024; i++) LUT[i] = Math.round(enc(i / 1024) * 255);
+  for (let y = 0; y < BH; y++) for (let x = 0; x < BW; x++) {
+    const [v] = sbAt((x + 0.5) * sx, (y + 0.5) * sx), q = (y * BW + x) * 4;
+    d[q] = LUT[Math.round(clamp(v[0], 0, 1) * 1024)]; d[q + 1] = LUT[Math.round(clamp(v[1], 0, 1) * 1024)]; d[q + 2] = LUT[Math.round(clamp(v[2], 0, 1) * 1024)]; d[q + 3] = 255;
+  }
+  const off = document.createElement('canvas'); off.width = BW; off.height = BH; off.getContext('2d').putImageData(sbBuf, 0, 0);
+  const c = sbCv.ctx; c.save(); c.setTransform(1, 0, 0, 1, 0, 0); c.drawImage(off, 0, 0, sbCv.cv.width, sbCv.cv.height); c.restore();
+  const nm = ['C', 'M', 'Y'];
+  SB.pos.forEach((p, k) => { c.beginPath(); c.arc(p[0], p[1], 22, 0, 7); c.fillStyle = 'rgba(255,255,255,.75)'; c.fill(); c.lineWidth = 2.5; c.strokeStyle = PIG[k].col; c.stroke(); text(c, nm[k], p[0], p[1] + 1, { size: 20, align: 'center', base: 'middle', weight: 700, font: MONO, color: '#17202a' }); });
+  const [px, py] = SB.probe; const cross = () => { c.beginPath(); c.arc(px, py, 12, 0, 7); c.moveTo(px - 22, py); c.lineTo(px - 6, py); c.moveTo(px + 6, py); c.lineTo(px + 22, py); c.moveTo(px, py - 22); c.lineTo(px, py - 6); c.moveTo(px, py + 6); c.lineTo(px, py + 22); c.stroke(); };
+  c.lineWidth = 3; c.strokeStyle = 'rgba(255,255,255,.8)'; cross(); c.lineWidth = 1.5; c.strokeStyle = '#17202a'; cross();
+  text(c, SB.light === 'w' ? '白紙（白光照射）' : `白紙（${{ r: '紅', g: '綠', b: '藍' }[SB.light]}光照射）`, 18, 32, { size: 16, color: '#5b6774' });
+  drawPipe();
+}
+function drawPipe() {
+  const [, cs] = sbAt(...SB.probe), L = LIGHTS3[SB.light];
+  const bars = v => `<div class="bars">${['#e03131', '#2f9e44', '#1971c2'].map((col, k) => `<div class="bar" title="${'紅綠藍'[k]}光 ${Math.round(v[k] * 100)}%"><i style="width:${(clamp(v[k], 0, 1) * 100).toFixed(1)}%;background:${col}"></i></div>`).join('')}</div>`;
+  let v = L.map(x => x * PAPER), html = `<div class="stage"><div class="nm">照來的光<small>${SB.light === 'w' ? '白光＝紅＋綠＋藍' : { r: '只有紅光', g: '只有綠光', b: '只有藍光' }[SB.light]}</small></div>${bars(L)}</div>`;
+  let any = false;
+  cs.forEach((cc, k) => {
+    if (cc < 0.02) return; any = true;
+    const T = PIG[k][SB.kind].map(a => Math.pow(10, -cc * a)); const nv = v.map((x, ch) => x * T[ch]);
+    html += `<div class="arrow">▼</div><div class="stage"><div class="nm">穿過${PIG[k].nm.split(' ')[0]}顏料<small>吸收${PIG[k].ab}${cc < 0.98 ? `（濃度 ${Math.round(cc * 100)}%）` : ''}</small></div>${bars(nv)}</div>`;
+    v = nv;
+  });
+  if (!any) html += `<div class="arrow">▼</div><div class="stage"><div class="nm">這裡沒有顏料<small>白紙反射各種色光</small></div>${bars(v)}</div>`;
+  html += `<div class="arrow">▼</div><div class="stage"><div class="nm">反射進眼睛<small>看起來是</small></div><div><span class="swatch" style="background:${linCSS(v)}"></span><b>${colorName(v)}</b></div></div>`;
+  $('#sb-pipe').innerHTML = html;
+}
+const sbDraw = raf(drawSub);
+['c', 'm', 'y'].forEach((ch, k) => bindRange('sb-' + ch, v => { SB.c[k] = v / 100; sbDraw(); }, v => v + '%'));
+seg($('#sb-kind'), v => { SB.kind = v; sbDraw(); });
+seg($('#sb-light'), v => { SB.light = v; sbDraw(); });
+dragger(sbCv, SB, sbDraw);
+
+/* ================================================================
+   4. 物體的顏色：照射光譜 × 反射率（穿透率）
+   ================================================================ */
+const sig = x => 1 / (1 + Math.exp(-x)), gau = (l, m, s) => Math.exp(-0.5 * ((l - m) / s) ** 2);
+const LED = (m, s) => LAM.map(l => gau(l, m, s));
+const norm1 = S => { const c = specToLin(S), m = Math.max(...c); return S.map(v => v / m); };
+const LR = norm1(LED(630, 10)), LG = norm1(LED(525, 15)), LB = norm1(LED(455, 10));
+const addS = (...a) => LAM.map((_, i) => a.reduce((s, S) => s + S[i], 0));
+// 兩盞燈調成等量混合：讓兩個通道一樣亮（黃＝紅綠相等、青＝綠藍相等、洋紅＝紅藍相等）
+function mixEq(A, B, c1, c2) { const a = specToLinRaw(A), b = specToLinRaw(B), k = (b[c2] - b[c1]) / (a[c1] - a[c2]); return norm1(addS(A.map(v => v * k), B)); }
+function specToLinRaw(S) { let X = 0, Y = 0, Z = 0; for (let i = 0; i < LAM.length; i++) { const c = CMF[i]; X += S[i] * c[0]; Y += S[i] * c[1]; Z += S[i] * c[2]; } return xyz2lin([X, Y, Z]).map((v, k) => v * WB[k]); }
+const LIGHTS = [
+  { id: 'w', nm: '白光', S: LAM.map(() => 1) },
+  { id: 'r', nm: '紅光', S: LR }, { id: 'g', nm: '綠光', S: LG }, { id: 'b', nm: '藍光', S: LB },
+  { id: 'y', nm: '黃光', S: mixEq(LR, LG, 0, 1) }, { id: 'c', nm: '青光', S: mixEq(LG, LB, 1, 2) }, { id: 'm', nm: '洋紅光', S: mixEq(LR, LB, 0, 2) },
+];
+const PAPERS = [ // 色塊的示意反射率曲線
+  { id: 'white', nm: '白色', f: () => 0.88 },
+  { id: 'red', nm: '紅色', f: l => 0.03 + 0.82 * sig((l - 598) / 9) },
+  { id: 'green', nm: '綠色', f: l => 0.03 + 0.62 * gau(l, 530, 26) },
+  { id: 'blue', nm: '藍色', f: l => 0.01 + 0.66 * sig((488 - l) / 10) },
+  { id: 'yellow', nm: '黃色', f: l => 0.03 + 0.84 * sig((l - 505) / 9) },
+  { id: 'cyan', nm: '青色', f: l => 0.008 + 0.75 * sig((582 - l) / 9) },
+  { id: 'magenta', nm: '洋紅色', f: l => 0.008 + 0.8 * (sig((l - 604) / 9) + sig((488 - l) / 10)) },
+  { id: 'black', nm: '黑色', f: () => 0.03 },
+];
+const FILTERS = [
+  { id: 'clear', nm: '透明玻璃紙', f: () => 0.92 },
+  { id: 'red', nm: '紅色玻璃紙', f: l => 0.02 + 0.88 * sig((l - 598) / 8) },
+  { id: 'green', nm: '綠色玻璃紙', f: l => 0.02 + 0.78 * gau(l, 530, 28) },
+  { id: 'blue', nm: '藍色玻璃紙', f: l => 0.006 + 0.8 * sig((488 - l) / 9) },
+  { id: 'yellow', nm: '黃色玻璃紙', f: l => 0.03 + 0.88 * sig((l - 505) / 8) },
+  { id: 'cyan', nm: '青色玻璃紙', f: l => 0.006 + 0.85 * sig((585 - l) / 9) },
+  { id: 'magenta', nm: '洋紅色玻璃紙', f: l => 0.03 + 0.85 * (sig((l - 598) / 9) + sig((485 - l) / 9)) },
+];
+const NOF = { id: 'none', nm: '（不疊）', f: () => 1 };
+PAPERS.forEach(p => p.R = LAM.map(p.f)); FILTERS.forEach(p => p.R = LAM.map(p.f)); NOF.R = LAM.map(NOF.f);
+/* 數位時鐘的 8：a 上、b 右上、c 右下、d 下、e 左下、f 左上、g 中 */
+const SEGS = 'abcdefg'.split('');
+const DIGITS = { abcdef: '0', bc: '1', abdeg: '2', abcdg: '3', bcfg: '4', acdfg: '5', acdefg: '6', abc: '7', abcdefg: '8', abcdfg: '9', abcfg: '9', abcf: '7' };
+const DEMO = { a: 'red', b: 'yellow', c: 'yellow', d: 'magenta', e: 'blue', f: 'cyan', g: 'white' };
+const OB = { light: 'w', f1: 'clear', f2: 'none', pos: 'lamp', paint: 'red', seg: 'a', col: Object.fromEntries(SEGS.map(k => [k, 'red'])), hide: false, shown: false };
+const lightS = () => LIGHTS.find(x => x.id === OB.light).S;
+const mul = (S, R) => S.map((v, i) => v * R[i]);
+const fById = id => id === 'none' ? NOF : FILTERS.find(f => f.id === id);
+const pById = id => PAPERS.find(p => p.id === id);
+const filtR = () => mul(fById(OB.f1).R, fById(OB.f2).R);
+const filtName = () => fById(OB.f1).nm + (OB.f2 !== 'none' ? '＋' + fById(OB.f2).nm : '');
+const obCv = setupCanvas($('#ob-cv')), obSp = setupCanvas($('#ob-sp'));
+// 七段的位置（畫布座標）
+const D8 = { L: 470, R: 670, T: 112, M: 292, B: 472, t: 36 };
+function segPoly(k) {
+  const { L, R, T, M, B, t } = D8, h = t / 2, g = 4;
+  const H = (x0, x1, y) => [[x0 + g, y], [x0 + h + g, y - h], [x1 - h - g, y - h], [x1 - g, y], [x1 - h - g, y + h], [x0 + h + g, y + h]];
+  const V = (x, y0, y1) => [[x, y0 + g], [x + h, y0 + h + g], [x + h, y1 - h - g], [x, y1 - g], [x - h, y1 - h - g], [x - h, y0 + h + g]];
+  return { a: H(L, R, T), g: H(L, R, M), d: H(L, R, B), f: V(L, T, M), b: V(R, T, M), e: V(L, M, B), c: V(R, M, B) }[k];
+}
+const segCenter = k => { const p = segPoly(k); return [p.reduce((s, q) => s + q[0], 0) / p.length, p.reduce((s, q) => s + q[1], 0) / p.length]; };
+const inPoly = (x, y, p) => { let c = false; for (let i = 0, j = p.length - 1; i < p.length; j = i++) { const [xi, yi] = p[i], [xj, yj] = p[j]; if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) c = !c; } return c; };
+const beamCSS = lin => { const m = Math.max(...lin); return m < 0.03 ? null : linCSS(lin.map(v => v / m * Math.max(m, 0.8))); };
+function sheet(c, x, y, ang, f) {
+  c.save(); c.translate(x, y); c.rotate(ang);
+  c.fillStyle = f.id === 'clear' ? 'rgba(220,235,245,.22)' : linCSS(specToLin(f.R), 0.6); c.strokeStyle = 'rgba(233,237,241,.75)'; c.lineWidth = 1.4;
+  c.beginPath(); c.roundRect(-7, -62, 14, 124, 3); c.fill(); c.stroke(); c.restore();
+}
+function seg2(c, a, b, lin, w = 4) { const col = beamCSS(lin); if (col) arrow(c, a[0], a[1], b[0], b[1], col, w); else { c.setLineDash([6, 6]); arrow(c, a[0], a[1], b[0], b[1], '#5b6774', 2); c.setLineDash([]); } return !!col; }
+const toward = (A, B, d) => { const dx = B[0] - A[0], dy = B[1] - A[1], L = Math.hypot(dx, dy); return [A[0] + dx / L * d, A[1] + dy / L * d]; };
+function state() {
+  const S = lightS(), F = filtR(), atLamp = OB.pos === 'lamp', Sin = atLamp ? mul(S, F) : S;
+  const seen = R => { let O = mul(Sin, R); if (!atLamp) O = mul(O, F); return O; };
+  const vis = {}; SEGS.forEach(k => { const lin = specToLin(seen(pById(OB.col[k]).R)); vis[k] = { lin, on: Math.max(...lin) >= 0.06 }; });
+  const on = SEGS.filter(k => vis[k].on).join('');
+  return { S, F, atLamp, Sin, seen, vis, digit: on === '' ? '全部看不見' : DIGITS[on] ? '數字 ' + DIGITS[on] : '不像數字（亮的段：' + on.split('').join('、') + '）' };
+}
+function drawObj() {
+  if (!obCv.resize() || !obSp.resize()) return; setFS(obCv);
+  const c = obCv.ctx, W = obCv.W, H = obCv.H, st = state(), { S, F, atLamp, Sin, seen, vis } = st, show = !OB.hide || OB.shown;
+  c.fillStyle = '#07090c'; c.fillRect(0, 0, W, H);
+  const lamp = [110, 130], eye = [80, 470], Lin = specToLin(Sin);
+  const g = c.createRadialGradient(lamp[0], lamp[1], 10, lamp[0] + 420, lamp[1] + 220, 640);
+  g.addColorStop(0, linCSS(Lin.map(v => v * 0.26))); g.addColorStop(1, 'rgba(7,9,12,0)');
+  c.fillStyle = g; c.beginPath(); c.moveTo(lamp[0], lamp[1]); c.lineTo(W, 40); c.lineTo(W, H); c.lineTo(260, H); c.closePath(); c.fill();
+  // 黑色底板
+  c.fillStyle = '#050607'; c.strokeStyle = '#2a323b'; c.lineWidth = 2; c.beginPath(); c.roundRect(D8.L - 70, D8.T - 52, D8.R - D8.L + 140, D8.B - D8.T + 104, 14); c.fill(); c.stroke();
+  SEGS.forEach(k => {
+    const p = segPoly(k); c.beginPath(); p.forEach((q, i) => i ? c.lineTo(q[0], q[1]) : c.moveTo(q[0], q[1])); c.closePath();
+    c.fillStyle = show ? linCSS(vis[k].lin) : '#2a323b'; c.fill();
+    if (!show) { c.strokeStyle = '#3d4752'; c.lineWidth = 1; c.stroke(); }
+    if (k === OB.seg) { c.strokeStyle = '#ffd43b'; c.lineWidth = 3; c.stroke(); }
+  });
+  if (!show) text(c, '?', (D8.L + D8.R) / 2, D8.M + 14, { size: 40, align: 'center', color: '#8b96a1', weight: 700 });
+  // 燈
+  const Lc = specToLin(S), gl = c.createRadialGradient(lamp[0], lamp[1], 0, lamp[0], lamp[1], 30); gl.addColorStop(0, linCSS(Lc.map(v => v / Math.max(...Lc, 1e-6)))); gl.addColorStop(1, 'rgba(7,9,12,0)');
+  c.fillStyle = gl; c.beginPath(); c.arc(lamp[0], lamp[1], 30, 0, 7); c.fill();
+  label(c, '光源', lamp[0] - 52, lamp[1] + 5, { size: 14, align: 'center' });
+  // 選中那一段的光路
+  const tgt = segCenter(OB.seg), P = pById(OB.col[OB.seg]);
+  const fL = toward(lamp, tgt, 110), angL = Math.atan2(tgt[1] - lamp[1], tgt[0] - lamp[0]);
+  if (atLamp) { seg2(c, toward(lamp, tgt, 26), toward(lamp, tgt, 100), S); seg2(c, toward(lamp, tgt, 120), toward(tgt, lamp, 14), Sin); sheet(c, fL[0], fL[1], angL, fById(OB.f1)); label(c, filtName(), fL[0] - 10, fL[1] + 84, { size: 14, align: 'center' }); }
+  else seg2(c, toward(lamp, tgt, 30), toward(tgt, lamp, 14), S);
+  const a0 = toward(tgt, eye, 14), fE = toward(eye, a0, 110), angE = Math.atan2(a0[1] - eye[1], a0[0] - eye[0]), refl = mul(Sin, P.R);
+  let ok = null;
+  if (!show) { c.setLineDash([6, 6]); arrow(c, a0[0], a0[1], eye[0] + 34, eye[1] - 10, '#5b6774', 2); c.setLineDash([]); }
+  else if (!atLamp) { const r1 = seg2(c, a0, toward(eye, a0, 122), refl); ok = seg2(c, toward(eye, a0, 98), toward(eye, a0, 32), seen(P.R)) && r1; }
+  else ok = seg2(c, a0, toward(eye, a0, 32), refl);
+  if (!atLamp) { sheet(c, fE[0], fE[1], angE, fById(OB.f1)); label(c, filtName(), fE[0] + 40, fE[1] + 80, { size: 14, align: 'center' }); }
+  eyeIcon(c, eye[0], eye[1]);
+  if (ok !== null) label(c, ok ? '這一段進入眼睛的光' : '這一段幾乎沒有光進入眼睛', 300, 530, { size: 14, align: 'center', color: '#e9edf1' });
+  text(c, atLamp ? '暗室：燈光先穿過玻璃紙，再照到數位時鐘的 8' : '暗室：眼睛透過玻璃紙看數位時鐘的 8', 18, 32, { size: 16, color: '#8b96a1' });
+  text(c, show ? '看起來：' + st.digit : '看起來：？', (D8.L + D8.R) / 2, D8.B + 84, { size: 17, align: 'center', color: '#e9edf1', weight: 700 });
+  drawSpec(st, P, show);
+}
+function arrow(c, x0, y0, x1, y1, col, w) {
+  const a = Math.atan2(y1 - y0, x1 - x0); c.strokeStyle = col; c.fillStyle = col; c.lineWidth = w; c.lineCap = 'round';
+  c.beginPath(); c.moveTo(x0, y0); c.lineTo(x1 - Math.cos(a) * 10, y1 - Math.sin(a) * 10); c.stroke();
+  c.setLineDash([]); c.beginPath(); c.moveTo(x1, y1); c.lineTo(x1 - Math.cos(a - 0.4) * 16, y1 - Math.sin(a - 0.4) * 16); c.lineTo(x1 - Math.cos(a + 0.4) * 16, y1 - Math.sin(a + 0.4) * 16); c.closePath(); c.fill();
+}
+function eyeIcon(c, x, y) {
+  c.strokeStyle = '#e9edf1'; c.lineWidth = 2; c.beginPath(); c.moveTo(x - 26, y); c.quadraticCurveTo(x, y - 22, x + 26, y); c.quadraticCurveTo(x, y + 22, x - 26, y); c.stroke();
+  c.fillStyle = '#e9edf1'; c.beginPath(); c.arc(x, y, 7, 0, 7); c.fill(); text(c, '眼睛', x, y + 34, { size: 14, align: 'center', color: '#8b96a1' });
+}
+function drawSpec(st, P, shown) {
+  const { S, F } = st, O = st.seen(P.R);
+  const c = obSp.ctx, W = obSp.W, H = obSp.H; c.clearRect(0, 0, W, H); FS = 1;
+  const muted = getComputedStyle(document.documentElement).getPropertyValue('--muted').trim(), ink = getComputedStyle(document.body).color, line = getComputedStyle(document.documentElement).getPropertyValue('--line').trim();
+  const top = Math.max(...S, 1e-9);
+  const x0 = 46, x1 = W - 10, X = l => x0 + (l - 380) / 340 * (x1 - x0), rowH = 76, rows = [26, 140, 254, 368];
+  const interp = (A, l) => { const t = (l - 380) / 5, i = Math.floor(t), f = t - i; return i >= LAM.length - 1 ? A[LAM.length - 1] : A[i] * (1 - f) + A[i + 1] * f; };
+  const dl = (x1 - x0) / 340 + 1.2;
+  const area = (A, y0, scale) => { for (let l = 380; l <= 720; l += 1) { const v = interp(A, l) / scale; if (v < 0.004) continue; c.fillStyle = specCSS(l); c.fillRect(X(l), y0 + rowH - v * rowH, dl, v * rowH); } };
+  const ratio = (R, y0) => {
+    for (let l = 380; l <= 720; l += 1) { const v = interp(R, l); c.fillStyle = specCSS(l, 0.85); c.fillRect(X(l), y0 + rowH - v * rowH, dl, v * rowH); }
+    c.strokeStyle = ink; c.lineWidth = 1.6; c.beginPath(); for (let l = 380; l <= 720; l += 2) { const y = y0 + rowH - interp(R, l) * rowH; l === 380 ? c.moveTo(X(l), y) : c.lineTo(X(l), y); } c.stroke();
+    text(c, '100%', x0 - 6, y0 + 5, { size: 11, align: 'right', color: muted, font: MONO }); text(c, '0', x0 - 6, y0 + rowH, { size: 11, align: 'right', color: muted, font: MONO });
+  };
+  const axis = (y0, t) => { c.strokeStyle = line; c.lineWidth = 1; c.beginPath(); c.moveTo(x0, y0 + rowH); c.lineTo(x1, y0 + rowH); c.moveTo(x0, y0); c.lineTo(x0, y0 + rowH); c.stroke(); text(c, t, x0, y0 - 8, { size: 15, color: ink, weight: 500 }); };
+  axis(rows[0], '① 光源'); area(S, rows[0], top);
+  axis(rows[1], `② ${filtName()}的穿透率（${OB.pos === 'lamp' ? '燈前' : '眼前'}）`); ratio(F, rows[1]);
+  axis(rows[2], shown ? `③ 選中那一段（${P.nm}）的反射率` : '③ 選中那一段的反射率'); if (shown) ratio(P.R, rows[2]); else text(c, '？', (x0 + x1) / 2, rows[2] + rowH / 2 + 6, { size: 18, align: 'center', color: muted });
+  axis(rows[3], '④ 進入眼睛的光 ＝ ① × ② × ③');
+  if (shown) area(O, rows[3], top); else text(c, '？　先預測，再按「揭曉」', (x0 + x1) / 2, rows[3] + rowH / 2 + 6, { size: 15, align: 'center', color: muted });
+  [400, 500, 600, 700].forEach(l => text(c, l + '', X(l), rows[3] + rowH + 18, { size: 12, align: 'center', color: muted, font: MONO }));
+  text(c, 'nm', x1, rows[3] + rowH + 34, { size: 12, align: 'right', color: muted, font: MONO });
+  const oc = specToLin(O), lc = specToLin(S), fc = specToLin(F);
+  const sw = col => `<span class="swatch" style="background:${linCSS(col)}"></span>`;
+  $('#ob-out').innerHTML = `<div><dt>① 光源</dt><dd class="zh">${sw(lc)}${LIGHTS.find(x => x.id === OB.light).nm}</dd></div>`
+    + `<div><dt>② 玻璃紙</dt><dd class="zh">${sw(fc)}${filtName()}${OB.pos === 'lamp' ? '（燈前）' : '（眼前）'}</dd></div>`
+    + `<div><dt>③ 選中那一段</dt><dd class="zh">${shown ? sw(specToLin(P.R)) + P.nm + '的段' : '？'}</dd></div>`
+    + `<div><dt>那一段看起來是</dt><dd class="zh">${shown ? sw(oc) + colorName(oc) : '？'}</dd></div>`
+    + `<div><dt>整個 8 看起來像</dt><dd class="zh">${shown ? st.digit : '？（先預測）'}</dd></div>`;
+}
+const obDraw = raf(drawObj);
+const obReset = () => { OB.shown = false; obDraw(); };
+const chipHTML = (id, nm, css, on) => `<button class="chip" data-v="${id}" aria-pressed="${on}"><i style="background:${css}"></i>${nm}</button>`;
+$('#ob-lights').innerHTML = LIGHTS.map(L => chipHTML(L.id, L.nm, linCSS(specToLin(L.S)), L.id === OB.light)).join('');
+$('#ob-filters').innerHTML = FILTERS.map(f => chipHTML(f.id, f.nm, f.id === 'clear' ? 'transparent' : linCSS(specToLin(f.R)), f.id === OB.f1)).join('');
+$('#ob-papers').innerHTML = PAPERS.map(p => chipHTML(p.id, p.nm, linCSS(specToLin(p.R)), p.id === OB.paint)).join('');
+const chipGroup = (el, cb) => el.addEventListener('click', e => { const b = e.target.closest('.chip'); if (!b) return; $$('.chip', el).forEach(x => x.setAttribute('aria-pressed', x === b ? 'true' : 'false')); cb(b.dataset.v); });
+chipGroup($('#ob-lights'), v => { OB.light = v; obReset(); });
+chipGroup($('#ob-filters'), v => { OB.f1 = v; obReset(); });
+chipGroup($('#ob-papers'), v => { OB.paint = v; });
+$('#ob-f2').innerHTML = [NOF, ...FILTERS].map(f => `<option value="${f.id}">${f.nm}</option>`).join('');
+$('#ob-f2').addEventListener('change', e => { OB.f2 = e.target.value; obReset(); });
+seg($('#ob-pos'), v => { OB.pos = v; obReset(); });
+$('#ob-all').addEventListener('click', () => { SEGS.forEach(k => OB.col[k] = OB.paint); obReset(); });
+$('#ob-demo').addEventListener('click', () => { Object.assign(OB.col, DEMO); obReset(); });
+$('#ob-hide').addEventListener('change', e => { OB.hide = e.target.checked; $('#ob-reveal').hidden = !OB.hide; obReset(); });
+$('#ob-reveal').addEventListener('click', () => { OB.shown = true; obDraw(); });
+obCv.cv.addEventListener('pointerdown', e => {
+  const [x, y] = obCv.pt(e), k = SEGS.find(k => inPoly(x, y, segPoly(k)));
+  if (!k) return; OB.seg = k; if (!OB.hide || OB.shown) OB.col[k] = OB.paint; obDraw();
+});
+
+/* 純色光源：全螢幕單色，讓手機或平板當實驗光源 */
+(() => {
+  const L = [['藍光', '#0000ff'], ['紅光', '#ff0000'], ['綠光', '#00ff00'], ['黃光', '#ffff00'], ['青光', '#00ffff'], ['洋紅光', '#ff00ff'], ['白光', '#ffffff']];
+  const box = $('#ob-lamp'), tip = $('.lamp-tip', box), nm = $('#ob-lamp-nm');
+  let k = 0, t = 0, lock = null;
+  const show = () => { box.style.background = L[k][1]; nm.textContent = L[k][0]; tip.classList.remove('fade'); clearTimeout(t); t = setTimeout(() => tip.classList.add('fade'), 2200); };
+  const open = async () => {
+    box.hidden = false; show();
+    try { await box.requestFullscreen?.(); } catch (e) {}
+    try { lock = await navigator.wakeLock?.request('screen'); } catch (e) {}
+  };
+  const close = () => { box.hidden = true; try { if (document.fullscreenElement) document.exitFullscreen(); } catch (e) {} try { lock?.release(); } catch (e) {} lock = null; };
+  $('#ob-lamp-open').addEventListener('click', open);
+  $('#ob-lamp-x').addEventListener('click', close);
+  box.addEventListener('click', e => { const h = e.target.closest('.lamp-hit'); if (!h) return; k = (k + +h.dataset.d + L.length) % L.length; show(); });
+  document.addEventListener('keydown', e => { if (box.hidden) return; if (e.key === 'Escape') close(); if (e.key === 'ArrowRight' || e.key === ' ') { k = (k + 1) % L.length; show(); } if (e.key === 'ArrowLeft') { k = (k + L.length - 1) % L.length; show(); } });
+})();
+
+/* ---------- 分頁 ---------- */
+const TABS = ['disp', 'add', 'sub', 'obj'], DRAW = { disp: dsDraw, add: adDraw, sub: sbDraw, obj: obDraw };
+let cur = null;
+function show(t) {
+  if (!TABS.includes(t)) t = 'disp'; cur = t;
+  $$('.tab').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === t ? 'true' : 'false'));
+  $$('section[data-st]').forEach(s => { s.hidden = s.dataset.st !== t; });
+  store.set('tab', t); if (location.hash !== '#' + t) history.replaceState(null, '', '#' + t);
+  DRAW[t]();
+}
+$$('.tab').forEach(b => b.addEventListener('click', () => show(b.dataset.tab)));
+window.addEventListener('hashchange', () => show(location.hash.slice(1)));
+new ResizeObserver(raf(() => cur && DRAW[cur]())).observe(document.querySelector('main'));
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => cur && DRAW[cur]());
+if (document.fonts) document.fonts.ready.then(() => cur && DRAW[cur]());
+show(location.hash.slice(1) || store.get('tab') || 'disp');
+})();
+</script>
+</body>
+</html>
