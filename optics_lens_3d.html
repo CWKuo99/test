@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>凸透鏡成像 2D・3D</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+TC:wght@400;700&family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: 和「光的探究實驗室」同一套色票；上方分頁 2D / 3D，每頁＝畫布 → 操作列 → 讀數 → 觀察重點 */
+:root{
+  --bg:#eef1f3; --surface:#ffffff; --surface-2:#f5f7f8; --ink:#17202a; --muted:#5b6774; --line:#d4dbe1;
+  --accent:#c2410c; --accent-ink:#ffffff; --accent-soft:#fbe6da; --select:#0e5a73; --select-soft:#dcedf3;
+  --sim-bg:#fbfcfd; --sim-grid:#e3e8ec; --axis:#4b5864; --lens:#9fb4c4;
+  --ray:#e8590c; --ray-2:#1c7ed6; --ray-3:#2f9e44;
+  --s1:#9c36b5; --s2:#4c9a2a; --s3:#e0a100; --s4:#1c7ed6;
+  --f-xp:#e8590c; --f-xn:#1c7ed6; --f-yp:#f2c230; --f-yn:#8a96a3; --f-zp:#2f9e44; --f-zn:#aab4be; --decal:#17202a;
+  --font-display:'LXGW WenKai TC','Noto Sans TC',serif;
+  --font-body:'Noto Sans TC',system-ui,-apple-system,'PingFang TC','Microsoft JhengHei',sans-serif;
+  --font-mono:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e1317; --surface:#151c22; --surface-2:#1a232a; --ink:#e4e9ee; --muted:#93a0ac; --line:#29343d;
+  --accent:#ff8b4d; --accent-ink:#1a0c04; --accent-soft:#3a2317; --select:#5cc3e6; --select-soft:#14313c;
+  --sim-bg:#10171c; --sim-grid:#1c262e; --axis:#a9b6c2; --lens:#5f7a8e;
+  --ray:#ff922b; --ray-2:#4dabf7; --ray-3:#69db7c;
+  --s1:#d07be6; --s2:#8bd46a; --s3:#ffd043; --s4:#4dabf7;
+  --f-xp:#ff8b3d; --f-xn:#4dabf7; --f-yp:#ffd43b; --f-yn:#6b7884; --f-zp:#51cf66; --f-zn:#8794a0; --decal:#10171c;
+  color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#0e1317; --surface:#151c22; --surface-2:#1a232a; --ink:#e4e9ee; --muted:#93a0ac; --line:#29343d;
+  --accent:#ff8b4d; --accent-ink:#1a0c04; --accent-soft:#3a2317; --select:#5cc3e6; --select-soft:#14313c;
+  --sim-bg:#10171c; --sim-grid:#1c262e; --axis:#a9b6c2; --lens:#5f7a8e;
+  --ray:#ff922b; --ray-2:#4dabf7; --ray-3:#69db7c;
+  --s1:#d07be6; --s2:#8bd46a; --s3:#ffd043; --s4:#4dabf7;
+  --f-xp:#ff8b3d; --f-xn:#4dabf7; --f-yp:#ffd43b; --f-yn:#6b7884; --f-zp:#51cf66; --f-zn:#8794a0; --decal:#10171c;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:15px;line-height:1.65}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{font-family:var(--font-display);margin:0;line-height:1.3;text-wrap:balance}
+p{margin:0}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--select);outline-offset:2px}
+.mast{background:var(--surface);border-bottom:1px solid var(--line);padding-block:22px 0}
+.eyebrow{font-family:var(--font-mono);font-size:12px;letter-spacing:.08em;color:var(--muted)}
+.mast h1{font-size:clamp(26px,4vw,38px);margin-top:2px}
+.mast .lead{color:var(--muted);max-width:62ch;margin-top:6px}
+.tabs{display:flex;gap:4px;margin-top:16px}
+.tab{border:1px solid transparent;border-bottom:0;background:transparent;border-radius:9px 9px 0 0;padding:8px 16px;cursor:pointer;font-size:15px;color:var(--muted)}
+.tab[aria-selected="true"]{background:var(--bg);border-color:var(--line);color:var(--ink);font-weight:500}
+.tab b{font-family:var(--font-mono);color:var(--accent);margin-right:6px}
+main{padding-block:20px 40px}
+.panel{display:flex;flex-direction:column;gap:12px}
+.canvas-box{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--sim-bg);position:relative}
+.canvas-box canvas{display:block;width:100%;touch-action:none}
+.canvas-box .corner{position:absolute;right:10px;top:8px;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+@media (max-width:640px){.canvas-box .corner{position:static;justify-content:flex-start;padding:8px 10px;border-top:1px solid var(--line)}}
+.controls{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px 18px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.ctl{display:flex;flex-direction:column;gap:3px;font-size:13.5px;min-width:0}
+.ctl .top{display:flex;justify-content:space-between;gap:8px}
+.ctl output{font-family:var(--font-mono);font-variant-numeric:tabular-nums;color:var(--accent)}
+.ctl input[type=range]{width:100%;accent-color:var(--accent)}
+.checks{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center}
+.switch{display:inline-flex;gap:6px;align-items:center;cursor:pointer;user-select:none}
+.switch input{accent-color:var(--accent);width:16px;height:16px}
+.sw-dot{width:10px;height:10px;border-radius:3px;display:inline-block}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:5px 11px;cursor:pointer;font-size:13.5px}
+.btn:hover{border-color:var(--select)}
+.btn[aria-pressed="true"]{background:var(--select);border-color:var(--select);color:var(--surface)}
+.readout{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;margin:0}
+.readout div{background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:8px 10px;min-width:0}
+.readout dt{font-size:12px;color:var(--muted)}
+.readout dd{margin:0;font-family:var(--font-mono);font-variant-numeric:tabular-nums;font-size:15px;overflow-wrap:anywhere}
+.readout dd.zh{font-family:var(--font-body);font-weight:500}
+.hint{font-size:13px;color:var(--muted)}
+.notes{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.notes h3{font-size:17px;color:var(--select);margin-bottom:6px}
+.notes ol{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px;font-size:14.5px}
+.notes b{color:var(--accent)}
+.pick-item{display:inline-flex;align-items:center;gap:4px}
+.pick-item input{accent-color:var(--accent);width:16px;height:16px}
+.pick-item .solid{color:var(--muted);font-size:12px}
+.btn[aria-pressed="true"] .solid{color:inherit;opacity:.8}
+.legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:13px;color:var(--muted);margin:0;padding:0;list-style:none}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-1px;margin-right:5px;border:1px solid var(--line)}
+footer{border-top:1px solid var(--line);padding-block:16px 26px;color:var(--muted);font-size:13px}
+/* 觸控裝置（iPad、手機）：觸控目標至少 44px */
+@media (pointer:coarse){
+  .tab,.btn,button,select{min-height:44px}
+  .switch{min-height:44px;display:inline-flex;align-items:center}
+  input[type=range]{height:44px}
+}
+/* 手機寬度：介面文字至少 16px */
+@media (max-width:600px){
+  body{font-size:16px}
+  p,li,span,button,select,label,output,dt,dd,b,.hint,.ctl,.switch,.tab,.btn,.eyebrow,.lead,.readout dt,.readout dd,.notes,footer,.pick-item .solid{font-size:16px}
+}
+</style>
+</head>
+<body>
+
+<header class="mast">
+  <div class="wrap">
+    <p class="eyebrow">自然 第三冊 · 4-4 透鏡成像 · 延伸觀察</p>
+    <h1>凸透鏡成像 2D・3D</h1>
+    <p class="lead">不只看一支箭頭：把整個圖形放到凸透鏡前，每一個點各自成像，像會被拉長、壓扁、翻轉。2D 和 3D 用的是同一組圖形，3D 只是幫它加上厚度；在任一頁調整位置與大小，另一頁也跟著變。</p>
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" id="tab-2d" data-tab="2d" aria-selected="true"><b>2D</b>平面圖形的像</button>
+      <button class="tab" role="tab" id="tab-3d" data-tab="3d" aria-selected="false"><b>3D</b>立體物的像</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+<section class="panel">
+  <div class="canvas-box" data-panel="2d"><canvas id="cv2" aria-label="凸透鏡與平面圖形的像，可拖動左側圖形"></canvas></div>
+  <div class="canvas-box" data-panel="3d" hidden><canvas id="cv3" aria-label="同一組圖形加上厚度後的立體像，可拖動旋轉視角"></canvas>
+    <div class="corner" id="views"><button class="btn" data-view="oblique" aria-pressed="true">斜上方</button><button class="btn" data-view="side" aria-pressed="false">正側面（＝2D）</button><button class="btn" data-view="top" aria-pressed="false">正上方</button><button class="btn" data-view="eye" aria-pressed="false">從透鏡右邊看</button></div>
+  </div>
+  <p class="hint" data-panel="2d">拖動左邊的圖形，或用下面的滑桿改變它的位置與大小。實像畫成實心，虛像畫成斜線、虛線外框。黑點是選取圖形的標記點，彩色線是它的三條特殊光線。</p>
+  <p class="hint" data-panel="3d" hidden>這裡的立體物，就是 2D 頁的同一組圖形加上前後厚度：長方形 → 長方體、三角形 → 三角柱、圓形 → 圓柱、箭頭 → 箭頭板。彩色面朝向你，灰色面在背後。在畫面上拖動可旋轉視角；虛像半透明、虛線外框；細線是標記點通過透鏡中心的光線。</p>
+  <div class="controls">
+    <div class="ctl" style="grid-column:1/-1"><span>選取的圖形（兩頁共用）</span><div class="checks" id="pick"></div></div>
+    <div class="ctl"><div class="top"><label for="pp">物距（圖形最靠近透鏡處）</label><output for="pp"></output></div><input type="range" id="pp" min="0.15" max="9" step="0.05" value="4"></div>
+    <div class="ctl"><div class="top"><label for="sw">寬（沿主軸）</label><output for="sw"></output></div><input type="range" id="sw" min="0.3" max="3" step="0.05" value="1"></div>
+    <div class="ctl"><div class="top"><label for="sh">高</label><output for="sh"></output></div><input type="range" id="sh" min="0.3" max="3" step="0.05" value="1"></div>
+    <div class="ctl"><div class="top"><label for="ff">焦距 f</label><output for="ff"></output></div><input type="range" id="ff" min="1.5" max="4" step="0.1" value="2.4"></div>
+    <div class="ctl" data-panel="3d" hidden><div class="top"><label for="tz">厚度（前後，3D）</label><output for="tz"></output></div><input type="range" id="tz" min="0.3" max="3" step="0.1" value="1.2"></div>
+    <div class="ctl" data-panel="3d" hidden><div class="top"><label for="zm">放大畫面（3D）</label><output for="zm"></output></div><input type="range" id="zm" min="0.6" max="2.2" step="0.05" value="1"></div>
+    <div class="ctl"><span>其他</span><div class="checks"><label class="switch"><input type="checkbox" id="rays" checked> 標記點的光線</label><label class="switch"><input type="checkbox" id="virt" checked> 顯示虛像</label><button class="btn" id="reset" type="button">圖形回到原位</button></div></div>
+  </div>
+  <dl class="readout" id="out"></dl>
+  <div class="notes" data-panel="2d">
+    <h3>觀察重點</h3>
+    <ol>
+      <li>長方形的像為什麼變成<b>梯形</b>？比較長方形「靠近透鏡的邊」和「遠離透鏡的邊」的物距，看讀數中兩端的放大率。</li>
+      <li>只拉「寬」、不拉「高」：像的寬（沿主軸）怎麼變？讀數的「寬度放大率」為什麼剛好等於兩端放大率相乘？</li>
+      <li>把長方形整個移到 <b>2F 外</b>、<b>F 與 2F 之間</b>，像的寬度各變長還是變短？</li>
+      <li>把圓形慢慢拖過 <b>F</b>：圓形跨在焦點上時，像為什麼分成兩塊、而且延伸到畫面外？</li>
+    </ol>
+  </div>
+  <div class="notes" data-panel="3d" hidden>
+    <h3>觀察重點</h3>
+    <ol>
+      <li>按「正側面（＝2D）」：看到的和 2D 頁一樣嗎？（立體圖有透視，所以會有一點差別。）</li>
+      <li>按「從透鏡右邊看」：彩色面跑到哪一邊了？實像是<b>上下顛倒</b>、<b>前後（左右）顛倒</b>，還是兩個都有？</li>
+      <li>拉「厚度」：像的前後厚度跟著「高」一起放大；沿主軸的寬卻是兩端放大率相乘。為什麼同一個物體，三個方向放大的倍數不一樣？</li>
+      <li>把圖形移到 F 內，虛像在哪一邊？是正立還是倒立？</li>
+    </ol>
+  </div>
+</section>
+</main>
+
+<footer><div class="wrap">依幾何光學的理想薄透鏡（近軸）計算：物體上每一點各自用 1/p ＋ 1/q ＝ 1/f 成像，所以透鏡畫多大都不影響結果。實際透鏡有像差，靠近透鏡邊緣或角度很大的光線會偏離這個結果。</div></footer>
+
+<script>
+(() => {
+'use strict';
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const DPR = () => window.devicePixelRatio || 1;
+const fx = (v, n = 1) => (Math.round(v * 10 ** n) / 10 ** n).toFixed(n);
+let C = {};
+function readTheme() {
+  const cs = getComputedStyle(document.documentElement), g = n => cs.getPropertyValue(n).trim();
+  ['sim-bg', 'sim-grid', 'axis', 'lens', 'ink', 'muted', 'ray', 'ray-2', 'ray-3', 's1', 's2', 's3', 's4', 'accent', 'select', 'f-zn'].forEach(k => { C[k] = g('--' + k); });
+  C.body = g('--font-body'); C.mono = g('--font-mono');
+}
+readTheme();
+const rgb = hex => { const h = hex.replace('#', ''); return [0, 2, 4].map(i => parseInt(h.slice(i, i + 2), 16)); };
+const rgba = (hex, a) => { const [r, g, b] = rgb(hex); return `rgba(${r},${g},${b},${a})`; };
+function text(ctx, t, x, y, col, o = {}) {
+  ctx.save(); ctx.fillStyle = col; ctx.font = `${o.weight || 400} ${o.size || 12}px ${o.font || C.body}`;
+  ctx.textAlign = o.align || 'left'; ctx.textBaseline = o.base || 'middle'; ctx.fillText(t, x, y); ctx.restore();
+}
+function readout(el, rows) { el.innerHTML = rows.map(([k, v, zh]) => `<div><dt>${k}</dt><dd${zh ? ' class="zh"' : ''}>${v}</dd></div>`).join(''); }
+class Stage {
+  constructor(canvas, opt) { this.c = canvas; this.ctx = canvas.getContext('2d'); Object.assign(this, opt); new ResizeObserver(() => this.resize()).observe(canvas.parentElement); }
+  resize() { const w = this.c.parentElement.clientWidth; if (!w) return; const h = Math.round(clamp(w * this.aspect, this.minH, this.maxH)), d = DPR();
+    this.c.width = Math.round(w * d); this.c.height = Math.round(h * d); this.c.style.height = h + 'px'; this.w = w; this.h = h; this.render(); }
+  render() { if (!this.w || this.c.offsetParent === null) return; const ctx = this.ctx; ctx.setTransform(DPR(), 0, 0, DPR(), 0, 0); ctx.clearRect(0, 0, this.w, this.h); ctx.save(); this.draw(ctx, this.w, this.h); ctx.restore(); }
+}
+/* 薄透鏡：物點 (x<0) → 像點。x' = f·x/(x+f)，y' = f·y/(x+f)，z' = f·z/(x+f)
+   x' > 0：實像（透鏡右邊）；x' < 0：虛像（透鏡左邊） */
+const lensMap = (f, x, y, z = 0) => { const s = f / (x + f); return [x * s, y * s, z * s]; };
+const qOf = (f, p) => p * f / (p - f);
+
+/* ============================== 共用的圖形 ============================== */
+const S = { f: 2.4, sel: 0, rays: true, virt: true, tz: 1.2, zoom: 1, yaw: -0.55, pitch: 0.32, tab: '2d' };
+const centroid = P => [P.reduce((s, p) => s + p[0], 0) / P.length, P.reduce((s, p) => s + p[1], 0) / P.length];
+function mkShape(name, solid, col, P, h, on) { const [cx, cy] = centroid(P); return { name, solid, col, base: P.map(([x, y]) => [x - cx, y - cy]), cx, cy, sx: 1, sy: 1, h, on, home: [cx, cy] }; }
+const circ = Array.from({ length: 48 }, (_, i) => [-3.9 + 0.75 * Math.cos(i / 48 * 2 * Math.PI), -3.4 + 0.75 * Math.sin(i / 48 * 2 * Math.PI)]);
+const SHAPES = () => [
+  mkShape('長方形', '長方體', 's1', [[-8, 0.5], [-4, 0.5], [-4, 2.5], [-8, 2.5]], 2, true),
+  mkShape('三角形', '三角柱', 's2', [[-9.6, -3.8], [-8, -4.6], [-8, -2.6]], 0, true),
+  mkShape('圓形', '圓柱', 's3', circ, 0, true),
+  mkShape('箭頭', '箭頭板', 's4', [[-6.15, 0], [-5.85, 0], [-5.85, 2.2], [-5.5, 2.2], [-6, 3], [-6.5, 2.2], [-6.15, 2.2]], 4, false),
+];
+let shapes = SHAPES();
+const pts = s => s.base.map(([x, y]) => [s.cx + x * s.sx, s.cy + y * s.sy]);
+const bbox = P => P.reduce((b, [x, y]) => [Math.min(b[0], x), Math.min(b[1], y), Math.max(b[2], x), Math.max(b[3], y)], [1e9, 1e9, -1e9, -1e9]);
+function keepIn(s) { const b = bbox(pts(s)); if (b[2] > -0.15) s.cx -= b[2] + 0.15; if (b[0] < -10.3) s.cx += -10.3 - b[0]; if (b[3] > 4.9) s.cy -= b[3] - 4.9; if (b[1] < -4.9) s.cy += -4.9 - b[1]; }
+function pip(P, x, y) { let c = false; for (let i = 0, j = P.length - 1; i < P.length; j = i++) { const [xi, yi] = P[i], [xj, yj] = P[j]; if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) c = !c; } return c; }
+function mapper(w, h, x0, x1, y0, y1, pad) {
+  const s = Math.min((w - 2 * pad) / (x1 - x0), (h - 2 * pad) / (y1 - y0)), cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
+  return { s, X: x => w / 2 + (x - cx) * s, Y: y => h / 2 - (y - cy) * s, ix: px => cx + (px - w / 2) / s, iy: py => cy - (py - h / 2) / s };
+}
+
+/* ============================== 2D ============================== */
+let M2 = null; const off = document.createElement('canvas');
+const st2 = new Stage($('#cv2'), { aspect: 0.52, minH: 280, maxH: 560, draw(ctx, w, h) {
+  const f = S.f, m = mapper(w, h, -10.4, 10.4, -5, 5, 8); M2 = m;
+  ctx.fillStyle = C['sim-bg']; ctx.fillRect(0, 0, w, h);
+  ctx.save(); ctx.strokeStyle = C['sim-grid']; ctx.lineWidth = 1; ctx.setLineDash([2, 3]); ctx.beginPath();
+  for (let x = Math.ceil(m.ix(0)); x <= m.ix(w); x++) { const p = Math.round(m.X(x)) + .5; ctx.moveTo(p, 0); ctx.lineTo(p, h); }
+  for (let y = Math.ceil(m.iy(h)); y <= m.iy(0); y++) { const p = Math.round(m.Y(y)) + .5; ctx.moveTo(0, p); ctx.lineTo(w, p); }
+  ctx.stroke(); ctx.restore();
+  ctx.save(); ctx.fillStyle = rgba(C.lens, .25); ctx.strokeStyle = C.lens; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.ellipse(m.X(0), m.Y(0), 0.65 * m.s, 4.1 * m.s, 0, 0, 7); ctx.fill(); ctx.stroke(); ctx.restore();
+  const on = shapes.filter(s => s.on);
+  on.forEach(s => { const P = pts(s); ctx.save(); ctx.fillStyle = rgba(C[s.col], .3); ctx.strokeStyle = C[s.col]; ctx.lineWidth = s === shapes[S.sel] ? 2.6 : 1.6; ctx.beginPath(); P.forEach(([x, y], i) => i ? ctx.lineTo(m.X(x), m.Y(y)) : ctx.moveTo(m.X(x), m.Y(y))); ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.restore(); });
+  // 像：逐像素反推「這一點是哪一個物點的像」
+  const W = Math.ceil(w), H = Math.ceil(h); off.width = W; off.height = H; const oc = off.getContext('2d'), img = oc.createImageData(W, H), D = img.data;
+  const act = on.map(s => { const P = pts(s); return { P, b: bbox(P), c: rgb(C[s.col]) }; }).reverse();
+  for (let py = 0; py < H; py++) { const yi = m.iy(py + .5);
+    for (let px = 0; px < W; px++) { const xi = m.ix(px + .5); let virt;
+      if (xi > f) virt = false; else if (xi < 0 && S.virt) virt = true; else continue;
+      const xo = xi * f / (f - xi), yo = yi * (xo + f) / f;
+      for (const a of act) { if (xo < a.b[0] || xo > a.b[2] || yo < a.b[1] || yo > a.b[3] || !pip(a.P, xo, yo)) continue;
+        const k = (py * W + px) * 4; D[k] = a.c[0]; D[k + 1] = a.c[1]; D[k + 2] = a.c[2]; D[k + 3] = virt ? (((px + py) % 7) < 2 ? 150 : 45) : 150; break; } } }
+  oc.putImageData(img, 0, 0); ctx.drawImage(off, 0, 0, w, h);
+  on.forEach(s => { const P = pts(s), n = P.length; ctx.save(); ctx.strokeStyle = C[s.col]; ctx.lineWidth = 1.8;
+    for (let i = 0; i < n; i++) { const [x1, y1] = P[i], [x2, y2] = P[(i + 1) % n], N = 40; let prev = null;
+      for (let k = 0; k <= N; k++) { const x = x1 + (x2 - x1) * k / N, y = y1 + (y2 - y1) * k / N, real = x + f < 0, [X, Y] = lensMap(f, x, y);
+        const cur = { X, Y, real, ok: Math.abs(X) < 60 && Math.abs(Y) < 60 && (real || S.virt) };
+        if (prev && prev.ok && cur.ok && prev.real === cur.real) { ctx.setLineDash(real ? [] : [5, 4]); ctx.beginPath(); ctx.moveTo(m.X(prev.X), m.Y(prev.Y)); ctx.lineTo(m.X(X), m.Y(Y)); ctx.stroke(); }
+        prev = cur; } }
+    ctx.restore(); });
+  ctx.save(); ctx.strokeStyle = C.axis; ctx.lineWidth = 1.3; ctx.beginPath(); ctx.moveTo(0, m.Y(0)); ctx.lineTo(w, m.Y(0)); ctx.moveTo(m.X(0), m.Y(4.6)); ctx.lineTo(m.X(0), m.Y(-4.6)); ctx.stroke(); ctx.restore();
+  [[-2 * f, '2F'], [-f, 'F'], [f, 'F'], [2 * f, '2F']].forEach(([x, t]) => { ctx.fillStyle = C.select; ctx.beginPath(); ctx.arc(m.X(x), m.Y(0), 4, 0, 7); ctx.fill(); text(ctx, t, m.X(x), m.Y(0) + 15, C.select, { align: 'center', size: 12, weight: 700, font: C.mono }); });
+  for (let x = -10; x <= 10; x += 2) if (x) text(ctx, String(x), m.X(x), m.Y(0) - 9, C.muted, { align: 'center', size: 10, font: C.mono });
+  const s = shapes[S.sel]; if (!s.on) return; const [hx, hy] = pts(s)[s.h];
+  ctx.fillStyle = C.ink; ctx.beginPath(); ctx.arc(m.X(hx), m.Y(hy), 5, 0, 7); ctx.fill();
+  if (!S.rays) return;
+  const p = -hx, R = (x1, y1, x2, y2, col, dash) => { ctx.save(); ctx.strokeStyle = col; ctx.lineWidth = 1.6; if (dash) ctx.setLineDash([5, 4]); ctx.globalAlpha = dash ? .7 : 1; ctx.beginPath(); ctx.moveTo(m.X(x1), m.Y(y1)); ctx.lineTo(m.X(x2), m.Y(y2)); ctx.stroke(); ctx.restore(); };
+  const xe = 10.4, yL3 = hy * f / (f - p);
+  R(hx, hy, 0, hy, C.ray); R(0, hy, xe, hy - hy / f * xe, C.ray);
+  R(hx, hy, xe, -hy * xe / p, C['ray-2']);
+  if (Math.abs(p - f) > 0.05) { R(hx, hy, 0, yL3, C['ray-3']); R(0, yL3, xe, yL3, C['ray-3']); }
+  const [X, Y] = lensMap(f, hx, hy);
+  if (p < f - 0.02) { R(0, hy, X, Y, C.ray, true); R(hx, hy, X, Y, C['ray-2'], true); R(0, yL3, X, Y, C['ray-3'], true); }
+  if (Math.abs(p - f) > 0.02 && Math.abs(X) < 11 && Math.abs(Y) < 5.2) { ctx.fillStyle = C.ink; ctx.beginPath(); ctx.arc(m.X(X), m.Y(Y), 4, 0, 7); ctx.fill(); }
+} });
+(() => { const cv = $('#cv2'); let drag = null;
+  const pos = e => { const r = cv.getBoundingClientRect(); return [M2.ix(e.clientX - r.left), M2.iy(e.clientY - r.top)]; };
+  const hit = (x, y) => { for (let i = shapes.length - 1; i >= 0; i--) { const s = shapes[i]; if (!s.on) continue; const P = pts(s), b = bbox(P);
+    if (pip(P, x, y) || (x > b[0] - .3 && x < b[2] + .3 && y > b[1] - .3 && y < b[3] + .3)) return i; } return -1; };
+  cv.addEventListener('pointerdown', e => { if (!M2) return; const [x, y] = pos(e), i = hit(x, y); if (i < 0) return; S.sel = i; drag = { x, y }; cv.setPointerCapture(e.pointerId); syncCtl(); update(); });
+  cv.addEventListener('pointermove', e => { if (!M2) return; const [x, y] = pos(e);
+    if (!drag) { cv.style.cursor = hit(x, y) >= 0 ? 'grab' : 'default'; return; }
+    const s = shapes[S.sel]; s.cx += x - drag.x; s.cy += y - drag.y; keepIn(s); drag = { x, y }; syncCtl(); update(); });
+  const end = () => { drag = null; }; cv.addEventListener('pointerup', end); cv.addEventListener('pointercancel', end);
+})();
+
+/* ============================== 3D：同一組圖形沿 z 加厚 ============================== */
+const VIEWS = { oblique: [-0.55, 0.32], side: [0, 0], top: [0, 1.5], eye: [Math.PI / 2 - 0.12, 0.12] };
+const v3 = { sub: (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]], dot: (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2],
+  cross: (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]], norm: a => { const l = Math.hypot(...a) || 1; return [a[0] / l, a[1] / l, a[2] / l]; } };
+const area = P => P.reduce((s, p, i) => { const q = P[(i + 1) % P.length]; return s + p[0] * q[1] - q[0] * p[1]; }, 0) / 2;
+function prism(s) {   // 圖形 → 柱體的面（外法線朝外）
+  let P = pts(s); if (area(P) < 0) P = P.slice().reverse();
+  const t = S.tz / 2, faces = [{ k: 'top', v: P.map(([x, y]) => [x, y, t]) }, { k: 'back', v: P.slice().reverse().map(([x, y]) => [x, y, -t]) }];
+  for (let i = 0; i < P.length; i++) { const a = P[i], b = P[(i + 1) % P.length]; faces.push({ k: 'wall', v: [[a[0], a[1], -t], [b[0], b[1], -t], [b[0], b[1], t], [a[0], a[1], t]] }); }
+  return faces;
+}
+function clipX(poly, c, keepLess) {
+  const out = [], inside = p => keepLess ? p[0] <= c : p[0] >= c;
+  for (let i = 0; i < poly.length; i++) { const a = poly[i], b = poly[(i + 1) % poly.length], ia = inside(a), ib = inside(b);
+    if (ia) out.push(a);
+    if (ia !== ib) { const t = (c - a[0]) / (b[0] - a[0]); out.push([c, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t]); } }
+  return out;
+}
+const XMAX = 16, Y3 = -5;
+function camera(w, h) {
+  const tg = [-0.5, 0, 0], dist = 40, cp = Math.cos(S.pitch), e = [tg[0] + dist * cp * Math.sin(S.yaw), tg[1] + dist * Math.sin(S.pitch), tg[2] + dist * cp * Math.cos(S.yaw)];
+  const fw = v3.norm(v3.sub(tg, e)), up0 = Math.abs(fw[1]) > 0.98 ? [0, 0, -1] : [0, 1, 0], rt = v3.norm(v3.cross(fw, up0)), up = v3.cross(rt, fw);
+  const fl = Math.min(w / 22, h / 11) * dist * S.zoom;
+  return { e, P(p) { const d = v3.sub(p, e), z = v3.dot(d, fw); return [w / 2 + fl * v3.dot(d, rt) / z, h / 2 - fl * v3.dot(d, up) / z, z]; } };
+}
+const st3 = new Stage($('#cv3'), { aspect: 0.56, minH: 320, maxH: 600, draw(ctx, w, h) {
+  const f = S.f, c = camera(w, h);
+  ctx.fillStyle = C['sim-bg']; ctx.fillRect(0, 0, w, h);
+  const seg = (p1, p2, col, lw = 1.2, dash = null, al = 1) => { const A = c.P(p1), B = c.P(p2); if (A[2] < 0.5 || B[2] < 0.5) return; ctx.save(); ctx.globalAlpha = al; ctx.strokeStyle = col; ctx.lineWidth = lw; if (dash) ctx.setLineDash(dash); ctx.beginPath(); ctx.moveTo(A[0], A[1]); ctx.lineTo(B[0], B[1]); ctx.stroke(); ctx.restore(); };
+  for (let x = -16; x <= 16; x += 2) seg([x, Y3, -6], [x, Y3, 6], C['sim-grid'], 1);
+  for (let z = -6; z <= 6; z += 2) seg([-16, Y3, z], [16, Y3, z], C['sim-grid'], 1);
+  seg([-17, 0, 0], [17, 0, 0], C.axis, 1.4);
+  const a = -XMAX * f / (XMAX - f), b = -XMAX * f / (f + XMAX), items = [];
+  shapes.forEach((s, si) => { if (!s.on) return; const faces = prism(s);
+    items.push({ kind: 'obj', s, si, faces });
+    const mp = (keepLess, cc) => faces.map(fc => { const v = clipX(fc.v, cc, keepLess); return v.length >= 3 ? { ...fc, v: v.map(p => lensMap(f, ...p)) } : null; }).filter(Boolean);
+    const B = bbox(pts(s));
+    if (B[0] < a) items.push({ kind: 'real', s, si, faces: mp(true, a) });
+    if (S.virt && B[2] > b) items.push({ kind: 'virt', s, si, faces: mp(false, b) });
+  });
+  items.push({ kind: 'lens', faces: [{ v: Array.from({ length: 48 }, (_, i) => [0, 4.1 * Math.cos(i / 48 * 2 * Math.PI), 4.1 * Math.sin(i / 48 * 2 * Math.PI)]) }] });
+  items.forEach(it => { let sm = 0, n = 0; it.faces.forEach(fc => fc.v.forEach(p => { sm += c.P(p)[2]; n++; })); it.z = n ? sm / n : 0; });
+  items.sort((A, B) => B.z - A.z);
+  const L = v3.norm([0.4, 0.8, 0.5]);
+  for (const it of items) {
+    if (it.kind === 'lens') { const P = it.faces[0].v.map(p => c.P(p)); if (P.some(p => p[2] < 0.5)) continue;
+      ctx.save(); ctx.fillStyle = rgba(C.lens, .25); ctx.strokeStyle = C.lens; ctx.lineWidth = 1.5; ctx.beginPath(); P.forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])); ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.restore(); continue; }
+    const virt = it.kind === 'virt', al = virt ? 0.35 : 0.95, base = rgb(C[it.s.col]), grey = rgb(C['f-zn']);
+    const vis = it.faces.map(fc => { const v = fc.v; let n = [0, 0, 0];
+      for (let i = 0; i < v.length; i++) { const p = v[i], q = v[(i + 1) % v.length]; n[0] += (p[1] - q[1]) * (p[2] + q[2]); n[1] += (p[2] - q[2]) * (p[0] + q[0]); n[2] += (p[0] - q[0]) * (p[1] + q[1]); }
+      n = v3.norm(n); const cen = v.reduce((s, p) => [s[0] + p[0] / v.length, s[1] + p[1] / v.length, s[2] + p[2] / v.length], [0, 0, 0]);
+      return { fc, n, cen, show: v3.dot(n, v3.sub(c.e, cen)) > 0, z: c.P(cen)[2] }; });
+    const list = (virt ? vis : vis.filter(o => o.show)).sort((A, B) => B.z - A.z);
+    const edge = it.faces.length > 20;   // 圓柱的側面很多片，不畫每片的邊線
+    for (const o of list) { const P = o.fc.v.map(p => c.P(p)); if (P.some(p => p[2] < 0.5)) continue;
+      const col = o.fc.k === 'back' ? grey : base, sh = (o.fc.k === 'wall' ? 0.55 : 0.75) + 0.3 * Math.abs(v3.dot(o.n, L));
+      ctx.save(); ctx.globalAlpha = virt && !o.show ? al * 0.5 : al; ctx.fillStyle = `rgb(${Math.min(255, col[0] * sh) | 0},${Math.min(255, col[1] * sh) | 0},${Math.min(255, col[2] * sh) | 0})`;
+      ctx.beginPath(); P.forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])); ctx.closePath(); ctx.fill();
+      if (!edge || o.fc.k !== 'wall') { ctx.strokeStyle = C.ink; ctx.lineWidth = it.si === S.sel ? 1.3 : 0.8; ctx.globalAlpha = Math.min(1, al + .25); if (virt) ctx.setLineDash([4, 3]); ctx.stroke(); }
+      ctx.restore(); }
+  }
+  // 標記點：通過透鏡中心的光線
+  const s = shapes[S.sel];
+  if (s.on && S.rays) { const [hx, hy] = pts(s)[s.h], O = [hx, hy, S.tz / 2], I = lensMap(f, ...O), real = hx + f < 0;
+    if (Math.abs(I[0]) <= XMAX) { seg(O, [0, 0, 0], C['ray-2'], 1.6);
+      if (real) seg([0, 0, 0], I, C['ray-2'], 1.6); else { seg([0, 0, 0], O.map(v => -v * 0.8), C['ray-2'], 1.6); if (S.virt) seg([0, 0, 0], I, C['ray-2'], 1.2, [5, 4], .8); }
+      [O, I].forEach((p, k) => { if (k && !real && !S.virt) return; const A = c.P(p); if (A[2] > 0.5) { ctx.fillStyle = C.ink; ctx.beginPath(); ctx.arc(A[0], A[1], 4, 0, 7); ctx.fill(); } }); } }
+  [[-2 * f, '2F'], [-f, 'F'], [f, 'F'], [2 * f, '2F']].forEach(([x, t]) => { const A = c.P([x, 0, 0]); if (A[2] < 0.5) return; ctx.fillStyle = C.select; ctx.beginPath(); ctx.arc(A[0], A[1], 3.5, 0, 7); ctx.fill(); text(ctx, t, A[0], A[1] + 13, C.select, { align: 'center', size: 11.5, weight: 700, font: C.mono }); });
+} });
+(() => { const cv = $('#cv3'); let d = null;
+  cv.addEventListener('pointerdown', e => { d = { x: e.clientX, y: e.clientY }; cv.setPointerCapture(e.pointerId); cv.style.cursor = 'grabbing'; });
+  cv.addEventListener('pointermove', e => { if (!d) return; S.yaw -= (e.clientX - d.x) * 0.008; S.pitch = clamp(S.pitch + (e.clientY - d.y) * 0.008, -1.5, 1.5); d = { x: e.clientX, y: e.clientY };
+    $$('#views .btn').forEach(b => b.setAttribute('aria-pressed', 'false')); st3.render(); });
+  const end = () => { d = null; cv.style.cursor = 'grab'; }; cv.addEventListener('pointerup', end); cv.addEventListener('pointercancel', end); cv.style.cursor = 'grab';
+})();
+$('#views').addEventListener('click', e => { const b = e.target.closest('[data-view]'); if (!b) return; [S.yaw, S.pitch] = VIEWS[b.dataset.view];
+  $$('#views .btn').forEach(x => x.setAttribute('aria-pressed', x === b ? 'true' : 'false')); st3.render(); });
+
+/* ============================== 控制與讀數 ============================== */
+const ctl = id => ({ el: $('#' + id), out: $(`output[for="${id}"]`) });
+const K = { pp: ctl('pp'), sw: ctl('sw'), sh: ctl('sh'), ff: ctl('ff'), tz: ctl('tz'), zm: ctl('zm') };
+function syncCtl() { const s = shapes[S.sel], b = bbox(pts(s));
+  K.pp.el.value = -b[2]; K.pp.out.textContent = fx(-b[2], 2) + ' cm';
+  K.sw.el.value = s.sx; K.sw.out.textContent = '× ' + fx(s.sx, 2) + `（${fx(b[2] - b[0], 2)} cm）`;
+  K.sh.el.value = s.sy; K.sh.out.textContent = '× ' + fx(s.sy, 2) + `（${fx(b[3] - b[1], 2)} cm）`;
+  $$('#pick input').forEach((x, i) => { x.checked = shapes[i].on; }); $$('#pick .btn').forEach((x, i) => x.setAttribute('aria-pressed', i === S.sel ? 'true' : 'false')); }
+function on(id, fn) { K[id].el.addEventListener('input', () => { fn(+K[id].el.value); syncCtl(); update(); }); }
+on('pp', v => { const s = shapes[S.sel], b = bbox(pts(s)); s.cx += -v - b[2]; keepIn(s); });
+on('sw', v => { const s = shapes[S.sel]; s.sx = v; keepIn(s); });
+on('sh', v => { const s = shapes[S.sel]; s.sy = v; keepIn(s); });
+const showF = () => { K.ff.out.textContent = fx(S.f) + ' cm'; K.tz.out.textContent = fx(S.tz) + ' cm'; K.zm.out.textContent = '× ' + fx(S.zoom, 2); };
+on('ff', v => { S.f = v; showF(); }); on('tz', v => { S.tz = v; showF(); }); on('zm', v => { S.zoom = v; showF(); });
+$('#pick').innerHTML = shapes.map((s, i) => `<span class="pick-item"><input type="checkbox" id="on-${i}" aria-label="顯示${s.name}"${s.on ? ' checked' : ''}><button class="btn" type="button" data-i="${i}" aria-pressed="false"><span class="sw-dot" style="background:var(--${s.col})"></span> ${s.name}<span class="solid">／${s.solid}</span></button></span>`).join('');
+$('#pick').addEventListener('click', e => { const b = e.target.closest('button[data-i]'); if (!b) return; S.sel = +b.dataset.i; shapes[S.sel].on = true; syncCtl(); update(); });
+$('#pick').addEventListener('change', e => { const i = +e.target.id.split('-')[1]; shapes[i].on = e.target.checked; if (e.target.checked) S.sel = i; syncCtl(); update(); });
+$('#rays').addEventListener('change', e => { S.rays = e.target.checked; update(); });
+$('#virt').addEventListener('change', e => { S.virt = e.target.checked; update(); });
+$('#reset').addEventListener('click', () => { const ons = shapes.map(s => s.on); shapes = SHAPES(); shapes.forEach((s, i) => { s.on = ons[i]; }); syncCtl(); update(); });
+
+function update() {
+  st2.render(); st3.render(); const f = S.f, s = shapes[S.sel];
+  if (!s.on) { readout($('#out'), [['選取的圖形', s.name + '（目前隱藏）', 1]]); return; }
+  const P = pts(s), b = bbox(P), [hx] = P[s.h], p = -hx, near = -b[2], far = -b[0];
+  const q = qOf(f, p), mm = Math.abs(q / p), onF = Math.abs(p - f) < 0.02;
+  const kind = onF ? '在焦點上：不成像' : p > f ? `倒立・${mm > 1.005 ? '放大' : mm < 0.995 ? '縮小' : '等大'}・實像` : '正立・放大・虛像';
+  const across = near < f && far > f, mN = Math.abs(f / (near - f)), mF = Math.abs(f / (far - f)), wO = far - near, wI = Math.abs(qOf(f, near) - qOf(f, far));
+  const whole = across || Math.abs(near - f) < 0.02 || Math.abs(far - f) < 0.02 ? '跨過 F：一部分實像、一部分虛像，像延伸到很遠' : near > f ? '全部在 F 外：只有實像' : '全部在 F 內：只有虛像';
+  const rows = [[S.tab === '3d' ? '選取的立體' : '選取的圖形', S.tab === '3d' ? s.solid : s.name, 1], ['標記點物距 p', fx(p, 2) + ' cm'], ['標記點像距 q', onF ? '無限遠' : (q < 0 ? '虛像 ' : '') + fx(Math.abs(q), 2) + ' cm'],
+    ['標記點的像', kind, 1], ['整個圖形', whole, 1]];
+  if (!across && Math.abs(near - f) > 0.02 && Math.abs(far - f) > 0.02) {
+    rows.push(['高度放大率（近端／遠端）', `× ${fx(mN, 2)} ／ × ${fx(mF, 2)}`], ['寬（沿主軸）物 → 像', `${fx(wO, 2)} → ${fx(wI, 2)} cm`], ['寬度放大率', `× ${fx(wI / wO, 2)}（＝ ${fx(mN, 2)} × ${fx(mF, 2)}）`]);
+    if (S.tab === '3d') rows.push(['厚度（前後）物 → 像', `${fx(S.tz, 1)} → 近端 ${fx(S.tz * mN, 2)}、遠端 ${fx(S.tz * mF, 2)} cm`]);
+  }
+  readout($('#out'), rows);
+}
+
+/* ============================== 分頁與主題 ============================== */
+function showTab(k) {
+  if (k !== '2d' && k !== '3d') k = '2d'; S.tab = k;
+  $$('.tab').forEach(t => t.setAttribute('aria-selected', t.dataset.tab === k ? 'true' : 'false'));
+  $$('[data-panel]').forEach(p => { p.hidden = p.dataset.panel !== k; });
+  if (location.hash !== '#' + k) history.replaceState(null, '', '#' + k);
+  requestAnimationFrame(() => { st2.resize(); st3.resize(); update(); });
+}
+$('.tabs').addEventListener('click', e => { const t = e.target.closest('.tab'); if (t) showTab(t.dataset.tab); });
+window.addEventListener('hashchange', () => showTab(location.hash.slice(1)));
+const onTheme = () => { readTheme(); update(); };
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', onTheme);
+new MutationObserver(onTheme).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+if (document.fonts) document.fonts.ready.then(update);
+showF(); syncCtl(); showTab(location.hash.slice(1));
+})();
+</script>
+</body>
+</html>
