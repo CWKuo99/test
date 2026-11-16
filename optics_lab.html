@@ -178,9 +178,19 @@ th{font-weight:500;color:var(--muted);font-size:12.5px}
 .anim-row{align-items:center}
 /* 調整參數的面板放在模擬圖上方（方便學生操作）：只改視覺順序 */
 .lab > .lab-head:first-child{order:-2}
-.lab > .controls, #bn-ctl-cols{order:-1}
+.lab > .controls, #bn-ctl-cols, .lab > .anim-row, .lab > .anim-row + .legend{order:-1}
 .bn-side{display:flex;flex-direction:column;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;min-width:0}
 #bn-view-cols{align-items:start}
+.inst-cols{align-items:start}
+.inst-top{align-items:stretch}
+.inst-ctl{display:flex;flex-direction:column;gap:8px;min-width:0}
+.inst-ctl > .controls{grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
+.inst-top > .design-card{align-self:stretch}
+@media (min-width:720px){.inst-cols{grid-template-columns:minmax(0,1.6fr) minmax(0,1fr)}.inst-top{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
+.inst-side{display:flex;flex-direction:column;gap:10px;min-width:0}
+.design-card{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--select);border-radius:10px;padding:10px 14px;font-size:14px;line-height:1.55}
+.design-card h4{font-size:15px;color:var(--select);margin:0 0 4px}
+.design-card ol{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px}
 #bn-ctl-cols > .controls{align-content:start}
 @media (min-width:720px){#bn-view-cols{grid-template-columns:minmax(0,1.6fr) minmax(0,1fr)}}
 #bn-view-cols:has(> #bn-screen-box[hidden]){grid-template-columns:minmax(0,1fr)}
@@ -223,7 +233,7 @@ footer{border-top:1px solid var(--line);padding-block:18px 28px;color:var(--mute
 /* 手機寬度：介面文字至少 16px */
 @media (max-width:600px){
   body{font-size:16px}
-  .hint,.legend,.readout dt,.readout dd,.ctl,.ctl label,.ctl output,.ctl span,.switch,.tab,.tab .sec,.seg button,.btn,.eyebrow,.tag,select,th,td,footer,footer .wrap,b{font-size:16px}
+  .design-card,.design-card h4,.hint,.legend,.readout dt,.readout dd,.ctl,.ctl label,.ctl output,.ctl span,.switch,.tab,.tab .sec,.seg button,.btn,.eyebrow,.tag,select,th,td,footer,footer .wrap,b{font-size:16px}
 }
 </style>
 
@@ -506,29 +516,54 @@ footer{border-top:1px solid var(--line);padding-block:18px 28px;color:var(--mute
     <dl class="readout" id="ey-out"></dl>
     </div>
     <div data-for="camera" class="lab" hidden>
-      <div class="cols two">
-        <div class="canvas-box"><canvas id="cam-canvas" aria-label="照相機光路圖"></canvas></div>
-        <div class="canvas-box dark"><canvas id="cam-view" aria-label="感光元件上的影像"></canvas></div>
-      </div>
+      <div class="cols two inst-top">
+        <div class="inst-ctl">
       <div class="controls">
         <div class="ctl"><div class="top"><label for="cam-p">物距（物體到鏡頭）</label><output for="cam-p"></output></div><input type="range" id="cam-p" min="15" max="300" step="1" value="300"></div>
         <div class="ctl"><div class="top"><label for="cam-s">對焦：鏡頭到感光元件</label><output for="cam-s"></output></div><input type="range" id="cam-s" min="5" max="7.6" step="0.05" value="5.1"></div>
         <div class="ctl"><span>光圈</span><div class="seg" id="cam-a"><button data-v="2" aria-pressed="true">大（2 cm）</button><button data-v="0.6" aria-pressed="false">小（0.6 cm）</button></div></div>
       </div>
-      <dl class="readout" id="cam-out"></dl>
-      <p class="hint">鏡頭是焦距 5 cm 的凸透鏡，物體高 20 cm。相機內部依比例畫，左邊物體的距離未依比例。</p>
+      <div class="row-btns anim-row" id="cam-anim-row"><label class="switch"><input type="checkbox" id="cam-anim"> 光前進動畫（一步步看光怎麼走）</label><span class="row-btns anim-bar" id="cam-anim-bar" hidden><button class="btn primary" id="cam-anim-play" type="button">⏸ 暫停</button><button class="btn" id="cam-anim-step" type="button">下一步 ⏭</button><button class="btn" id="cam-anim-replay" type="button">↺ 重播</button><span class="seg" id="cam-anim-speed"><button type="button" data-v="slow" aria-pressed="false">慢</button><button type="button" data-v="mid" aria-pressed="true">中</button><button type="button" data-v="fast" aria-pressed="false">快</button></span><span class="hint">● 光真的走的路</span></span></div>
+      <ul class="legend" id="cam-legend"></ul>
+        </div>
+        <div class="design-card"><h4>照相機的設計原理</h4><ol>
+          <li><b>鏡頭是凸透鏡</b>：物體在 2 倍焦距外，在鏡頭後方形成<b>倒立、縮小的實像</b>。</li>
+          <li><b>感光元件＝屏幕</b>：放在像的位置，才拍得清楚（就像眼睛的視網膜）。</li>
+          <li><b>對焦</b>：物體越近，像離鏡頭越遠，所以要調整鏡頭到感光元件的距離。</li>
+          <li><b>光圈</b>：光圈小，進光少、畫面較暗，但光在元件上散開的範圍小，不容易模糊。</li>
+        </ol></div>
+      </div>
+      <div class="cols two inst-cols">
+        <div class="canvas-box"><canvas id="cam-canvas" aria-label="照相機光路圖"></canvas></div>
+        <div class="canvas-box dark"><canvas id="cam-view" aria-label="感光元件上的影像"></canvas></div>
+      </div>
+<dl class="readout" id="cam-out"></dl>
+      <p class="hint">鏡頭是焦距 5 cm 的凸透鏡，物體高 20 cm。相機內部依比例畫；物體在畫面左邊很遠的地方，畫面只畫出從物體頂端射來的光，光的方向是真實角度。</p>
     </div>
     <div data-for="micro" class="lab" hidden>
-      <div class="cols two">
-        <div class="canvas-box"><canvas id="ms-canvas" aria-label="顯微鏡光路圖"></canvas></div>
-        <div class="canvas-box dark"><canvas id="ms-view" aria-label="從目鏡看到的視野"></canvas></div>
-      </div>
+      <div class="cols two inst-top">
+        <div class="inst-ctl">
       <div class="controls">
         <div class="ctl"><span>物鏡</span><div class="seg" id="ms-obj"><button data-v="2" aria-pressed="true">低倍</button><button data-v="1" aria-pressed="false">高倍</button></div></div>
         <div class="ctl"><div class="top"><label for="ms-p">粗調</label><output for="ms-p"></output></div><input type="range" id="ms-p" min="2.14" max="3" step="0.01" value="2.6"></div>
         <div class="ctl"><div class="top"><label for="ms-f">細調</label><output for="ms-f"></output></div><input type="range" id="ms-f" min="-0.08" max="0.08" step="0.0008" value="0"></div>
+        <div class="ctl checks"><label class="switch"><input type="checkbox" id="ms-wide"> 縮小畫面，看最後的虛像在哪裡</label></div>
       </div>
-      <dl class="readout" id="ms-out"></dl>
+      <div class="row-btns anim-row" id="ms-anim-row"><label class="switch"><input type="checkbox" id="ms-anim"> 光前進動畫（一步步看光怎麼走）</label><span class="row-btns anim-bar" id="ms-anim-bar" hidden><button class="btn primary" id="ms-anim-play" type="button">⏸ 暫停</button><button class="btn" id="ms-anim-step" type="button">下一步 ⏭</button><button class="btn" id="ms-anim-replay" type="button">↺ 重播</button><span class="seg" id="ms-anim-speed"><button type="button" data-v="slow" aria-pressed="false">慢</button><button type="button" data-v="mid" aria-pressed="true">中</button><button type="button" data-v="fast" aria-pressed="false">快</button></span><span class="hint">● 光真的走的路　◌ 虛線＝反向延長線（光沒有走過）</span></span></div>
+      <ul class="legend" id="ms-legend"></ul>
+        </div>
+        <div class="design-card"><h4>顯微鏡的設計原理</h4><ol>
+          <li><b>物鏡</b>（焦距很短）：標本放在物鏡焦點外一點點，形成<b>倒立、放大的實像</b>（中間像）。</li>
+          <li><b>目鏡</b>（當放大鏡）：中間像落在目鏡焦點內，目鏡再把它放大成<b>虛像</b>，所以最後看到<b>倒立、放大的虛像</b>。</li>
+          <li><b>總放大率</b> ＝ 物鏡放大率 × 目鏡放大率。</li>
+          <li><b>對焦</b>：鏡筒長度固定，用粗調、細調改變標本到物鏡的距離，讓中間像落在目鏡焦點內附近。</li>
+        </ol></div>
+      </div>
+      <div class="cols two inst-cols">
+        <div class="canvas-box"><canvas id="ms-canvas" aria-label="顯微鏡光路圖"></canvas></div>
+        <div class="canvas-box dark"><canvas id="ms-view" aria-label="從目鏡看到的視野"></canvas></div>
+      </div>
+<dl class="readout" id="ms-out"></dl>
       <p class="hint">物鏡焦距：低倍 2 cm、高倍 1 cm；目鏡焦距 2.5 cm，物鏡與目鏡相距 16 cm，標本是 0.15 cm 高的字母「e」。眼睛貼在目鏡後，能看清楚 25 cm 到無限遠的像。能看清楚的範圍很窄，先用粗調找到大概位置，再用細調。光路圖縱向放大示意。</p>
     </div>
   </div>
@@ -1436,6 +1471,13 @@ const bnScreenStage = new Stage($('#bn-screen'), { aspect: 0.8, minH: 200, maxH:
   ctx.restore(); ctx.globalCompositeOperation = 'source-over';
   text(ctx, lensEl ? `清晰度：${sc.clear}` : `屏幕放在像的位置（鏡前 ${fx(s.q)} cm）`, w - 22, h - 26, C.roomInk, { align: 'right', size: 12 });
 } });
+function legendMark(sel, A, P) {
+  const ak = P.live ? A.activeK || 0 : 0;
+  document.querySelectorAll(sel + ' li[data-k]').forEach(li => { const k = +li.dataset.k; li.classList.toggle('on', ak === k); li.classList.toggle('dim', !!ak && ak !== k); });
+}
+function setLegend(sel, items) {
+  $(sel).innerHTML = items.map(([c, t, k]) => `<li${k ? ` data-k="${k}"` : ''}><i style="background:var(--${c})"></i>${t}</li>`).join('');
+}
 function bnLegendMark(P) {
   const ak = P.live ? bnAnim.activeK || 0 : 0;
   document.querySelectorAll('#bn-legend li[data-k]').forEach(li => { const k = +li.dataset.k; li.classList.toggle('on', ak === k); li.classList.toggle('dim', !!ak && ak !== k); });
@@ -1786,8 +1828,8 @@ function glyphF(ctx, x, y, hgt, col, blurPx) {   // 倒過來（轉 180°）的 
   ctx.restore();
 }
 const camStage = new Stage($('#cam-canvas'), { aspect: 0.55, minH: 240, maxH: 420, draw(ctx, w, h) {
-  const r = camSolve(), m = mapper(w, h, -15, 9.5, -5.2, 5.2, true, 6); grid(ctx, w, h, m, 1);
-  line(ctx, m, -15, 0, 9.5, 0, C.muted, 1, [3, 4], .6);
+  const r = camSolve(), m = mapper(w, h, -6.5, 9, -3.9, 3.9, true, 6); grid(ctx, w, h, m, 1);
+  line(ctx, m, -6.5, 0, 9, 0, C.muted, 1, [3, 4], .6);
   // 相機機身
   ctx.save(); ctx.strokeStyle = C.muted; ctx.lineWidth = 2; ctx.strokeRect(m.X(-0.5), m.Y(3.4), m.X(cam.s + 0.5) - m.X(-0.5), m.Y(-3.4) - m.Y(3.4)); ctx.restore();
   // 鏡頭與光圈
@@ -1798,23 +1840,32 @@ const camStage = new Stage($('#cam-canvas'), { aspect: 0.55, minH: 240, maxH: 42
   // 感光元件
   ctx.fillStyle = C.accent; ctx.fillRect(m.X(cam.s) - 2, m.Y(SENSOR), 4, m.Y(-SENSOR) - m.Y(SENSOR));
   text(ctx, '感光元件', m.X(cam.s) + 6, m.Y(SENSOR) - 8, C.accent, { size: 11.5 });
-  // 物體（示意）與斷軸
-  const ox = -12.5, oh = 2.6;
-  line(ctx, m, ox, 0, ox, oh, C.ink, 3); ctx.fillStyle = C.ink; ctx.beginPath(); ctx.moveTo(m.X(ox), m.Y(oh) - 4); ctx.lineTo(m.X(ox) - 6, m.Y(oh) + 8); ctx.lineTo(m.X(ox) + 6, m.Y(oh) + 8); ctx.closePath(); ctx.fill();
-  text(ctx, `物體在 ${cam.p} cm 外`, Math.max(4, m.X(ox) - 30), m.Y(0) + 14, C.ink, { size: 11.5 }); text(ctx, '（距離未依比例）', Math.max(4, m.X(ox) - 30), m.Y(0) + 29, C.muted, { size: 10.5 });
-  [-5.3, -4.9].forEach(x => line(ctx, m, x - 0.25, -0.35, x + 0.25, 0.35, C.muted, 1.5));
-  // 光線：從物體頂端經過光圈上緣、中心、下緣，會聚到像點
-  const I = { x: r.q, y: -CAM_H * r.q / cam.p };
-  [[cam.A / 2, C.ray], [0, C.ray2], [-cam.A / 2, C.ray3]].forEach(([ya, col]) => {
-    line(ctx, m, ox, oh, 0, ya, col, 1.8); arrowOn(ctx, m, ox, oh, 0, ya, col, .6, 6);
-    const yS = ya + (I.y - ya) * cam.s / r.q;
-    line(ctx, m, 0, ya, cam.s, yS, col, 1.8);
+  // 物體在畫面左邊很遠處：只畫從物體頂端射來的光，入射方向用真實角度（物體很遠時幾乎平行）
+  const xin = -Math.min(6.3, cam.p), I = { x: r.q, y: -CAM_H * r.q / cam.p };
+  text(ctx, cam.p > 6.3 ? `◀ 物體頂端在 ${cam.p} cm 外（畫面外）` : `◀ 物體頂端（高 ${CAM_H} cm，畫面外）`, 8, h - 12, C.ink, { size: 11.5, weight: 500 });
+  const P = rayPlan(ctx, m, camAnim, w, h), NM = ['', '①', '②', '③'], WH = ['', '上緣', '中心', '下緣'];
+  const ys = [];
+  [[cam.A / 2, C.ray, 1], [0, C.ray2, 2], [-cam.A / 2, C.ray3, 3]].forEach(([ya, col, k]) => {
+    const yin = ya + (CAM_H - ya) * (-xin) / cam.p, yS = ya + (I.y - ya) * cam.s / r.q; ys.push(yS);
+    P.phase(`${NM[k]} 物體頂端射向鏡頭${WH[k]}的光：${k === 2 ? '通過鏡頭中心，方向不變' : '經鏡頭折射，偏向會聚點'}`, k, col);
+    P.seg(xin, yin, 0, ya, col, 1.8, { f: .6, tag: NM[k] });
+    P.seg(0, ya, cam.s, yS, col, 1.8, { f: .55, tag: NM[k] });
   });
-  if (I.x < 9.3 && Math.abs(I.y) < 5) { ctx.fillStyle = C.warn; ctx.beginPath(); ctx.arc(m.X(I.x), m.Y(I.y), 3.5, 0, 7); ctx.fill();
-    text(ctx, '光會聚點', m.X(I.x) + 6, m.Y(I.y) + 12, C.warn, { size: 11 }); }
+  const sharp = r.clear === '清晰';
+  P.phase(sharp ? '三條光會聚在感光元件上的同一點 → 清晰的倒立實像' : r.q < cam.s ? '光在感光元件前就會聚，碰到元件時又散開成一片 → 模糊（元件要往鏡頭靠近）' : '光還沒會聚就碰到感光元件，散成一片 → 模糊（元件要往後移）');
+  P.then(k => {
+    if (I.x < 8.8 && Math.abs(I.y) < 3.8) { ctx.fillStyle = C.warn; ctx.beginPath(); ctx.arc(m.X(I.x), m.Y(I.y), 3.5, 0, 7); ctx.fill();
+      text(ctx, '光會聚點', m.X(I.x) + 6, m.Y(I.y) + 12, C.warn, { size: 11 }); }
+    const lo = Math.min(...ys), hi = Math.max(...ys);
+    if (!sharp) { ctx.save(); ctx.strokeStyle = C.warn; ctx.lineWidth = 6; ctx.globalAlpha = .55; ctx.beginPath(); ctx.moveTo(m.X(cam.s) + 6, m.Y(lo)); ctx.lineTo(m.X(cam.s) + 6, m.Y(hi)); ctx.stroke(); ctx.restore();
+      text(ctx, '光散成一片', m.X(cam.s) + 12, m.Y((lo + hi) / 2), C.warn, { size: 11, weight: 600 }); }
+    if (k < 1) { ctx.save(); ctx.globalAlpha = 1 - k; ctx.strokeStyle = C.warn; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(m.X(cam.s), m.Y((lo + hi) / 2), 6 + 22 * k, 0, 7); ctx.stroke(); ctx.restore(); }
+  }, 260);
+  P.flush(); legendMark('#cam-legend', camAnim, P);
   text(ctx, `清晰度：${r.clear}`, w - 10, 16, r.clear === '清晰' ? C.ok : C.warn, { align: 'right', size: 12.5, weight: 500 });
 } });
-const camView = new Stage($('#cam-view'), { aspect: 0.8, minH: 200, maxH: 320, draw(ctx, w, h) {
+const camAnim = new RayAnim(camStage);
+const camView = new Stage($('#cam-view'), { aspect: 0.85, minH: 200, maxH: 380, draw(ctx, w, h) {
   const r = camSolve(); ctx.fillStyle = C.room; ctx.fillRect(0, 0, w, h);
   text(ctx, '感光元件上的影像（從相機後面看）', 14, 16, C.roomMuted, { size: 12 });
   const sh = h - 54, sw = sh * 1.5, sx = (w - sw) / 2, sy = 32, k = sh / (2 * SENSOR);
@@ -1831,10 +1882,12 @@ function camUpdate() {
 }
 bindRange('cam-p', v => v + ' cm', v => { cam.p = v; camUpdate(); });
 bindRange('cam-s', v => fx(v, 2) + ' cm', v => { cam.s = v; camUpdate(); });
-bindSeg('cam-a', v => { cam.A = +v; camUpdate(); });
+bindSeg('cam-a', v => { cam.A = +v; camUpdate(); if (camAnim.on) camAnim.start(); });
+animUI('cam', camAnim);
+setLegend('#cam-legend', [['ray', '① 射向鏡頭上緣的光', 1], ['ray-2', '② 通過鏡頭中心的光（方向不變）', 2], ['ray-3', '③ 射向鏡頭下緣的光', 3]]);
 
 /* ======================= 4-4 MICROSCOPE ======================= */
-const ms = { fo: 2, p: 2.6, fe: 2.5, L: 16, h0: 0.15 };
+const ms = { fo: 2, p: 2.6, fe: 2.5, L: 16, h0: 0.15, wide: false };
 function msSolve() {
   const qo = ms.p * ms.fo / (ms.p - ms.fo), mo = qo / ms.p, pe = ms.L - qo;
   if (pe <= 0.05) return { qo, mo, pe, bad: '中間像落到目鏡後面' , defocus: 20 };
@@ -1845,39 +1898,63 @@ function msSolve() {
   return { qo, mo, pe, qe, me, V, defocus, total: mo * me, virt: qe < 0 };
 }
 const msStage = new Stage($('#ms-canvas'), { aspect: 0.55, minH: 240, maxH: 420, draw(ctx, w, h) {
-  const r = msSolve(), hi = ms.h0 * r.mo;
-  const hf = r.virt && ms.L + r.qe > -11 ? hi * (-r.qe / r.pe) : null;
-  const Y = clamp(Math.max(hi * 1.6, hf ? hf * 1.1 : 0), 1.5, 9);
-  const m = mapper(w, h, -11, 22, -Y, Y, false, 6); grid(ctx, w, h, m, 1);
-  line(ctx, m, -11, 0, 22, 0, C.muted, 1, [3, 4], .6);
+  /* 作圖光線（與「面鏡與透鏡成像」相同的特殊光線）：
+     第一段：標本頂端的三條光經物鏡會聚成中間像；第二段：從中間像頂端畫兩條光經目鏡，反向延長得到最後的虛像。 */
+  const r = msSolve(), L = ms.L, fe = ms.fe, fo = ms.fo, hi = ms.h0 * r.mo, ok2 = !r.bad;
+  const xv = ok2 && r.virt ? L + r.qe : null, far = xv === null || xv < -200;
+  const hf = ok2 && r.virt ? hi * (-r.qe) / r.pe : 0, wide = ms.wide && ok2 && r.virt && !far;
+  const x0 = wide ? Math.min(-11, xv - 4) : -1.6 * ms.fo - 1.3, x1 = 21;
+  const Y = wide ? clamp(hf * 1.2, 1.5, 80) : clamp(hi * 1.6, 1.5, 9);
+  const m = mapper(w, h, x0, x1, -Y, Y, false, 6); grid(ctx, w, h, m, wide ? 10 : 1);
+  line(ctx, m, x0, 0, x1, 0, C.muted, 1, [3, 4], .6);
   const lens = (x, H, lab) => { const px = m.X(x); ctx.save(); ctx.fillStyle = C.glass; ctx.strokeStyle = C.select; ctx.globalAlpha = .4; ctx.beginPath(); ctx.moveTo(px, m.Y(H)); ctx.quadraticCurveTo(px + 10, m.Y(0), px, m.Y(-H)); ctx.quadraticCurveTo(px - 10, m.Y(0), px, m.Y(H)); ctx.closePath(); ctx.fill(); ctx.globalAlpha = 1; ctx.stroke(); ctx.restore();
     text(ctx, lab, px, m.Y(H) - 10, C.select, { align: 'center', size: 11.5 }); };
-  lens(0, Y * 0.35, '物鏡'); lens(ms.L, Y * 0.8, '目鏡');
-  const mark = (x, lab) => { ctx.fillStyle = C.ink; ctx.beginPath(); ctx.arc(m.X(x), m.Y(0), 2.6, 0, 7); ctx.fill(); text(ctx, lab, m.X(x), m.Y(0) + 12, C.muted, { align: 'center', size: 10.5, font: C.mono }); };
-  mark(ms.fo, 'F物'); mark(ms.L - ms.fe, 'F目');
+  lens(0, wide ? hi * 1.3 : Math.max(Y * 0.35, hi * 1.15), '物鏡'); lens(L, wide ? hi * 1.6 : Y * 0.8, '目鏡');
+  const mark = (x, lab, dy = 12) => { ctx.fillStyle = C.ink; ctx.beginPath(); ctx.arc(m.X(x), m.Y(0), 2.6, 0, 7); ctx.fill(); text(ctx, lab, m.X(x), m.Y(0) + dy, C.muted, { align: 'center', size: 10.5, font: C.mono }); };
+  mark(-fo, 'F物'); mark(fo, 'F物'); mark(L - fe, 'F目', -10); mark(L + fe, 'F目', -10);
   const arrowV = (x, y1, col, dash) => { line(ctx, m, x, 0, x, y1, col, 3, dash); const py = m.Y(y1), dir = y1 >= 0 ? 1 : -1; ctx.save(); ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(m.X(x), py - dir * 2); ctx.lineTo(m.X(x) - 6, py + dir * 10); ctx.lineTo(m.X(x) + 6, py + dir * 10); ctx.closePath(); ctx.fill(); ctx.restore(); };
   // 標本
   line(ctx, m, -ms.p, 0, -ms.p, ms.h0, C.ink, 3);
   ctx.save(); ctx.strokeStyle = C.ink; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(m.X(-ms.p), m.Y(ms.h0 / 2), 9, 0, 7); ctx.stroke(); ctx.restore();
-  text(ctx, '標本', m.X(-ms.p), m.Y(0) + 14, C.ink, { align: 'center', size: 11.5 });
-  // 兩條光線：平行主軸、通過物鏡中心；用近軸公式穿過兩片透鏡
-  const xEnd = 21.5;
-  [[ms.h0, 0, C.ray], [0, -ms.h0 / ms.p, C.ray2]].forEach(([y1, u0, col]) => {
-    const yA = y1 === ms.h0 ? ms.h0 : 0, u1 = y1 === ms.h0 ? 0 : u0;
-    line(ctx, m, -ms.p, ms.h0, 0, yA, col, 1.8);
-    let u = u1 - yA / ms.fo; const yE = yA + u * ms.L;
-    line(ctx, m, 0, yA, ms.L, yE, col, 1.8); arrowOn(ctx, m, 0, yA, ms.L, yE, col, .45, 6);
-    u = u - yE / ms.fe; line(ctx, m, ms.L, yE, xEnd, yE + u * (xEnd - ms.L), col, 1.8);
-    if (r.virt && hf) line(ctx, m, ms.L, yE, ms.L + r.qe, yE + u * r.qe, col, 1.2, [5, 4], .7);
-  });
-  if (!r.bad && r.qo < 21) { arrowV(r.qo, -hi, C.accent); text(ctx, '中間像（倒立放大實像）', m.X(r.qo), m.Y(-hi) + 14, C.accent, { align: 'center', size: 11 }); }
-  if (hf) { arrowV(ms.L + r.qe, -hf, C.virt, [5, 4]); text(ctx, '最後看到的虛像', m.X(ms.L + r.qe) + 8, m.Y(-hf / 2), C.virt, { size: 11, weight: 700 }); }
-  else if (r.virt) text(ctx, -r.qe > 500 ? '最後的虛像在很遠的地方（畫面外）' : `最後的虛像在目鏡前 ${fx(-r.qe, 0)} cm（畫面外，沿虛線延長）`, 10, 16, C.virt, { size: 11.5 });
-  ctx.save(); ctx.translate(m.X(ms.L + 2.6), m.Y(0)); ctx.restore();
-  eyeGlyph(ctx, m.X(ms.L + 3), m.Y(0), Math.PI, C.ink);
-  text(ctx, `縱向放大示意（×${fx(m.sy / m.sx, 0)}）`, w - 8, h - 10, C.muted, { align: 'right', size: 10.5 });
+  text(ctx, '標本', m.X(-ms.p), m.Y(0) + 26, C.ink, { align: 'center', size: 11.5 });
+  const P = rayPlan(ctx, m, msAnim, w, h), h0 = ms.h0, p = ms.p;
+  // 第一段：物鏡
+  const xa = ok2 ? r.qo : L, ya = k => ok2 ? -hi : k;   // 中間像落到目鏡後面時，光線只畫到目鏡
+  const at = (x1, y1, x2, y2, x) => y1 + (y2 - y1) * (x - x1) / (x2 - x1);
+  P.phase('① 標本頂端平行主軸射出 → 經物鏡折射後通過焦點 F物', 1, C.ray);
+  P.seg(-p, h0, 0, h0, C.ray, 1.8, { tag: '①' }); P.seg(0, h0, xa, ok2 ? -hi : at(0, h0, fo, 0, L), C.ray, 1.8, { tag: '①', f: .35 });
+  P.phase('② 通過物鏡中心 → 方向不變', 2, C.ray2);
+  P.seg(-p, h0, 0, 0, C.ray2, 1.8, { tag: '②' }); P.seg(0, 0, xa, ok2 ? -hi : -h0 / p * L, C.ray2, 1.8, { tag: '②', f: .45 });
+  P.phase('③ 通過物鏡前方的焦點 F物 → 折射後平行主軸', 3, C.ray3);
+  const y3 = -h0 * fo / (p - fo);
+  P.seg(-p, h0, 0, y3, C.ray3, 1.8, { tag: '③' }); P.seg(0, y3, xa, y3, C.ray3, 1.8, { tag: '③', f: .45 });
+  if (!ok2) { P.phase('三條光到了目鏡還沒會聚：中間像落到目鏡後面，看不到清楚的像'); P.flush(); legendMark('#ms-legend', msAnim, P); finishMs(ctx, m, w, h, r, L, fe); return; }
+  P.phase(`三條光交於一點：中間像（倒立、放大的實像），落在目鏡焦點 F目 ${r.pe < fe ? '以內' : '以外'}`);
+  P.then(k => { arrowV(r.qo, -hi, C.accent); text(ctx, '中間像（倒立放大實像）', m.X(r.qo) - 8, m.Y(-hi) + 14, C.accent, { align: 'right', size: 11 });
+    if (k < 1) { ctx.save(); ctx.globalAlpha = 1 - k; ctx.strokeStyle = C.accent; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(m.X(r.qo), m.Y(-hi), 6 + 22 * k, 0, 7); ctx.stroke(); ctx.restore(); } }, 260);
+  // 第二段：目鏡（從中間像頂端畫兩條特殊光線）
+  const xe = x1 - 0.3, s4 = hi / fe, s5 = hi / (L - r.qo);
+  P.phase('④ 從中間像頂端平行主軸 → 經目鏡折射後通過焦點 F目', 4, C.ray);
+  P.seg(r.qo, -hi, L, -hi, C.ray, 1.8, { tag: '④' }); P.seg(L, -hi, xe, -hi + s4 * (xe - L), C.ray, 1.8, { tag: '④', f: .5 });
+  P.phase('⑤ 通過目鏡中心 → 方向不變', 5, C.ray2);
+  P.seg(r.qo, -hi, L, 0, C.ray2, 1.8, { tag: '⑤' }); P.seg(L, 0, xe, s5 * (xe - L), C.ray2, 1.8, { tag: '⑤', f: .5 });
+  if (r.virt) {
+    const xb = far ? x0 : Math.max(xv, x0);
+    P.phase(far ? '折射光幾乎平行進入眼睛；往回延長（虛線）要到很遠才相交 → 很遠處的倒立放大虛像' : `折射光散開進入眼睛；眼睛把光往回延長（虛線），交於目鏡前 ${fx(-r.qe, 0)} cm → 倒立、放大的虛像`);
+    P.par([() => P.seg(L, -hi, xb, -hi + s4 * (xb - L), C.ray, 1.2, { dash: [5, 4], alpha: .7, virt: true }), () => P.seg(L, 0, xb, s5 * (xb - L), C.ray2, 1.2, { dash: [5, 4], alpha: .7, virt: true })]);
+    if (!far && xv >= x0) P.then(k => { arrowV(xv, -hf, C.virt, [5, 4]); text(ctx, '最後看到的虛像', m.X(xv) + 8, m.Y(-hf / 2), C.virt, { size: 11, weight: 700 }); }, 200);
+  } else P.phase('折射光在目鏡後面才會聚：光進入眼睛時還在會聚，眼睛看不清楚（標本太靠近物鏡）');
+  P.flush(); legendMark('#ms-legend', msAnim, P);
+  finishMs(ctx, m, w, h, r, L, fe, xv, x0, far);
 } });
-const msView = new Stage($('#ms-view'), { aspect: 0.8, minH: 200, maxH: 320, draw(ctx, w, h) {
+function finishMs(ctx, m, w, h, r, L, fe, xv, x0, far) {
+  const ep = L + L * fe / (L - fe);   // 眼睛放在出射光瞳（物鏡經目鏡成的像）附近
+  eyeGlyph(ctx, m.X(ep), m.Y(0), Math.PI, C.ink);
+  if (r.virt && !r.bad && (far || xv < x0)) text(ctx, far ? '最後的虛像在很遠的地方（畫面外）' : `最後的虛像在目鏡前 ${fx(-r.qe, 0)} cm（畫面外）：勾選「縮小畫面」可以看到`, 10, h - 28, C.virt, { size: 11.5 });
+  text(ctx, `縱向放大示意（×${fx(m.sy / m.sx, 0)}）`, w - 8, h - 10, C.muted, { align: 'right', size: 10.5 });
+}
+const msAnim = new RayAnim(msStage);
+const msView = new Stage($('#ms-view'), { aspect: 0.85, minH: 200, maxH: 380, draw(ctx, w, h) {
   const r = msSolve(); ctx.fillStyle = C.room; ctx.fillRect(0, 0, w, h);
   text(ctx, '從目鏡看到的視野', 14, 16, C.roomMuted, { size: 12 });
   const R = Math.min(w, h - 40) / 2 - 6, cx = w / 2, cy = 30 + R;
@@ -1901,7 +1978,11 @@ const msP = $('#ms-p'), msF = $('#ms-f'); let msCo = 2.6, msFi = 0;
 const msSet = () => { ms.p = msCo + msFi; $('output[for="ms-p"]').textContent = '標本到物鏡 ' + fx(ms.p, 4) + ' cm'; msUpdate(); };
 bindRange('ms-f', v => (v >= 0 ? '+' : '−') + fx(Math.abs(v), 4) + ' cm', v => { msFi = v; msSet(); });
 bindRange('ms-p', v => '', v => { msCo = v; msSet(); });
-bindSeg('ms-obj', v => { ms.fo = +v; const k = ms.fo * ms.fo;
+animUI('ms', msAnim);
+$('#ms-wide').addEventListener('change', e => { ms.wide = e.target.checked; msUpdate(); });
+setLegend('#ms-legend', [['ray', '① 平行主軸 → 經物鏡通過焦點', 1], ['ray-2', '② 通過物鏡中心 → 直線前進', 2], ['ray-3', '③ 通過物鏡前方焦點 → 平行主軸', 3],
+  ['ray', '④ 從中間像平行主軸 → 經目鏡通過焦點', 4], ['ray-2', '⑤ 通過目鏡中心 → 直線前進', 5], ['virtual', '虛線：反向延長線']]);
+bindSeg('ms-obj', v => { if (msAnim.on) setTimeout(() => msAnim.start()); ms.fo = +v; const k = ms.fo * ms.fo;
   msP.min = (ms.fo * 1.07).toFixed(3); msP.max = (ms.fo * 1.5).toFixed(3); msP.step = (0.005 * ms.fo).toFixed(4); msP.value = (ms.fo * 1.3).toFixed(3);
   msF.min = (-0.02 * k).toFixed(4); msF.max = (0.02 * k).toFixed(4); msF.step = (0.0002 * k).toFixed(5); msF.value = 0;
   msF.dispatchEvent(new Event('input')); msP.dispatchEvent(new Event('input')); });
