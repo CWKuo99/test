@@ -128,7 +128,7 @@ footer{border-top:1px solid var(--line);padding-block:18px 28px;color:var(--mute
   <div class="wrap">
     <p class="eyebrow">自然 第三冊 · 4-5 色散與顏色</p>
     <h1>光與顏色實驗室</h1>
-    <p class="lead">三稜鏡色散、色光三原色、顏料三原色與物體顏色的成因。顏色由光譜計算（CIE 1931 配色函數），可投影或讓學生用平板操作。</p>
+    <p class="lead">色光三原色、玻璃紙的原理、物體顏色的成因，以及三稜鏡色散與顏料三原色。顏色由光譜計算（CIE 1931 配色函數），可投影或讓學生用平板操作。</p>
     <div class="spec-rule" aria-hidden="true"></div>
   </div>
 </header>
@@ -136,10 +136,11 @@ footer{border-top:1px solid var(--line);padding-block:18px 28px;color:var(--mute
 <nav class="stations" aria-label="實驗">
   <div class="wrap">
     <div class="tabs" role="tablist">
-      <button class="tab" role="tab" data-tab="disp"><span class="sec">1</span>三稜鏡色散</button>
-      <button class="tab" role="tab" data-tab="add"><span class="sec">2</span>色光三原色</button>
-      <button class="tab" role="tab" data-tab="sub"><span class="sec">3</span>顏料三原色</button>
-      <button class="tab" role="tab" data-tab="obj"><span class="sec">4</span>物體的顏色</button>
+      <button class="tab" role="tab" data-tab="add"><span class="sec">1</span>色光三原色</button>
+      <button class="tab" role="tab" data-tab="fil"><span class="sec">2</span>玻璃紙</button>
+      <button class="tab" role="tab" data-tab="obj"><span class="sec">3</span>物體的顏色</button>
+      <button class="tab" role="tab" data-tab="disp"><span class="sec">4</span>三稜鏡色散</button>
+      <button class="tab" role="tab" data-tab="sub"><span class="sec">5</span>顏料三原色</button>
     </div>
   </div>
 </nav>
@@ -207,6 +208,30 @@ footer{border-top:1px solid var(--line);padding-block:18px 28px;color:var(--mute
   <p class="hint">拖曳圓心的 C、M、Y 可以移動顏料；點紙上其他地方可移動十字。「真實顏料」吸收不完全、也會吸收一點別的色光，混出來的顏色較暗、較混濁。</p>
 </section>
 
+<!-- 5 玻璃紙 -->
+<section class="lab" id="st-fil" data-st="fil" hidden>
+  <div class="lab-head"><h2>玻璃紙的原理</h2><span class="tag">透明物體：讓同色光通過，吸收其他色光</span></div>
+  <div class="controls">
+    <div class="ctl wide"><span>① 手電筒（可同時開好幾支，也可點圖中的手電筒）</span><div class="chips" id="fl-lamps"></div></div>
+    <div class="ctl wide"><span>② 玻璃紙</span><div class="chips" id="fl-filters"></div></div>
+    <div class="ctl"><label for="fl-f2">再疊一張</label><select id="fl-f2"></select></div>
+    <div class="ctl"><span>照在牆上</span><div class="seg" id="fl-aim"><button data-v="sep" aria-pressed="true">分開照</button><button data-v="one" aria-pressed="false">照同一點（混色）</button></div></div>
+  </div>
+  <div class="cols two">
+    <div class="canvas-box dark"><canvas id="fl-cv" data-w="1000" data-h="520" aria-label="暗室中：紅綠藍三支手電筒穿過玻璃紙照在白牆上"></canvas></div>
+    <div class="side">
+      <div class="panel"><h4>光譜：手電筒 × 玻璃紙穿透率 ＝ 穿過的光</h4><canvas id="fl-sp" data-w="520" data-h="380" aria-label="手電筒光譜、玻璃紙穿透率與穿過的光"></canvas></div>
+      <dl class="readout" id="fl-out"></dl>
+    </div>
+  </div>
+  <div class="design-card"><h4>玻璃紙的原理</h4><ol>
+    <li>玻璃紙是透明物體：讓和自己<b>同色</b>的色光穿過，其他色光被<b>吸收</b>。紅色玻璃紙只讓紅光過；黃色玻璃紙讓紅光和綠光過（黃＝紅＋綠），只吸收藍光。</li>
+    <li>白光穿過紅色玻璃紙變成紅光，不是玻璃紙把光「染紅」，而是綠光和藍光被吸收掉了，所以穿過的光也變暗。</li>
+    <li>紅光照到綠色玻璃紙會被吸收，牆上一片黑：玻璃紙不能把一種色光變成另一種。</li>
+    <li>真實的玻璃紙吸收不完全，會漏一點光；藍色玻璃紙常漏出一些藍綠光。</li>
+  </ol></div>
+</section>
+
 <!-- 4 物體顏色 -->
 <section class="lab" id="st-obj" data-st="obj" hidden>
   <div class="lab-head"><h2>物體的顏色</h2><span class="tag">探討活動 4-4</span></div>
@@ -215,20 +240,19 @@ footer{border-top:1px solid var(--line);padding-block:18px 28px;color:var(--mute
     <div class="ctl wide"><span>② 玻璃紙</span><div class="chips" id="ob-filters"></div></div>
     <div class="ctl"><span>玻璃紙放在</span><div class="seg" id="ob-pos"><button data-v="lamp" aria-pressed="true">燈的前面</button><button data-v="eye" aria-pressed="false">眼睛前面</button></div></div>
     <div class="ctl"><label for="ob-f2">再疊一張</label><select id="ob-f2"></select></div>
-    <div class="ctl wide"><span>③ 被照物：數位時鐘的 8（選顏色，再點圖中的一段來塗色）</span><div class="chips" id="ob-papers"></div></div>
+    <div class="ctl wide"><span>③ 被照物：數位時鐘的 8（點圖中的一段選取，再按顏色就會塗上）</span><div class="chips" id="ob-papers"></div></div>
     <div class="ctl wide"><div class="row-btns"><button class="btn" id="ob-all">整個 8 塗成這個顏色</button><button class="btn" id="ob-demo">範例：紅光下變 3、綠光下變 4</button></div></div>
     <div class="ctl wide"><div class="row-btns" style="align-items:center"><label class="switch"><input type="checkbox" id="ob-hide"> 先預測：遮住 8 的顏色</label><button class="btn" id="ob-reveal" hidden>揭曉</button><button class="btn" id="ob-lamp-open">開啟純色光源（手機／平板當燈）</button></div></div>
   </div>
   <div class="cols two">
     <div class="canvas-box dark"><canvas id="ob-cv" data-w="1000" data-h="560" aria-label="暗室中：光源、玻璃紙、數位時鐘的 8 與眼睛"></canvas></div>
     <div class="side">
-      <div class="panel"><h4>光譜：光源 × 玻璃紙 × 選中那一段 ＝ 進入眼睛的光</h4><canvas id="ob-sp" data-w="520" data-h="500" aria-label="光源、玻璃紙穿透率、色塊反射率與進入眼睛的光譜"></canvas></div>
       <dl class="readout" id="ob-out"></dl>
     </div>
   </div>
   <div id="ob-lamp" hidden role="dialog" aria-label="純色光源">
     <div class="lamp-hit lamp-prev" data-d="-1"></div><div class="lamp-hit lamp-next" data-d="1"></div>
-    <div class="lamp-tip"><b id="ob-lamp-nm">藍光</b><span>點右半邊換下一色、左半邊換上一色。關掉護眼模式與自動亮度，亮度調到最高。</span></div>
+    <div class="lamp-tip"><b id="ob-lamp-nm">藍光</b><span>點右半邊換下一色、左半邊換上一色。關掉護眼模式（夜覽）、原彩顯示（True Tone）與自動亮度，亮度調到最高。</span></div>
     <button class="lamp-x" id="ob-lamp-x" aria-label="關閉">✕</button>
   </div>
   <div class="design-card"><h4>顏色的成因</h4><ol>
@@ -753,7 +777,7 @@ const fById = id => id === 'none' ? NOF : FILTERS.find(f => f.id === id);
 const pById = id => PAPERS.find(p => p.id === id);
 const filtR = () => mul(fById(OB.f1).R, fById(OB.f2).R);
 const filtName = () => fById(OB.f1).nm + (OB.f2 !== 'none' ? '＋' + fById(OB.f2).nm : '');
-const obCv = setupCanvas($('#ob-cv')), obSp = setupCanvas($('#ob-sp'));
+const obCv = setupCanvas($('#ob-cv'));
 // 七段的位置（畫布座標）
 const D8 = { L: 470, R: 670, T: 112, M: 292, B: 472, t: 36 };
 function segPoly(k) {
@@ -779,8 +803,32 @@ function state() {
   const on = SEGS.filter(k => vis[k].on).join('');
   return { S, F, atLamp, Sin, seen, vis, digit: on === '' ? '全部看不見' : DIGITS[on] ? '數字 ' + DIGITS[on] : '不像數字（亮的段：' + on.split('').join('、') + '）' };
 }
+
+/* 物體的顏色：把光譜拆成紅、綠、藍三段，畫成三條細光線 */
+const BANDS = [[580, 720, '#ff453a', '紅'], [490, 580, '#32d74b', '綠'], [380, 490, '#4a9dff', '藍']];
+const BANDW = BANDS.map(([a, b]) => LAM.filter(l => l >= a && l < b).length);
+const bandSum = Sp => BANDS.map(([a, b]) => LAM.reduce((t, l, i) => t + (l >= a && l < b ? Sp[i] : 0), 0));
+const chTxt = ch => { const t = BANDS.filter((_, k) => ch[k] > 0.2).map(B => B[3]); return t.length ? t.join('、') : '沒有'; };
+function rays(c, a, b, ch, prev, xAt, endX) {
+  const dx = b[0] - a[0], dy = b[1] - a[1], L = Math.hypot(dx, dy), nx = -dy / L, ny = dx / L, ux = dx / L, uy = dy / L;
+  BANDS.forEach(([, , col], k) => {
+    const o = (k - 1) * 7, ox = nx * o, oy = ny * o;
+    if (prev && prev[k] > 0.2 && !(ch[k] > 0.2) && xAt) cross(c, xAt[0] + ox, xAt[1] + oy, col);
+    if (!(ch[k] > 0.2)) return;
+    c.globalAlpha = Math.min(1, 0.35 + ch[k]); c.strokeStyle = col; c.fillStyle = col; c.lineWidth = 3; c.lineCap = 'round';
+    c.beginPath(); c.moveTo(a[0] + ox, a[1] + oy); c.lineTo(b[0] + ox - ux * 6, b[1] + oy - uy * 6); c.stroke();
+    c.beginPath(); c.moveTo(b[0] + ox, b[1] + oy); c.lineTo(b[0] + ox - ux * 10 + nx * 4, b[1] + oy - uy * 10 + ny * 4); c.lineTo(b[0] + ox - ux * 10 - nx * 4, b[1] + oy - uy * 10 - ny * 4); c.closePath(); c.fill();
+    c.globalAlpha = 1;
+    if (endX && endX[k]) cross(c, b[0] + ox + ux * 2, b[1] + oy + uy * 2, col);
+  });
+}
+function cross(c, x, y, col) {
+  c.strokeStyle = '#07090c'; c.lineWidth = 5; c.lineCap = 'round';
+  c.beginPath(); c.moveTo(x - 6, y - 6); c.lineTo(x + 6, y + 6); c.moveTo(x + 6, y - 6); c.lineTo(x - 6, y + 6); c.stroke();
+  c.strokeStyle = col; c.lineWidth = 2.4; c.stroke();
+}
 function drawObj() {
-  if (!obCv.resize() || !obSp.resize()) return; setFS(obCv);
+  if (!obCv.resize()) return; setFS(obCv);
   const c = obCv.ctx, W = obCv.W, H = obCv.H, st = state(), { S, F, atLamp, Sin, seen, vis } = st, show = !OB.hide || OB.shown;
   c.fillStyle = '#07090c'; c.fillRect(0, 0, W, H);
   const lamp = [110, 130], eye = [80, 470], Lin = specToLin(Sin);
@@ -800,22 +848,38 @@ function drawObj() {
   const Lc = specToLin(S), gl = c.createRadialGradient(lamp[0], lamp[1], 0, lamp[0], lamp[1], 30); gl.addColorStop(0, linCSS(Lc.map(v => v / Math.max(...Lc, 1e-6)))); gl.addColorStop(1, 'rgba(7,9,12,0)');
   c.fillStyle = gl; c.beginPath(); c.arc(lamp[0], lamp[1], 30, 0, 7); c.fill();
   label(c, '光源', lamp[0] - 52, lamp[1] + 5, { size: 14, align: 'center' });
-  // 選中那一段的光路
+  // 選中那一段的光路：用紅、綠、藍三條細光線表示光裡含有哪些色光，被擋下的在那裡打 ✕
   const tgt = segCenter(OB.seg), P = pById(OB.col[OB.seg]);
-  const fL = toward(lamp, tgt, 110), angL = Math.atan2(tgt[1] - lamp[1], tgt[0] - lamp[0]);
-  if (atLamp) { seg2(c, toward(lamp, tgt, 26), toward(lamp, tgt, 100), S); seg2(c, toward(lamp, tgt, 120), toward(tgt, lamp, 14), Sin); sheet(c, fL[0], fL[1], angL, fById(OB.f1)); label(c, filtName(), fL[0] - 10, fL[1] + 84, { size: 14, align: 'center' }); }
-  else seg2(c, toward(lamp, tgt, 30), toward(tgt, lamp, 14), S);
-  const a0 = toward(tgt, eye, 14), fE = toward(eye, a0, 110), angE = Math.atan2(a0[1] - eye[1], a0[0] - eye[0]), refl = mul(Sin, P.R);
-  let ok = null;
-  if (!show) { c.setLineDash([6, 6]); arrow(c, a0[0], a0[1], eye[0] + 34, eye[1] - 10, '#5b6774', 2); c.setLineDash([]); }
-  else if (!atLamp) { const r1 = seg2(c, a0, toward(eye, a0, 122), refl); ok = seg2(c, toward(eye, a0, 98), toward(eye, a0, 32), seen(P.R)) && r1; }
-  else ok = seg2(c, a0, toward(eye, a0, 32), refl);
-  if (!atLamp) { sheet(c, fE[0], fE[1], angE, fById(OB.f1)); label(c, filtName(), fE[0] + 40, fE[1] + 80, { size: 14, align: 'center' }); }
+  const ch0 = bandSum(S), CH = Sp => bandSum(Sp).map((v, k) => ch0[k] > 0.08 * BANDW[k] ? v / ch0[k] : 0);
+  const cS = CH(S), cIn = CH(Sin), refl = mul(Sin, P.R), cR = CH(refl), cEye = CH(seen(P.R));
+  const fL = toward(lamp, tgt, 120), angL = Math.atan2(tgt[1] - lamp[1], tgt[0] - lamp[0]);
+  const pIn = toward(tgt, lamp, 22), absorbed = show ? cIn.map((v, k) => v > 0.2 && !(cR[k] > 0.2)) : null;
+  if (atLamp) {
+    rays(c, toward(lamp, tgt, 26), toward(lamp, tgt, 110), cS);
+    rays(c, toward(lamp, tgt, 132), pIn, cIn, cS, toward(lamp, tgt, 118), absorbed);
+    sheet(c, fL[0], fL[1], angL, fById(OB.f1)); label(c, filtName(), fL[0] - 10, fL[1] + 84, { size: 14, align: 'center' });
+  } else rays(c, toward(lamp, tgt, 26), pIn, cS, null, null, absorbed);
+  const mid1 = atLamp ? toward(fL, tgt, 90) : toward(lamp, tgt, 150);
+  label(c, (atLamp ? '穿過玻璃紙剩下：' : '照到 8 的光：') + chTxt(atLamp ? cIn : cS), mid1[0], mid1[1] - 18, { size: 13, align: 'center', color: '#e9edf1' });
+  label(c, '光源有：' + chTxt(cS), lamp[0], lamp[1] - 40, { size: 13, align: 'center', color: '#e9edf1' });
+  const a0 = toward(tgt, eye, 16), fE = toward(eye, a0, 120), angE = Math.atan2(a0[1] - eye[1], a0[0] - eye[0]), eEnd = toward(eye, a0, 34);
+  if (!atLamp) sheet(c, fE[0], fE[1], angE, fById(OB.f1)); // 先畫玻璃紙，被擋下的 ✕ 才會蓋在上面
+  let res = null;
+  if (!show) { c.setLineDash([6, 6]); arrow(c, a0[0], a0[1], eEnd[0], eEnd[1], '#5b6774', 2); c.setLineDash([]); }
+  else {
+    if (atLamp) rays(c, a0, eEnd, cR);
+    else { rays(c, a0, toward(eye, a0, 132), cR); rays(c, toward(eye, a0, 108), eEnd, cEye, cR, toward(eye, a0, 120)); }
+    const mid2 = toward(a0, eye, atLamp ? 150 : 110);
+    label(c, show ? `${P.nm}的段反射：` + chTxt(cR) : '', mid2[0] + 10, mid2[1] - 16, { size: 13, align: 'center', color: '#e9edf1' });
+    res = specToLin(seen(P.R));
+  }
+  if (!atLamp) label(c, filtName(), fE[0] + 40, fE[1] + 80, { size: 14, align: 'center' });
   eyeIcon(c, eye[0], eye[1]);
-  if (ok !== null) label(c, ok ? '這一段進入眼睛的光' : '這一段幾乎沒有光進入眼睛', 300, 530, { size: 14, align: 'center', color: '#e9edf1' });
+  if (res) { const on = Math.max(...res) >= 0.06; label(c, on ? '看到這一段：' + colorName(res) : '看到這一段：黑（沒有光）', 18, eye[1] + 60, { size: 15, weight: 700, color: on ? '#fff' : '#adb5bd' }); }
+  text(c, '紅、綠、藍三條線＝光裡的三種色光；✕＝在這裡被吸收', 18, H - 14, { size: 13, color: '#8b96a1' });
   text(c, atLamp ? '暗室：燈光先穿過玻璃紙，再照到數位時鐘的 8' : '暗室：眼睛透過玻璃紙看數位時鐘的 8', 18, 32, { size: 16, color: '#8b96a1' });
   text(c, show ? '看起來：' + st.digit : '看起來：？', (D8.L + D8.R) / 2, D8.B + 84, { size: 17, align: 'center', color: '#e9edf1', weight: 700 });
-  drawSpec(st, P, show);
+  drawReadout(st, P, show);
 }
 function arrow(c, x0, y0, x1, y1, col, w) {
   const a = Math.atan2(y1 - y0, x1 - x0); c.strokeStyle = col; c.fillStyle = col; c.lineWidth = w; c.lineCap = 'round';
@@ -826,28 +890,8 @@ function eyeIcon(c, x, y) {
   c.strokeStyle = '#e9edf1'; c.lineWidth = 2; c.beginPath(); c.moveTo(x - 26, y); c.quadraticCurveTo(x, y - 22, x + 26, y); c.quadraticCurveTo(x, y + 22, x - 26, y); c.stroke();
   c.fillStyle = '#e9edf1'; c.beginPath(); c.arc(x, y, 7, 0, 7); c.fill(); text(c, '眼睛', x, y + 34, { size: 14, align: 'center', color: '#8b96a1' });
 }
-function drawSpec(st, P, shown) {
+function drawReadout(st, P, shown) { // 下方讀數（原右側光譜已移除）
   const { S, F } = st, O = st.seen(P.R);
-  const c = obSp.ctx, W = obSp.W, H = obSp.H; c.clearRect(0, 0, W, H); FS = 1;
-  const muted = getComputedStyle(document.documentElement).getPropertyValue('--muted').trim(), ink = getComputedStyle(document.body).color, line = getComputedStyle(document.documentElement).getPropertyValue('--line').trim();
-  const top = Math.max(...S, 1e-9);
-  const x0 = 46, x1 = W - 10, X = l => x0 + (l - 380) / 340 * (x1 - x0), rowH = 76, rows = [26, 140, 254, 368];
-  const interp = (A, l) => { const t = (l - 380) / 5, i = Math.floor(t), f = t - i; return i >= LAM.length - 1 ? A[LAM.length - 1] : A[i] * (1 - f) + A[i + 1] * f; };
-  const dl = (x1 - x0) / 340 + 1.2;
-  const area = (A, y0, scale) => { for (let l = 380; l <= 720; l += 1) { const v = interp(A, l) / scale; if (v < 0.004) continue; c.fillStyle = specCSS(l); c.fillRect(X(l), y0 + rowH - v * rowH, dl, v * rowH); } };
-  const ratio = (R, y0) => {
-    for (let l = 380; l <= 720; l += 1) { const v = interp(R, l); c.fillStyle = specCSS(l, 0.85); c.fillRect(X(l), y0 + rowH - v * rowH, dl, v * rowH); }
-    c.strokeStyle = ink; c.lineWidth = 1.6; c.beginPath(); for (let l = 380; l <= 720; l += 2) { const y = y0 + rowH - interp(R, l) * rowH; l === 380 ? c.moveTo(X(l), y) : c.lineTo(X(l), y); } c.stroke();
-    text(c, '100%', x0 - 6, y0 + 5, { size: 11, align: 'right', color: muted, font: MONO }); text(c, '0', x0 - 6, y0 + rowH, { size: 11, align: 'right', color: muted, font: MONO });
-  };
-  const axis = (y0, t) => { c.strokeStyle = line; c.lineWidth = 1; c.beginPath(); c.moveTo(x0, y0 + rowH); c.lineTo(x1, y0 + rowH); c.moveTo(x0, y0); c.lineTo(x0, y0 + rowH); c.stroke(); text(c, t, x0, y0 - 8, { size: 15, color: ink, weight: 500 }); };
-  axis(rows[0], '① 光源'); area(S, rows[0], top);
-  axis(rows[1], `② ${filtName()}的穿透率（${OB.pos === 'lamp' ? '燈前' : '眼前'}）`); ratio(F, rows[1]);
-  axis(rows[2], shown ? `③ 選中那一段（${P.nm}）的反射率` : '③ 選中那一段的反射率'); if (shown) ratio(P.R, rows[2]); else text(c, '？', (x0 + x1) / 2, rows[2] + rowH / 2 + 6, { size: 18, align: 'center', color: muted });
-  axis(rows[3], '④ 進入眼睛的光 ＝ ① × ② × ③');
-  if (shown) area(O, rows[3], top); else text(c, '？　先預測，再按「揭曉」', (x0 + x1) / 2, rows[3] + rowH / 2 + 6, { size: 15, align: 'center', color: muted });
-  [400, 500, 600, 700].forEach(l => text(c, l + '', X(l), rows[3] + rowH + 18, { size: 12, align: 'center', color: muted, font: MONO }));
-  text(c, 'nm', x1, rows[3] + rowH + 34, { size: 12, align: 'right', color: muted, font: MONO });
   const oc = specToLin(O), lc = specToLin(S), fc = specToLin(F);
   const sw = col => `<span class="swatch" style="background:${linCSS(col)}"></span>`;
   $('#ob-out').innerHTML = `<div><dt>① 光源</dt><dd class="zh">${sw(lc)}${LIGHTS.find(x => x.id === OB.light).nm}</dd></div>`
@@ -865,7 +909,7 @@ $('#ob-papers').innerHTML = PAPERS.map(p => chipHTML(p.id, p.nm, linCSS(specToLi
 const chipGroup = (el, cb) => el.addEventListener('click', e => { const b = e.target.closest('.chip'); if (!b) return; $$('.chip', el).forEach(x => x.setAttribute('aria-pressed', x === b ? 'true' : 'false')); cb(b.dataset.v); });
 chipGroup($('#ob-lights'), v => { OB.light = v; obReset(); });
 chipGroup($('#ob-filters'), v => { OB.f1 = v; obReset(); });
-chipGroup($('#ob-papers'), v => { OB.paint = v; });
+chipGroup($('#ob-papers'), v => { OB.paint = v; if (!OB.hide || OB.shown) { OB.col[OB.seg] = v; obDraw(); } });
 $('#ob-f2').innerHTML = [NOF, ...FILTERS].map(f => `<option value="${f.id}">${f.nm}</option>`).join('');
 $('#ob-f2').addEventListener('change', e => { OB.f2 = e.target.value; obReset(); });
 seg($('#ob-pos'), v => { OB.pos = v; obReset(); });
@@ -880,7 +924,10 @@ obCv.cv.addEventListener('pointerdown', e => {
 
 /* 純色光源：全螢幕單色，讓手機或平板當實驗光源 */
 (() => {
-  const L = [['藍光', '#0000ff'], ['紅光', '#ff0000'], ['綠光', '#00ff00'], ['黃光', '#ffff00'], ['青光', '#00ffff'], ['洋紅光', '#ff00ff'], ['白光', '#ffffff']];
+  // 用 Display P3 的原色：P3／OLED 螢幕上 sRGB 的 #00ff00 會被換算成「綠＋約 46% 紅＋一點藍」，透過紅色玻璃紙就看得到紅光
+  const P3 = window.CSS && CSS.supports('color', 'color(display-p3 0 1 0)');
+  const L = [['藍光', [0, 0, 1]], ['紅光', [1, 0, 0]], ['綠光', [0, 1, 0]], ['黃光', [1, 1, 0]], ['青光', [0, 1, 1]], ['洋紅光', [1, 0, 1]], ['白光', [1, 1, 1]]]
+    .map(([n, c]) => [n, P3 ? `color(display-p3 ${c.join(' ')})` : `rgb(${c.map(v => v * 255).join(',')})`]);
   const box = $('#ob-lamp'), tip = $('.lamp-tip', box), nm = $('#ob-lamp-nm');
   let k = 0, t = 0, lock = null;
   const show = () => { box.style.background = L[k][1]; nm.textContent = L[k][0]; tip.classList.remove('fade'); clearTimeout(t); t = setTimeout(() => tip.classList.add('fade'), 2200); };
@@ -896,11 +943,125 @@ obCv.cv.addEventListener('pointerdown', e => {
   document.addEventListener('keydown', e => { if (box.hidden) return; if (e.key === 'Escape') close(); if (e.key === 'ArrowRight' || e.key === ' ') { k = (k + 1) % L.length; show(); } if (e.key === 'ArrowLeft') { k = (k + L.length - 1) % L.length; show(); } });
 })();
 
+/* ================================================================
+   5. 玻璃紙的原理：三支色光手電筒 → 玻璃紙 → 白牆
+   ================================================================ */
+const FL = { on: { r: true, g: true, b: true }, f1: 'red', f2: 'none', aim: 'sep' };
+const FLAMPS = [{ id: 'r', nm: '紅光', S: LR, col: '#ff453a' }, { id: 'g', nm: '綠光', S: LG, col: '#32d74b' }, { id: 'b', nm: '藍光', S: LB, col: '#4a9dff' }];
+const flCv = setupCanvas($('#fl-cv')), flSp = setupCanvas($('#fl-sp'));
+const flF = () => mul(fById(FL.f1).R, fById(FL.f2).R);
+const flName = () => fById(FL.f1).nm + (FL.f2 !== 'none' ? '＋' + fById(FL.f2).nm : '');
+const FLY = [130, 260, 390], FLX = 96, SHX = 470, WALL = 860;
+function flState() {
+  const F = flF();
+  const beams = FLAMPS.map((L, i) => {
+    const on = FL.on[L.id], out = mul(L.S, F), lin = specToLin(out), pass = on && Math.max(...lin) >= 0.06;
+    return { ...L, i, on, out, lin, pass, frac: Math.max(...lin) };
+  });
+  const tot = LAM.map((_, i) => beams.reduce((s, b) => s + (b.on ? b.out[i] : 0), 0));
+  const src = LAM.map((_, i) => beams.reduce((s, b) => s + (b.on ? b.S[i] : 0), 0));
+  return { F, beams, tot, src };
+}
+function cone(c, x0, y0, x1, y1, w0, w1, fill) {
+  const a = Math.atan2(y1 - y0, x1 - x0), nx = -Math.sin(a), ny = Math.cos(a);
+  c.fillStyle = fill; c.beginPath();
+  c.moveTo(x0 + nx * w0, y0 + ny * w0); c.lineTo(x1 + nx * w1, y1 + ny * w1); c.lineTo(x1 - nx * w1, y1 - ny * w1); c.lineTo(x0 - nx * w0, y0 - ny * w0); c.closePath(); c.fill();
+}
+function torch(c, x, y, col, on) {
+  c.save(); c.translate(x, y);
+  c.fillStyle = '#2b323a'; c.strokeStyle = on ? col : '#5b6774'; c.lineWidth = 2;
+  c.beginPath(); c.roundRect(-58, -13, 44, 26, 5); c.fill(); c.stroke();
+  c.beginPath(); c.moveTo(-14, -13); c.lineTo(8, -22); c.lineTo(8, 22); c.lineTo(-14, 13); c.closePath(); c.fill(); c.stroke();
+  c.fillStyle = on ? col : '#3d4752'; c.beginPath(); c.ellipse(8, 0, 5, 20, 0, 0, 7); c.fill();
+  c.restore();
+}
+function drawFil() {
+  if (!flCv.resize() || !flSp.resize()) return; setFS(flCv);
+  const c = flCv.ctx, W = flCv.W, H = flCv.H, st = flState(), F = fById(FL.f1);
+  c.fillStyle = '#07090c'; c.fillRect(0, 0, W, H);
+  // 白牆（暗室中沒被照到時是暗灰）
+  c.fillStyle = '#1a1e23'; c.fillRect(WALL, 30, W - WALL, H - 60);
+  c.strokeStyle = '#3d4752'; c.lineWidth = 1.5; c.strokeRect(WALL, 30, W - WALL, H - 60);
+  text(c, '白牆', WALL + (W - WALL) / 2, H - 40, { size: 14, align: 'center', color: '#8b96a1' });
+  const aimY = i => FL.aim === 'sep' ? FLY[i] : 260;
+  const atSheet = i => { const y1 = aimY(i), t = (SHX - FLX) / (WALL - FLX); return FLY[i] + (y1 - FLY[i]) * t; };
+  c.save(); c.globalCompositeOperation = 'lighter';
+  st.beams.forEach(b => {
+    if (!b.on) return;
+    const ys = atSheet(b.i);
+    cone(c, FLX + 10, FLY[b.i], SHX - 8, ys, 16, 34, linCSS(specToLin(b.S).map(v => v * 0.2)));
+    if (b.pass) {
+      const k = Math.min(1, b.frac / 0.9);
+      cone(c, SHX + 8, ys, WALL, aimY(b.i), 34, 52, linCSS(b.lin.map(v => v / b.frac * 0.2 * k)));
+      const g = c.createRadialGradient(WALL + 60, aimY(b.i), 4, WALL + 60, aimY(b.i), 70);
+      g.addColorStop(0, linCSS(b.lin.map(v => v / b.frac * 0.95 * k))); g.addColorStop(1, 'rgba(0,0,0,0)');
+      c.fillStyle = g; c.beginPath(); c.ellipse(WALL + 60, aimY(b.i), 56, 64, 0, 0, 7); c.fill();
+    }
+  });
+  c.restore();
+  // 中心光線（三色細線）與 ✕
+  st.beams.forEach(b => {
+    if (!b.on) return;
+    const ys = atSheet(b.i);
+    c.strokeStyle = b.col; c.lineWidth = 3; c.lineCap = 'round';
+    c.beginPath(); c.moveTo(FLX + 16, FLY[b.i]); c.lineTo(SHX - 12, ys); c.stroke();
+    if (b.pass) arrow(c, SHX + 12, ys, WALL - 4, aimY(b.i), b.col, 3);
+    else { cross(c, SHX - 20, ys, b.col); label(c, '被吸收', SHX - 44, ys - 14, { size: 13, align: 'center', color: b.col }); }
+  });
+  // 玻璃紙（大張，擋住全部光束）
+  c.fillStyle = F.id === 'clear' ? 'rgba(220,235,245,.2)' : linCSS(specToLin(F.R), 0.55); c.strokeStyle = 'rgba(233,237,241,.75)'; c.lineWidth = 1.4;
+  c.beginPath(); c.roundRect(SHX - 8, 50, 16, H - 120, 4); c.fill(); c.stroke();
+  if (FL.f2 !== 'none') { c.fillStyle = linCSS(specToLin(fById(FL.f2).R), 0.55); c.beginPath(); c.roundRect(SHX + 12, 50, 12, H - 120, 4); c.fill(); c.stroke(); }
+  label(c, flName(), SHX, H - 40, { size: 14, align: 'center' });
+  // 手電筒
+  st.beams.forEach(b => { torch(c, FLX, FLY[b.i], b.col, b.on); text(c, b.nm + '手電筒' + (b.on ? '' : '（關）'), FLX - 30, FLY[b.i] + 40, { size: 13, align: 'center', color: b.on ? '#e9edf1' : '#5b6774' }); });
+  // 牆上看到的顏色
+  if (FL.aim === 'sep') st.beams.forEach(b => { if (b.on) label(c, b.pass ? colorName(b.lin) : '黑（沒有光）', WALL + 60, aimY(b.i) + 6, { size: 14, align: 'center', weight: 700, color: b.pass ? '#fff' : '#adb5bd' }); });
+  else { const lin = specToLin(st.tot), on = Math.max(...lin) >= 0.06; label(c, on ? colorName(lin) : '黑（沒有光）', WALL + 60, 266, { size: 15, align: 'center', weight: 700, color: on ? '#fff' : '#adb5bd' }); }
+  text(c, '暗室：色光手電筒穿過玻璃紙，照在白牆上', 18, 32, { size: 16, color: '#8b96a1' });
+  drawFilSpec(st);
+}
+function drawFilSpec(st) {
+  const c = flSp.ctx, W = flSp.W, H = flSp.H; c.clearRect(0, 0, W, H); FS = 1;
+  const muted = getComputedStyle(document.documentElement).getPropertyValue('--muted').trim(), ink = getComputedStyle(document.body).color, line = getComputedStyle(document.documentElement).getPropertyValue('--line').trim();
+  const x0 = 46, x1 = W - 10, X = l => x0 + (l - 380) / 340 * (x1 - x0), rowH = 76, rows = [26, 140, 254];
+  const interp = (A, l) => { const t = (l - 380) / 5, i = Math.floor(t), f = t - i; return i >= LAM.length - 1 ? A[LAM.length - 1] : A[i] * (1 - f) + A[i + 1] * f; };
+  const dl = (x1 - x0) / 340 + 1.2, top = Math.max(...st.src, 1e-9);
+  const area = (A, y0) => { for (let l = 380; l <= 720; l++) { const v = interp(A, l) / top; if (v < 0.004) continue; c.fillStyle = specCSS(l); c.fillRect(X(l), y0 + rowH - v * rowH, dl, v * rowH); } };
+  const axis = (y0, t) => { c.strokeStyle = line; c.lineWidth = 1; c.beginPath(); c.moveTo(x0, y0 + rowH); c.lineTo(x1, y0 + rowH); c.moveTo(x0, y0); c.lineTo(x0, y0 + rowH); c.stroke(); text(c, t, x0, y0 - 8, { size: 15, color: ink, weight: 500 }); };
+  axis(rows[0], '① 手電筒發出的光'); area(st.src, rows[0]);
+  axis(rows[1], `② ${flName()}的穿透率`);
+  for (let l = 380; l <= 720; l++) { const v = interp(st.F, l); c.fillStyle = specCSS(l, 0.85); c.fillRect(X(l), rows[1] + rowH - v * rowH, dl, v * rowH); }
+  c.strokeStyle = ink; c.lineWidth = 1.6; c.beginPath(); for (let l = 380; l <= 720; l += 2) { const y = rows[1] + rowH - interp(st.F, l) * rowH; l === 380 ? c.moveTo(X(l), y) : c.lineTo(X(l), y); } c.stroke();
+  text(c, '100%', x0 - 6, rows[1] + 5, { size: 11, align: 'right', color: muted, font: MONO }); text(c, '0', x0 - 6, rows[1] + rowH, { size: 11, align: 'right', color: muted, font: MONO });
+  axis(rows[2], '③ 穿過玻璃紙的光 ＝ ① × ②'); area(st.tot, rows[2]);
+  [400, 500, 600, 700].forEach(l => text(c, l + '', X(l), rows[2] + rowH + 18, { size: 12, align: 'center', color: muted, font: MONO }));
+  text(c, 'nm', x1, rows[2] + rowH + 34, { size: 12, align: 'right', color: muted, font: MONO });
+  const sw = col => `<span class="swatch" style="background:${linCSS(col)}"></span>`;
+  const onB = st.beams.filter(b => b.on);
+  $('#fl-out').innerHTML = `<div><dt>打開的手電筒</dt><dd class="zh">${onB.length ? onB.map(b => b.nm).join('、') : '（全關）'}</dd></div>`
+    + `<div><dt>玻璃紙</dt><dd class="zh">${sw(specToLin(st.F))}${flName()}</dd></div>`
+    + `<div><dt>穿過的色光</dt><dd class="zh">${onB.filter(b => b.pass).map(b => b.nm).join('、') || '沒有'}</dd></div>`
+    + `<div><dt>被吸收的色光</dt><dd class="zh">${onB.filter(b => !b.pass).map(b => b.nm).join('、') || '沒有'}</dd></div>`;
+}
+const flDraw = raf(drawFil);
+$('#fl-lamps').innerHTML = FLAMPS.map(L => `<button class="chip" data-v="${L.id}" aria-pressed="true"><i style="background:${L.col}"></i>${L.nm}手電筒</button>`).join('');
+$('#fl-lamps').addEventListener('click', e => { const b = e.target.closest('.chip'); if (!b) return; FL.on[b.dataset.v] = !FL.on[b.dataset.v]; b.setAttribute('aria-pressed', FL.on[b.dataset.v]); flDraw(); });
+$('#fl-filters').innerHTML = FILTERS.map(f => chipHTML(f.id, f.nm, f.id === 'clear' ? 'transparent' : linCSS(specToLin(f.R)), f.id === FL.f1)).join('');
+chipGroup($('#fl-filters'), v => { FL.f1 = v; flDraw(); });
+$('#fl-f2').innerHTML = [NOF, ...FILTERS].map(f => `<option value="${f.id}">${f.nm}</option>`).join('');
+$('#fl-f2').addEventListener('change', e => { FL.f2 = e.target.value; flDraw(); });
+seg($('#fl-aim'), v => { FL.aim = v; flDraw(); });
+flCv.cv.addEventListener('pointerdown', e => {
+  const [x, y] = flCv.pt(e), i = FLY.findIndex(Y => Math.abs(y - Y) < 40 && x < FLX + 40);
+  if (i < 0) return; const id = FLAMPS[i].id; FL.on[id] = !FL.on[id]; $(`#fl-lamps [data-v=${id}]`).setAttribute('aria-pressed', FL.on[id]); flDraw();
+});
+
 /* ---------- 分頁 ---------- */
-const TABS = ['disp', 'add', 'sub', 'obj'], DRAW = { disp: dsDraw, add: adDraw, sub: sbDraw, obj: obDraw };
+const TABS = ['add', 'fil', 'obj', 'disp', 'sub'], DRAW = { disp: dsDraw, add: adDraw, sub: sbDraw, obj: obDraw, fil: flDraw };
 let cur = null;
 function show(t) {
-  if (!TABS.includes(t)) t = 'disp'; cur = t;
+  if (!TABS.includes(t)) t = 'add'; cur = t;
   $$('.tab').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === t ? 'true' : 'false'));
   $$('section[data-st]').forEach(s => { s.hidden = s.dataset.st !== t; });
   store.set('tab', t); if (location.hash !== '#' + t) history.replaceState(null, '', '#' + t);
@@ -911,7 +1072,7 @@ window.addEventListener('hashchange', () => show(location.hash.slice(1)));
 new ResizeObserver(raf(() => cur && DRAW[cur]())).observe(document.querySelector('main'));
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => cur && DRAW[cur]());
 if (document.fonts) document.fonts.ready.then(() => cur && DRAW[cur]());
-show(location.hash.slice(1) || store.get('tab') || 'disp');
+show(location.hash.slice(1) || store.get('tab') || 'add');
 })();
 </script>
 </body>
