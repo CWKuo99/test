@@ -265,6 +265,14 @@ footer{border-top:1px solid var(--line);padding-block:18px 28px;color:var(--mute
   body{font-size:16px}
   .design-card,.design-card h4,.hint,.legend,.readout dt,.readout dd,.ctl,.ctl label,.ctl output,.ctl span,.switch,.tab,.tab .sec,.seg button,.btn,.eyebrow,.tag,select,th,td,footer,footer .wrap,b{font-size:16px}
 }
+.lt-goal p{margin:0 0 8px;font-size:15px;line-height:1.6}
+.lt-goal table{width:100%;min-width:0;border-collapse:collapse;font-size:14px;margin-top:8px}
+.lt-goal th,.lt-goal td{border-top:1px solid var(--line);border-bottom:0;padding:5px 6px;text-align:left;white-space:normal}.lt-goal td:last-child{width:2em;text-align:center}
+.lt-goal th{color:var(--muted);font-weight:500;font-size:12px}
+.lt-mono{font-family:var(--font-mono);letter-spacing:.08em;white-space:nowrap}
+.lt-ok{color:var(--ok);font-weight:700}.lt-no{color:var(--warn)}.lt-tip{color:var(--muted);font-size:14px}
+.lt-word,.lt-own input{font:600 16px var(--font-mono);width:5.2em;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);text-transform:uppercase}
+.lt-own label{display:inline-flex;gap:6px;align-items:center;font-size:14px}
 </style>
 
 </head>
@@ -604,7 +612,7 @@ footer{border-top:1px solid var(--line);padding-block:18px 28px;color:var(--mute
   <aside class="poe" data-poe="color"></aside>
   <div class="lab">
     <div class="lab-head">
-      <div class="seg" id="co-mode"><button data-v="add" aria-pressed="true">色光三原色</button><button data-v="fil" aria-pressed="false">玻璃紙</button><button data-v="obj" aria-pressed="false">物體的顏色</button><button data-v="disp" aria-pressed="false">三稜鏡色散</button><button data-v="sub" aria-pressed="false">顏料三原色</button></div>
+      <div class="seg" id="co-mode"><button data-v="add" aria-pressed="true">色光三原色</button><button data-v="fil" aria-pressed="false">玻璃紙</button><button data-v="obj" aria-pressed="false">物體的顏色</button><button data-v="let" aria-pressed="false">字母挑戰</button><button data-v="disp" aria-pressed="false">三稜鏡色散</button><button data-v="sub" aria-pressed="false">顏料三原色</button></div>
       <span class="tag">探討活動 4-4</span>
     </div>
     <div data-for="disp" class="lab" hidden>
@@ -711,6 +719,35 @@ footer{border-top:1px solid var(--line);padding-block:18px 28px;color:var(--mute
     <li>不透明物體：反射哪些色光、吸收哪些色光，決定它的顏色；白色物體反射各種色光，黑色物體吸收各種色光。</li>
     <li>透明物體（玻璃紙）：讓哪些色光穿透，決定它的顏色；其他色光被吸收。透明玻璃紙讓各種色光都通過。</li>
     <li>光源、玻璃紙、被照物三者一起決定進入眼睛的光：只有「光源有、玻璃紙讓它過、物體也反射」的色光才看得到；一種也沒有就是黑色，在黑底上就「消失」了。</li>
+  </ol></div>
+    </div>
+    <div data-for="let" class="lab" hidden>
+
+  <div class="controls">
+    <div class="ctl wide"><span>挑戰</span><div class="chips" id="lt-ch"></div></div>
+    <div class="ctl wide" id="lt-own" hidden><span>自己出題：各種光下想看到的字（不填＝不檢查）</span><div class="row-btns lt-own">
+      <label>白光 <input data-l="w" maxlength="3" autocomplete="off" spellcheck="false"></label><label>紅光 <input data-l="r" maxlength="3" autocomplete="off" spellcheck="false"></label><label>綠光 <input data-l="g" maxlength="3" autocomplete="off" spellcheck="false"></label><label>藍光 <input data-l="b" maxlength="3" autocomplete="off" spellcheck="false"></label>
+    </div></div>
+    <div class="ctl wide"><span>① 光源</span><div class="chips" id="lt-lights"></div></div>
+    <div class="ctl wide"><span>② 玻璃紙（放在燈前）</span><div class="chips" id="lt-filters"></div></div>
+    <div class="ctl"><span>底盤</span><div class="seg" id="lt-n"><button data-v="1" aria-pressed="true">1 個字母</button><button data-v="3" aria-pressed="false">3 個字母</button></div></div>
+    <div class="ctl wide"><span>③ 色紙：點圖中的一段選取，再按顏色就會塗上</span><div class="chips" id="lt-papers"></div></div>
+    <div class="ctl wide"><div class="row-btns" style="align-items:center"><input id="lt-word" class="lt-word" maxlength="3" placeholder="例：E" autocomplete="off" spellcheck="false" aria-label="要拼的字母"><button class="btn" id="lt-type">把這個字母的段塗上目前顏色</button><button class="btn" id="lt-clear">全部塗黑（重來）</button><label class="switch"><input type="checkbox" id="lt-hide"> 先預測：遮住看到的結果</label><button class="btn" id="lt-reveal" hidden>揭曉</button></div></div>
+  </div>
+  <div class="cols two">
+    <div class="canvas-box dark"><canvas id="lt-cv" data-w="1000" data-h="560" aria-label="暗室中：光源、玻璃紙、十四段字母底盤與眼睛"></canvas></div>
+    <div class="side">
+      <div class="panel"><h4>設計圖：每一段貼的色紙（白光下的本色）</h4><canvas id="lt-dz" data-w="520" data-h="220" aria-label="字母底盤的設計圖，可點選一段塗色"></canvas></div>
+      <div class="panel lt-goal"><p id="lt-goal-t"></p><div class="row-btns"><button class="btn" id="lt-check">檢查我的設計</button><button class="btn" id="lt-sol" hidden>看一種解法</button></div><div id="lt-res"></div></div>
+      <dl class="readout" id="lt-out"></dl>
+    </div>
+  </div>
+  <div class="strip-box"><h4>字母對照表：十四段顯示怎麼拼 A～Z</h4><canvas id="lt-abc" data-w="1000" data-h="190" aria-label="十四段顯示的 A 到 Z"></canvas></div>
+  <div class="design-card"><h4>挑戰的原理</h4><ol>
+    <li>底盤是黑色的，每一段貼一張色紙。一段看得見，要「光源有這種色光，色紙也反射它」。</li>
+    <li>紅光下，只有反射紅光的色紙（紅、黃、洋紅、白）看得見；綠光下是綠、黃、青、白；藍光下是藍、青、洋紅、白；黑色紙在任何光下都看不見。</li>
+    <li>一段一段想：這段在紅光下要亮嗎？綠光下呢？藍光下呢？三個答案決定要貼哪一種色紙，八種色紙剛好對應八種組合。</li>
+    <li>白光含有紅、綠、藍光，所以在任何一種色光下會亮的段，白光下一定亮；白光下暗的段（黑色紙），換什麼光都暗。</li>
   </ol></div>
     </div>
   </div>
@@ -3627,13 +3664,252 @@ flCv.cv.addEventListener('pointerdown', e => {
   if (i < 0) return; const id = FLAMPS[i].id; FL.on[id] = !FL.on[id]; $(`#fl-lamps [data-v=${id}]`).setAttribute('aria-pressed', FL.on[id]); flDraw();
 });
 
+/* ================================================================
+   6. 字母挑戰：十四段顯示的底盤，換一種光，字母就變了
+   ================================================================ */
+// 段名：a 上、b 右上、c 右下、d 下、e 左下、f 左上、g1 中左、g2 中右、h 左上斜、i 上中直、j 右上斜、k 左下斜、l 下中直、m 右下斜
+const SEG14 = ['a', 'b', 'c', 'd', 'e', 'f', 'g1', 'g2', 'h', 'i', 'j', 'k', 'l', 'm'];
+const LETTERS = Object.fromEntries(Object.entries({
+  A: 'a b c e f g1 g2', B: 'a b c d g2 i l', C: 'a d e f', D: 'a b c d i l', E: 'a d e f g1 g2', F: 'a e f g1 g2', G: 'a c d e f g2',
+  H: 'b c e f g1 g2', I: 'a d i l', J: 'b c d e', K: 'e f g1 j m', L: 'd e f', M: 'b c e f h j', N: 'b c e f h m', O: 'a b c d e f',
+  P: 'a b e f g1 g2', Q: 'a b c d e f m', R: 'a b e f g1 g2 m', S: 'a c d f g1 g2', T: 'a i l', U: 'b c d e f', V: 'e f j k',
+  W: 'b c e f k m', X: 'h j k m', Y: 'h j l', Z: 'a d j k',
+}).map(([k, v]) => [k, v.split(' ')]));
+const segKey = arr => SEG14.filter(s => arr.includes(s)).join(' ');
+const REC = {};
+Object.entries(LETTERS).forEach(([ch, a]) => { REC[segKey(a)] = ch; });
+REC[segKey(['a', 'd', 'e', 'f', 'g1'])] = 'E'; REC[segKey(['a', 'e', 'f', 'g1'])] = 'F'; // 中間只亮左半也算
+function poly14(L, R, T, B, t) {
+  const h = t / 2, g = Math.max(2, t * 0.12), M = (T + B) / 2, C = (L + R) / 2, w = t * 0.72;
+  const H = (x0, x1, y) => [[x0 + g, y], [x0 + h + g, y - h], [x1 - h - g, y - h], [x1 - g, y], [x1 - h - g, y + h], [x0 + h + g, y + h]];
+  const V = (x, y0, y1) => [[x, y0 + g], [x + h, y0 + h + g], [x + h, y1 - h - g], [x, y1 - g], [x - h, y1 - h - g], [x - h, y0 + h + g]];
+  const D = (x0, x1, y0, y1, anti) => { // 在 [x0,x1]×[y0,y1] 方框內畫一條粗斜線；anti＝由右上到左下
+    const e = w * 0.3, A = anti ? [x1 - e, y0 + e] : [x0 + e, y0 + e], Bp = anti ? [x0 + e, y1 - e] : [x1 - e, y1 - e];
+    const len = Math.hypot(Bp[0] - A[0], Bp[1] - A[1]), nx = -(Bp[1] - A[1]) / len * w / 2, ny = (Bp[0] - A[0]) / len * w / 2;
+    return [[A[0] + nx, A[1] + ny], [Bp[0] + nx, Bp[1] + ny], [Bp[0] - nx, Bp[1] - ny], [A[0] - nx, A[1] - ny]];
+  };
+  const q = h + g * 1.6, lx0 = L + q, lx1 = C - q, rx0 = C + q, rx1 = R - q, uy0 = T + q, uy1 = M - q, dy0 = M + q, dy1 = B - q;
+  return {
+    a: H(L, R, T), d: H(L, R, B), g1: H(L, C, M), g2: H(C, R, M),
+    f: V(L, T, M), e: V(L, M, B), b: V(R, T, M), c: V(R, M, B), i: V(C, T, M), l: V(C, M, B),
+    h: D(lx0, lx1, uy0, uy1, false), j: D(rx0, rx1, uy0, uy1, true), k: D(lx0, lx1, dy0, dy1, true), m: D(rx0, rx1, dy0, dy1, false),
+  };
+}
+const pCenter = p => [p.reduce((s, q) => s + q[0], 0) / p.length, p.reduce((s, q) => s + q[1], 0) / p.length];
+const pathPoly = (c, p) => { c.beginPath(); p.forEach((q, i) => i ? c.lineTo(q[0], q[1]) : c.moveTo(q[0], q[1])); c.closePath(); };
+const LTLAY = { 1: { cells: [[540, 760]], T: 110, B: 440, t: 30, pad: 62 }, 3: { cells: [[354, 514], [560, 720], [766, 926]], T: 140, B: 420, t: 22, pad: 36 } };
+const DZLAY = { 1: { cells: [[215, 305]], T: 26, B: 194, t: 15 }, 3: { cells: [[95, 185], [215, 305], [335, 425]], T: 26, B: 194, t: 15 } };
+const layPolys = lay => lay.cells.map(([L, R]) => poly14(L, R, lay.T, lay.B, lay.t));
+function layHit(lay, n, x, y) {
+  const P = layPolys(lay).slice(0, n);
+  for (let ci = 0; ci < P.length; ci++) for (const s of SEG14) if (inPoly(x, y, P[ci][s])) return [ci, s];
+  let best = null, bd = lay.t * 1.1; // 沒點準時，取最近的一段（平板上斜段較細）
+  P.forEach((ps, ci) => SEG14.forEach(s => { const [cx, cy] = pCenter(ps[s]), d = Math.hypot(x - cx, y - cy); if (d < bd) { bd = d; best = [ci, s]; } }));
+  return best;
+}
+const LT = { light: 'w', f1: 'clear', paint: 'white', n: 1, cell: 0, seg: 'a', col: [0, 1, 2].map(() => Object.fromEntries(SEG14.map(s => [s, 'black']))), hide: false, shown: false, ch: 'c1', checked: false, own: { w: '', r: '', g: '', b: '' } };
+const CHAL = [
+  { id: 'free', nm: '自由設計' },
+  { id: 'c1', nm: '挑戰 1：E → F → L', n: 1, goal: { w: 'E', r: 'F', g: 'L' }, start: 'E', tip: '白光下是 E，換紅光變 F、換綠光變 L。先把 E 全塗白色，再想哪幾段要換顏色。' },
+  { id: 'c2', nm: '挑戰 2：O → C → J', n: 1, goal: { w: 'O', r: 'C', g: 'J' }, start: 'O', tip: '白光下是 O，換紅光變 C、換綠光變 J。' },
+  { id: 'c3', nm: '挑戰 3：紅 H、綠 A、藍 T', n: 1, goal: { r: 'H', g: 'A', b: 'T' }, tip: '同一個底盤，紅光下是 H、綠光下是 A、藍光下是 T。白光下會看到什麼？' },
+  { id: 'c4', nm: '挑戰 4：密碼 YES／NO', n: 3, goal: { r: 'YES', g: 'NO ' }, tip: '紅光下顯示 YES，綠光下顯示 NO（第三格空白）。白光下別人看得出答案嗎？' },
+  { id: 'c5', nm: '挑戰 5：HOT／ICE', n: 3, goal: { r: 'HOT', b: 'ICE' }, tip: '紅光下顯示 HOT，藍光下顯示 ICE。' },
+  { id: 'own', nm: '自己出題', tip: '在上面填入各種光下想看到的字（A～Z，空白代表那一格全暗），出題給同學解。' },
+];
+const LTL = { w: '白光', r: '紅光', g: '綠光', b: '藍光' };
+const ltCv = setupCanvas($('#lt-cv')), ltDz = setupCanvas($('#lt-dz')), ltAbc = setupCanvas($('#lt-abc'));
+const lightById = id => LIGHTS.find(x => x.id === id).S;
+const ltF = () => fById(LT.f1).R;
+function look(cols, S, F) { // 一格字母在某光源、某玻璃紙下：每段看得見嗎？像哪個字母？
+  const SF = mul(S, F), vis = {};
+  SEG14.forEach(s => { const lin = specToLin(mul(SF, pById(cols[s]).R)); vis[s] = { lin, on: Math.max(...lin) >= 0.06 }; });
+  const key = SEG14.filter(s => vis[s].on).join(' ');
+  return { vis, ch: key === '' ? ' ' : (REC[key] || '?') };
+}
+const ltWord = (S, F) => LT.col.slice(0, LT.n).map(cols => look(cols, S, F));
+const fmtW = w => w.split('').map(ch => ch === ' ' ? '·' : ch).join(' ');
+const wordTxt = res => { const w = res.map(r => r.ch).join(''); return w.trim() === '' ? '全部看不見' : fmtW(w) + (w.includes('?') ? '（? ＝不像字母）' : ''); };
+const curChal = () => CHAL.find(c => c.id === LT.ch);
+function curGoal() {
+  const c = curChal(); if (c.goal) return c.goal;
+  if (c.id !== 'own') return null;
+  const g = {}; Object.entries(LT.own).forEach(([k, v]) => { if (v.trim()) g[k] = v; }); return Object.keys(g).length ? g : null;
+}
+// 每種色紙在各色光下（不加玻璃紙）看不看得見
+const VIS = Object.fromEntries(Object.keys(LTL).map(L => [L, Object.fromEntries(PAPERS.map(p => [p.id, Math.max(...specToLin(mul(lightById(L), p.R))) >= 0.06]))]));
+const SOLORDER = ['white', 'black', 'red', 'green', 'blue', 'yellow', 'cyan', 'magenta'];
+function solve(goal, n) {
+  const Ls = Object.keys(goal), out = [];
+  for (let ci = 0; ci < n; ci++) {
+    const cols = {};
+    for (const s of SEG14) {
+      const need = Ls.map(L => { const ch = goal[L][ci] || ' '; return ch !== ' ' && LETTERS[ch].includes(s); });
+      const p = SOLORDER.find(id => Ls.every((L, k) => VIS[L][id] === need[k]));
+      if (!p) return { bad: { ci, need: Ls.map((L, k) => LTL[L] + (need[k] ? '亮' : '暗')) } };
+      cols[s] = p;
+    }
+    out.push(cols);
+  }
+  return { cols: out };
+}
+function drawLet() {
+  if (!ltCv.resize()) return; setFS(ltCv);
+  const c = ltCv.ctx, W = ltCv.W, H = ltCv.H, S = lightById(LT.light), F = ltF(), Sin = mul(S, F), show = !LT.hide || LT.shown;
+  const lay = LTLAY[LT.n], P = layPolys(lay), res = ltWord(S, F);
+  c.fillStyle = '#07090c'; c.fillRect(0, 0, W, H);
+  const lamp = [100, 120], eye = [80, 456], Lin = specToLin(Sin);
+  const gr = c.createRadialGradient(lamp[0], lamp[1], 10, lamp[0] + 460, lamp[1] + 200, 660);
+  gr.addColorStop(0, linCSS(Lin.map(v => v * 0.26))); gr.addColorStop(1, 'rgba(7,9,12,0)');
+  c.fillStyle = gr; c.beginPath(); c.moveTo(lamp[0], lamp[1]); c.lineTo(W, 40); c.lineTo(W, H); c.lineTo(260, H); c.closePath(); c.fill();
+  // 黑色底盤
+  const bx0 = lay.cells[0][0] - lay.pad, bx1 = lay.cells[LT.n - 1][1] + lay.pad;
+  c.fillStyle = '#050607'; c.strokeStyle = '#2a323b'; c.lineWidth = 2; c.beginPath(); c.roundRect(bx0, lay.T - 46, bx1 - bx0, lay.B - lay.T + 92, 14); c.fill(); c.stroke();
+  for (let ci = 0; ci < LT.n; ci++) {
+    SEG14.forEach(s => {
+      pathPoly(c, P[ci][s]);
+      const v = res[ci].vis[s]; c.fillStyle = show ? linCSS(v.on ? v.lin : v.lin.map(x => x * 0.35)) : '#2a323b'; c.fill(); // 看不見的段（反射極少）畫得更暗，字形較清楚
+      if (!show) { c.strokeStyle = '#3d4752'; c.lineWidth = 1; c.stroke(); }
+    });
+    if (!show) text(c, '?', (lay.cells[ci][0] + lay.cells[ci][1]) / 2, (lay.T + lay.B) / 2 + 14, { size: 40, align: 'center', color: '#8b96a1', weight: 700 });
+  }
+  pathPoly(c, P[LT.cell][LT.seg]); c.strokeStyle = '#ffd43b'; c.lineWidth = 3; c.stroke();
+  // 燈
+  const Lc = specToLin(S), gl = c.createRadialGradient(lamp[0], lamp[1], 0, lamp[0], lamp[1], 30); gl.addColorStop(0, linCSS(Lc.map(v => v / Math.max(...Lc, 1e-6)))); gl.addColorStop(1, 'rgba(7,9,12,0)');
+  c.fillStyle = gl; c.beginPath(); c.arc(lamp[0], lamp[1], 30, 0, 7); c.fill();
+  label(c, '光源', lamp[0] - 50, lamp[1] + 5, { size: 14, align: 'center' });
+  // 選中那一段的光路
+  const tgt = pCenter(P[LT.cell][LT.seg]), Pp = pById(LT.col[LT.cell][LT.seg]);
+  const ch0 = bandSum(S), CH = Sp => bandSum(Sp).map((v, k) => ch0[k] > 0.08 * BANDW[k] ? v / ch0[k] : 0);
+  const cS = CH(S), cIn = CH(Sin), cR = CH(mul(Sin, Pp.R));
+  const fL = toward(lamp, tgt, 120), angL = Math.atan2(tgt[1] - lamp[1], tgt[0] - lamp[0]), pIn = toward(tgt, lamp, 18);
+  const absorbed = show ? cIn.map((v, k) => v > 0.2 && !(cR[k] > 0.2)) : null;
+  rays(c, toward(lamp, tgt, 26), toward(lamp, tgt, 110), cS);
+  rays(c, toward(lamp, tgt, 132), pIn, cIn, cS, toward(lamp, tgt, 118), absorbed);
+  sheet(c, fL[0], fL[1], angL, fById(LT.f1)); label(c, fById(LT.f1).nm, fL[0] - 10, fL[1] + 84, { size: 14, align: 'center' });
+  label(c, '光源有：' + chTxt(cS), lamp[0], lamp[1] - 40, { size: 13, align: 'center', color: '#e9edf1' });
+  const mid1 = toward(fL, tgt, 90);
+  label(c, '穿過玻璃紙剩下：' + chTxt(cIn), mid1[0], mid1[1] - 18, { size: 13, align: 'center', color: '#e9edf1' });
+  const a0 = toward(tgt, eye, 14), eEnd = toward(eye, a0, 34);
+  if (!show) { c.setLineDash([6, 6]); arrow(c, a0[0], a0[1], eEnd[0], eEnd[1], '#5b6774', 2); c.setLineDash([]); }
+  else {
+    rays(c, a0, eEnd, cR);
+    const mid2 = toward(a0, eye, 150);
+    label(c, `${Pp.nm}紙反射：` + chTxt(cR), mid2[0] + 10, mid2[1] - 16, { size: 13, align: 'center', color: '#e9edf1' });
+    const lin = res[LT.cell].vis[LT.seg].lin, on = Math.max(...lin) >= 0.06;
+    label(c, on ? '看到這一段：' + colorName(lin) : '看到這一段：黑（沒有光）', 18, eye[1] + 58, { size: 15, weight: 700, color: on ? '#fff' : '#adb5bd' });
+  }
+  eyeIcon(c, eye[0], eye[1]);
+  text(c, '暗室：燈光先穿過玻璃紙，再照到字母底盤', 18, 32, { size: 16, color: '#8b96a1' });
+  text(c, show ? '看起來：' + wordTxt(res) : '看起來：？', (bx0 + bx1) / 2, lay.B + 82, { size: 18, align: 'center', color: '#e9edf1', weight: 700 });
+  text(c, '紅、綠、藍三條線＝光裡的三種色光；✕＝在這裡被吸收', 18, H - 12, { size: 13, color: '#8b96a1' });
+  drawLtDz(); drawLtGoal(); drawLtOut(res, Pp, show);
+}
+function drawLtDz() {
+  if (!ltDz.resize()) return;
+  const c = ltDz.ctx, W = ltDz.W, H = ltDz.H, lay = DZLAY[LT.n], P = layPolys(lay);
+  c.clearRect(0, 0, W, H); c.fillStyle = '#0b0e12'; c.beginPath(); c.roundRect(0, 0, W, H, 10); c.fill();
+  for (let ci = 0; ci < LT.n; ci++) SEG14.forEach(s => {
+    const p = pById(LT.col[ci][s]); pathPoly(c, P[ci][s]);
+    c.fillStyle = p.id === 'black' ? '#161b21' : linCSS(specToLin(p.R)); c.fill();
+    if (p.id === 'black') { c.strokeStyle = '#3d4752'; c.lineWidth = 1; c.stroke(); }
+  });
+  pathPoly(c, P[LT.cell][LT.seg]); c.strokeStyle = '#ffd43b'; c.lineWidth = 2.5; c.stroke();
+}
+function drawLtAbc() {
+  if (!ltAbc.resize()) return; setFS(ltAbc);
+  const c = ltAbc.ctx, W = ltAbc.W, H = ltAbc.H;
+  c.fillStyle = '#07090c'; c.fillRect(0, 0, W, H);
+  Object.keys(LETTERS).forEach((ch, i) => {
+    const col = i % 13, row = Math.floor(i / 13), cx = 40 + col * 76.6, y0 = 14 + row * 92;
+    const P = poly14(cx - 22, cx + 22, y0, y0 + 58, 6), on = LETTERS[ch];
+    SEG14.forEach(s => { pathPoly(c, P[s]); c.fillStyle = on.includes(s) ? '#ffd8a8' : '#1c232a'; c.fill(); });
+    text(c, ch, cx, y0 + 80, { size: 13, align: 'center', color: '#8b96a1', font: MONO, weight: 600 });
+  });
+}
+function drawLtGoal() {
+  const ch = curChal(), goal = curGoal(), t = $('#lt-goal-t'), r = $('#lt-res');
+  $('#lt-check').hidden = !goal; $('#lt-sol').hidden = !(goal && LT.checked);
+  if (!goal) { t.innerHTML = ch.id === 'own' ? ch.tip : '自由設計：先拼出一個字母，換不同顏色的光看看會變成什麼。也可以從上面選一個挑戰。'; r.innerHTML = ''; return; }
+  const long = Object.values(goal).some(w => w.trimEnd().length > LT.n);
+  t.innerHTML = `<b>目標</b>（只開這種光、不加玻璃紙）：${Object.entries(goal).map(([L, w]) => `${LTL[L]}下 <b class="lt-mono">${fmtW(w.padEnd(LT.n, ' ').slice(0, Math.max(LT.n, w.trimEnd().length)))}</b>`).join('，')}${ch.tip && ch.id !== 'own' ? `<br><span class="lt-tip">${ch.tip}</span>` : ''}`;
+  const sol = solve(Object.fromEntries(Object.entries(goal).map(([L, w]) => [L, w.padEnd(LT.n, ' ')])), LT.n);
+  if (long) { r.innerHTML = `<p class="lt-no">字太長了：底盤只有 ${LT.n} 格，請把「底盤」改成 3 個字母。</p>`; return; }
+  if (sol.bad) { r.innerHTML = `<p class="lt-no">這題無解：第 ${sol.bad.ci + 1} 格有一段要「${sol.bad.need.join('、')}」，找不到這種色紙。想想看：白光裡含有紅、綠、藍光。</p>`; return; }
+  if (!LT.checked) { r.innerHTML = ''; return; }
+  let all = true;
+  const rows = Object.entries(goal).map(([L, w]) => {
+    const got = ltWord(lightById(L), NOF.R).map(x => x.ch).join(''), want = w.padEnd(LT.n, ' ').slice(0, LT.n), ok = got === want; all = all && ok;
+    return `<tr><td>${LTL[L]}下</td><td class="lt-mono">${fmtW(want)}</td><td class="lt-mono">${got.trim() ? fmtW(got) : '全暗'}</td><td class="${ok ? 'lt-ok' : 'lt-no'}">${ok ? '✓' : '✗'}</td></tr>`;
+  }).join('');
+  r.innerHTML = `<table><thead><tr><th>照</th><th>目標</th><th>你的底盤</th><th></th></tr></thead><tbody>${rows}</tbody></table>`
+    + (all ? `<p class="lt-ok">全部達成！${goal.w ? '' : '再用白光照照看，底盤看起來像什麼？'}</p>` : '<p class="lt-tip">換到那種光，看看哪一段多亮了或少亮了，再改那一段的色紙。</p>');
+}
+function drawLtOut(res, Pp, show) {
+  const sw = col => `<span class="swatch" style="background:${linCSS(col)}"></span>`, lin = res[LT.cell].vis[LT.seg].lin;
+  $('#lt-out').innerHTML = `<div><dt>① 光源</dt><dd class="zh">${sw(specToLin(lightById(LT.light)))}${LIGHTS.find(x => x.id === LT.light).nm}</dd></div>`
+    + `<div><dt>② 玻璃紙（燈前）</dt><dd class="zh">${sw(specToLin(ltF()))}${fById(LT.f1).nm}</dd></div>`
+    + `<div><dt>③ 選中：第 ${LT.cell + 1} 格的一段</dt><dd class="zh">${sw(specToLin(Pp.R))}${Pp.nm}紙</dd></div>`
+    + `<div><dt>那一段看起來是</dt><dd class="zh">${show ? sw(lin) + colorName(lin) : '？'}</dd></div>`
+    + `<div><dt>整排看起來像</dt><dd class="zh">${show ? wordTxt(res) : '？（先預測）'}</dd></div>`;
+}
+const ltDraw = raf(() => { drawLet(); drawLtAbc(); });
+const ltSet = (sel, v) => $$('.chip, button', $(sel)).forEach(x => x.setAttribute('aria-pressed', x.dataset.v === String(v) ? 'true' : 'false'));
+const ltBlank = () => LT.col.forEach(cols => SEG14.forEach(s => { cols[s] = 'black'; }));
+function ltSetN(n) { LT.n = n; if (LT.cell >= n) LT.cell = 0; ltSet('#lt-n', n); }
+function ltChal(id) {
+  LT.ch = id; LT.checked = false; const c = curChal();
+  $('#lt-own').hidden = id !== 'own'; ltSet('#lt-ch', id);
+  if (c.goal) {
+    ltSetN(c.n); ltBlank(); LT.cell = 0; LT.seg = 'a';
+    if (c.start) LETTERS[c.start].forEach(s => { LT.col[0][s] = 'white'; });
+    LT.light = 'w'; ltSet('#lt-lights', 'w'); LT.f1 = 'clear'; ltSet('#lt-filters', 'clear');
+  }
+  LT.shown = false; ltDraw();
+}
+$('#lt-ch').innerHTML = CHAL.map(c => `<button class="chip" data-v="${c.id}" aria-pressed="${c.id === LT.ch}">${c.nm}</button>`).join('');
+$('#lt-lights').innerHTML = LIGHTS.map(L => chipHTML(L.id, L.nm, linCSS(specToLin(L.S)), L.id === LT.light)).join('');
+$('#lt-filters').innerHTML = FILTERS.map(f => chipHTML(f.id, f.nm, f.id === 'clear' ? 'transparent' : linCSS(specToLin(f.R)), f.id === LT.f1)).join('');
+$('#lt-papers').innerHTML = PAPERS.map(p => chipHTML(p.id, p.nm, linCSS(specToLin(p.R)), p.id === LT.paint)).join('');
+chipGroup($('#lt-ch'), ltChal);
+chipGroup($('#lt-lights'), v => { LT.light = v; LT.shown = false; ltDraw(); });
+chipGroup($('#lt-filters'), v => { LT.f1 = v; LT.shown = false; ltDraw(); });
+chipGroup($('#lt-papers'), v => { LT.paint = v; LT.col[LT.cell][LT.seg] = v; ltDraw(); });
+seg($('#lt-n'), v => { ltSetN(+v); ltDraw(); });
+$('#lt-type').addEventListener('click', () => {
+  const w = $('#lt-word').value.toUpperCase().replace(/[^A-Z ]/g, '').slice(0, LT.n); $('#lt-word').value = w;
+  w.split('').forEach((ch, ci) => { if (LETTERS[ch]) LETTERS[ch].forEach(s => { LT.col[ci][s] = LT.paint; }); });
+  ltDraw();
+});
+$('#lt-word').addEventListener('keydown', e => { if (e.key === 'Enter') $('#lt-type').click(); });
+$('#lt-clear').addEventListener('click', () => { ltBlank(); ltDraw(); });
+$('#lt-hide').addEventListener('change', e => { LT.hide = e.target.checked; $('#lt-reveal').hidden = !LT.hide; LT.shown = false; ltDraw(); });
+$('#lt-reveal').addEventListener('click', () => { LT.shown = true; ltDraw(); });
+$('#lt-check').addEventListener('click', () => { LT.checked = true; ltDraw(); });
+$('#lt-sol').addEventListener('click', () => {
+  const g = curGoal(); if (!g) return;
+  const sol = solve(Object.fromEntries(Object.entries(g).map(([L, w]) => [L, w.padEnd(LT.n, ' ')])), LT.n); if (sol.bad) return;
+  sol.cols.forEach((cols, ci) => Object.assign(LT.col[ci], cols)); ltDraw();
+});
+$$('#lt-own input').forEach(inp => inp.addEventListener('input', () => {
+  const v = inp.value.toUpperCase().replace(/[^A-Z ]/g, '').slice(0, 3); if (v !== inp.value) inp.value = v;
+  LT.own[inp.dataset.l] = v; LT.checked = false; ltDraw();
+}));
+const ltPick = (cv, lay) => e => {
+  const [x, y] = cv.pt(e), h = layHit(lay(), LT.n, x, y); if (!h) return;
+  [LT.cell, LT.seg] = h; LT.col[LT.cell][LT.seg] = LT.paint; ltDraw();
+};
+ltCv.cv.addEventListener('pointerdown', ltPick(ltCv, () => LTLAY[LT.n]));
+ltDz.cv.addEventListener('pointerdown', ltPick(ltDz, () => DZLAY[LT.n]));
+LETTERS.E.forEach(s => { LT.col[0][s] = 'white'; });
+
 /* ---------- 站內模式切換與重畫 ---------- */
-const DRAW = { disp: dsDraw, add: adDraw, sub: sbDraw, obj: obDraw, fil: flDraw };
+const DRAW = { disp: dsDraw, add: adDraw, sub: sbDraw, obj: obDraw, fil: flDraw, let: ltDraw };
 let mode = 'add';
 seg($('#co-mode'), v => { mode = v; $$('#st-color > .lab > [data-for]').forEach(el => { el.hidden = el.dataset.for !== v; }); DRAW[v](); });
 // 分頁從隱藏變成顯示、或視窗改變寬度時，畫布寬度會變，藉此重畫
 const ro = new ResizeObserver(raf(() => { if ($('#st-color').offsetParent !== null) DRAW[mode](); }));
-['#ds-cv', '#ad-cv', '#sb-cv', '#ob-cv', '#fl-cv'].forEach(id => ro.observe($(id)));
+['#ds-cv', '#ad-cv', '#sb-cv', '#ob-cv', '#fl-cv', '#lt-cv', '#lt-dz', '#lt-abc'].forEach(id => ro.observe($(id)));
 const redraw = () => { if ($('#st-color').offsetParent !== null) DRAW[mode](); };
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', redraw);
 new MutationObserver(redraw).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
