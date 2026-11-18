@@ -283,18 +283,18 @@ footer{border-top:1px solid var(--line);padding-block:18px 28px;color:var(--mute
     <div class="ctl wide"><span>① 光源</span><div class="chips" id="lt-lights"></div></div>
     <div class="ctl wide"><span>② 玻璃紙（放在燈前）</span><div class="chips" id="lt-filters"></div></div>
     <div class="ctl"><span>底盤</span><div class="seg" id="lt-n"><button data-v="1" aria-pressed="true">1 個字母</button><button data-v="3" aria-pressed="false">3 個字母</button></div></div>
-    <div class="ctl wide"><span>③ 色紙：點圖中的一段選取，再按顏色就會塗上</span><div class="chips" id="lt-papers"></div></div>
+    <div class="ctl wide"><span>③ 色紙：先選顏色，再點圖中的段塗上</span><div class="chips" id="lt-papers"></div></div>
     <div class="ctl wide"><div class="row-btns" style="align-items:center"><input id="lt-word" class="lt-word" maxlength="3" placeholder="例：E" autocomplete="off" spellcheck="false" aria-label="要拼的字母"><button class="btn" id="lt-type">把這個字母的段塗上目前顏色</button><button class="btn" id="lt-clear">全部塗黑（重來）</button><label class="switch"><input type="checkbox" id="lt-hide"> 先預測：遮住看到的結果</label><button class="btn" id="lt-reveal" hidden>揭曉</button></div></div>
   </div>
   <div class="cols two">
-    <div class="canvas-box dark"><canvas id="lt-cv" data-w="1000" data-h="560" aria-label="暗室中：光源、玻璃紙、十四段字母底盤與眼睛"></canvas></div>
+    <div class="canvas-box dark"><canvas id="lt-cv" data-w="1000" data-h="560" aria-label="暗室中：光源、玻璃紙、字母底盤與眼睛"></canvas></div>
     <div class="side">
-      <div class="panel"><h4>設計圖：每一段貼的色紙（白光下的本色）</h4><canvas id="lt-dz" data-w="520" data-h="220" aria-label="字母底盤的設計圖，可點選一段塗色"></canvas></div>
+      <div class="panel"><h4>設計圖：每一段貼的色紙（白光下的本色，也可以點這裡塗）</h4><canvas id="lt-dz" data-w="520" data-h="220" aria-label="字母底盤的設計圖，可點選一段塗色"></canvas></div>
       <div class="panel lt-goal"><p id="lt-goal-t"></p><div class="row-btns"><button class="btn" id="lt-check">檢查我的設計</button><button class="btn" id="lt-sol" hidden>看一種解法</button></div><div id="lt-res"></div></div>
       <dl class="readout" id="lt-out"></dl>
     </div>
   </div>
-  <div class="strip-box"><h4>字母對照表：十四段顯示怎麼拼 A～Z</h4><canvas id="lt-abc" data-w="1000" data-h="190" aria-label="十四段顯示的 A 到 Z"></canvas></div>
+  <div class="strip-box"><h4>字母對照表：底盤怎麼拼 A～Z（一整條斜線＝X 的兩段）</h4><canvas id="lt-abc" data-w="1000" data-h="240" aria-label="字母底盤的 A 到 Z"></canvas></div>
   <div class="design-card"><h4>挑戰的原理</h4><ol>
     <li>底盤是黑色的，每一段貼一張色紙。一段看得見，要「光源有這種色光，色紙也反射它」。</li>
     <li>紅光下，只有反射紅光的色紙（紅、黃、洋紅、白）看得見；綠光下是綠、黃、青、白；藍光下是藍、青、洋紅、白；黑色紙在任何光下都看不見。</li>
@@ -1098,40 +1098,56 @@ flCv.cv.addEventListener('pointerdown', e => {
 });
 
 /* ================================================================
-   6. 字母挑戰：十四段顯示的底盤，換一種光，字母就變了
+   6. 字母挑戰：可拼字母的底盤（28 段），換一種光，字母就變了
    ================================================================ */
-// 段名：a 上、b 右上、c 右下、d 下、e 左下、f 左上、g1 中左、g2 中右、h 左上斜、i 上中直、j 右上斜、k 左下斜、l 下中直、m 右下斜
-const SEG14 = ['a', 'b', 'c', 'd', 'e', 'f', 'g1', 'g2', 'h', 'i', 'j', 'k', 'l', 'm'];
+// 段名：a1/a2 上橫（左右兩段）、d1/d2 下橫、g1/g2 中橫、f 左上、e 左下、b 右上、c 右下、i 上中直、l 下中直；
+// 四個斜區（ul 左上、ur 右上、dl 左下、dr 右下）各是一個 X，分四段：1 往左上角、2 往右上角、3 往左下角、4 往右下角
+const QUADS = ['ul', 'ur', 'dl', 'dr'];
+const SEG14 = ['a1', 'a2', 'b', 'c', 'd1', 'd2', 'e', 'f', 'g1', 'g2', 'i', 'l', ...QUADS.flatMap(q => [1, 2, 3, 4].map(k => q + k))];
+// 字形先用常見的十四段寫法，再展開：a＝a1＋a2、d＝d1＋d2、h／j／k／m＝各斜區 X 的一整條對角線
+const EXPAND = { a: ['a1', 'a2'], d: ['d1', 'd2'], h: ['ul1', 'ul4'], j: ['ur2', 'ur3'], k: ['dl2', 'dl3'], m: ['dr1', 'dr4'] };
 const LETTERS = Object.fromEntries(Object.entries({
   A: 'a b c e f g1 g2', B: 'a b c d g2 i l', C: 'a d e f', D: 'a b c d i l', E: 'a d e f g1 g2', F: 'a e f g1 g2', G: 'a c d e f g2',
   H: 'b c e f g1 g2', I: 'a d i l', J: 'b c d e', K: 'e f g1 j m', L: 'd e f', M: 'b c e f h j', N: 'b c e f h m', O: 'a b c d e f',
   P: 'a b e f g1 g2', Q: 'a b c d e f m', R: 'a b e f g1 g2 m', S: 'a c d f g1 g2', T: 'a i l', U: 'b c d e f', V: 'e f j k',
   W: 'b c e f k m', X: 'h j k m', Y: 'h j l', Z: 'a d j k',
-}).map(([k, v]) => [k, v.split(' ')]));
+}).map(([k, v]) => [k, v.split(' ').flatMap(x => EXPAND[x] || [x])]));
 const segKey = arr => SEG14.filter(s => arr.includes(s)).join(' ');
 const REC = {};
 Object.entries(LETTERS).forEach(([ch, a]) => { REC[segKey(a)] = ch; });
-REC[segKey(['a', 'd', 'e', 'f', 'g1'])] = 'E'; REC[segKey(['a', 'e', 'f', 'g1'])] = 'F'; // 中間只亮左半也算
+REC[segKey(['a1', 'a2', 'd1', 'd2', 'e', 'f', 'g1'])] = 'E'; REC[segKey(['a1', 'a2', 'e', 'f', 'g1'])] = 'F'; // 中間只亮左半也算
 function poly14(L, R, T, B, t) {
-  const h = t / 2, g = Math.max(2, t * 0.12), M = (T + B) / 2, C = (L + R) / 2, w = t * 0.72;
+  const h = t / 2, g = Math.max(2, t * 0.12), M = (T + B) / 2, C = (L + R) / 2;
   const H = (x0, x1, y) => [[x0 + g, y], [x0 + h + g, y - h], [x1 - h - g, y - h], [x1 - g, y], [x1 - h - g, y + h], [x0 + h + g, y + h]];
   const V = (x, y0, y1) => [[x, y0 + g], [x + h, y0 + h + g], [x + h, y1 - h - g], [x, y1 - g], [x - h, y1 - h - g], [x - h, y0 + h + g]];
-  const D = (x0, x1, y0, y1, anti) => { // 在 [x0,x1]×[y0,y1] 方框內畫一條粗斜線；anti＝由右上到左下
-    const e = w * 0.3, A = anti ? [x1 - e, y0 + e] : [x0 + e, y0 + e], Bp = anti ? [x0 + e, y1 - e] : [x1 - e, y1 - e];
+  const bar = (A, Bp, w) => { // 由 A 到 Bp 的粗線段（四邊形）
     const len = Math.hypot(Bp[0] - A[0], Bp[1] - A[1]), nx = -(Bp[1] - A[1]) / len * w / 2, ny = (Bp[0] - A[0]) / len * w / 2;
     return [[A[0] + nx, A[1] + ny], [Bp[0] + nx, Bp[1] + ny], [Bp[0] - nx, Bp[1] - ny], [A[0] - nx, A[1] - ny]];
   };
-  const q = h + g * 1.6, lx0 = L + q, lx1 = C - q, rx0 = C + q, rx1 = R - q, uy0 = T + q, uy1 = M - q, dy0 = M + q, dy1 = B - q;
-  return {
-    a: H(L, R, T), d: H(L, R, B), g1: H(L, C, M), g2: H(C, R, M),
-    f: V(L, T, M), e: V(L, M, B), b: V(R, T, M), c: V(R, M, B), i: V(C, T, M), l: V(C, M, B),
-    h: D(lx0, lx1, uy0, uy1, false), j: D(rx0, rx1, uy0, uy1, true), k: D(lx0, lx1, dy0, dy1, true), m: D(rx0, rx1, dy0, dy1, false),
+  const X = (x0, x1, y0, y1) => { // 方框內的 X：從中心往四個角各一段，中心留空隙讓四段分開
+    const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2, hw = (x1 - x0) / 2, hh = (y1 - y0) / 2, half = Math.min(Math.atan2(hw, hh), Math.atan2(hh, hw));
+    const w = Math.min(t * 0.55, Math.hypot(hw, hh) * 0.45), s0 = w / 2 / Math.tan(half) + g, e = w * 0.35;
+    const out = {};
+    [[1, -1, -1], [2, 1, -1], [3, -1, 1], [4, 1, 1]].forEach(([k, sx, sy]) => {
+      const L0 = Math.hypot(hw, hh), ux = sx * hw / L0, uy = sy * hh / L0;
+      out[k] = bar([cx + ux * s0, cy + uy * s0], [cx + ux * (L0 - e), cy + uy * (L0 - e)], w);
+    });
+    return out;
   };
+  const q = h + g * 1.6, lx0 = L + q, lx1 = C - q, rx0 = C + q, rx1 = R - q, uy0 = T + q, uy1 = M - q, dy0 = M + q, dy1 = B - q;
+  const P = {
+    a1: H(L, C, T), a2: H(C, R, T), d1: H(L, C, B), d2: H(C, R, B), g1: H(L, C, M), g2: H(C, R, M),
+    f: V(L, T, M), e: V(L, M, B), b: V(R, T, M), c: V(R, M, B), i: V(C, T, M), l: V(C, M, B),
+  };
+  [['ul', lx0, lx1, uy0, uy1], ['ur', rx0, rx1, uy0, uy1], ['dl', lx0, lx1, dy0, dy1], ['dr', rx0, rx1, dy0, dy1]].forEach(([nm, ...box]) => {
+    const x = X(...box); [1, 2, 3, 4].forEach(k => { P[nm + k] = x[k]; });
+  });
+  return P;
 }
 const pCenter = p => [p.reduce((s, q) => s + q[0], 0) / p.length, p.reduce((s, q) => s + q[1], 0) / p.length];
 const pathPoly = (c, p) => { c.beginPath(); p.forEach((q, i) => i ? c.lineTo(q[0], q[1]) : c.moveTo(q[0], q[1])); c.closePath(); };
-const LTLAY = { 1: { cells: [[540, 760]], T: 110, B: 440, t: 30, pad: 62 }, 3: { cells: [[354, 514], [560, 720], [766, 926]], T: 140, B: 420, t: 22, pad: 36 } };
-const DZLAY = { 1: { cells: [[215, 305]], T: 26, B: 194, t: 15 }, 3: { cells: [[95, 185], [215, 305], [335, 425]], T: 26, B: 194, t: 15 } };
+const LTLAY = { 1: { cells: [[505, 775]], T: 105, B: 445, t: 30, pad: 60 }, 3: { cells: [[338, 513], [550, 725], [762, 937]], T: 140, B: 420, t: 22, pad: 30 } };
+const DZLAY = { 1: { cells: [[195, 325]], T: 22, B: 198, t: 14 }, 3: { cells: [[55, 185], [195, 325], [335, 465]], T: 22, B: 198, t: 14 } };
 const layPolys = lay => lay.cells.map(([L, R]) => poly14(L, R, lay.T, lay.B, lay.t));
 function layHit(lay, n, x, y) {
   const P = layPolys(lay).slice(0, n);
@@ -1140,7 +1156,7 @@ function layHit(lay, n, x, y) {
   P.forEach((ps, ci) => SEG14.forEach(s => { const [cx, cy] = pCenter(ps[s]), d = Math.hypot(x - cx, y - cy); if (d < bd) { bd = d; best = [ci, s]; } }));
   return best;
 }
-const LT = { light: 'w', f1: 'clear', paint: 'white', n: 1, cell: 0, seg: 'a', col: [0, 1, 2].map(() => Object.fromEntries(SEG14.map(s => [s, 'black']))), hide: false, shown: false, ch: 'c1', checked: false, own: { w: '', r: '', g: '', b: '' } };
+const LT = { light: 'w', f1: 'clear', paint: 'white', n: 1, cell: 0, seg: 'a1', col: [0, 1, 2].map(() => Object.fromEntries(SEG14.map(s => [s, 'black']))), hide: false, shown: false, ch: 'c1', checked: false, own: { w: '', r: '', g: '', b: '' } };
 const CHAL = [
   { id: 'free', nm: '自由設計' },
   { id: 'c1', nm: '挑戰 1：E → F → L', n: 1, goal: { w: 'E', r: 'F', g: 'L' }, start: 'E', tip: '白光下是 E，換紅光變 F、換綠光變 L。先把 E 全塗白色，再想哪幾段要換顏色。' },
@@ -1254,10 +1270,10 @@ function drawLtAbc() {
   const c = ltAbc.ctx, W = ltAbc.W, H = ltAbc.H;
   c.fillStyle = '#07090c'; c.fillRect(0, 0, W, H);
   Object.keys(LETTERS).forEach((ch, i) => {
-    const col = i % 13, row = Math.floor(i / 13), cx = 40 + col * 76.6, y0 = 14 + row * 92;
-    const P = poly14(cx - 22, cx + 22, y0, y0 + 58, 6), on = LETTERS[ch];
+    const col = i % 13, row = Math.floor(i / 13), cx = 40 + col * 76.6, y0 = 14 + row * 118;
+    const P = poly14(cx - 28, cx + 28, y0, y0 + 80, 6), on = LETTERS[ch];
     SEG14.forEach(s => { pathPoly(c, P[s]); c.fillStyle = on.includes(s) ? '#ffd8a8' : '#1c232a'; c.fill(); });
-    text(c, ch, cx, y0 + 80, { size: 13, align: 'center', color: '#8b96a1', font: MONO, weight: 600 });
+    text(c, ch, cx, y0 + 102, { size: 13, align: 'center', color: '#8b96a1', font: MONO, weight: 600 });
   });
 }
 function drawLtGoal() {
@@ -1294,7 +1310,7 @@ function ltChal(id) {
   LT.ch = id; LT.checked = false; const c = curChal();
   $('#lt-own').hidden = id !== 'own'; ltSet('#lt-ch', id);
   if (c.goal) {
-    ltSetN(c.n); ltBlank(); LT.cell = 0; LT.seg = 'a';
+    ltSetN(c.n); ltBlank(); LT.cell = 0; LT.seg = 'a1';
     if (c.start) LETTERS[c.start].forEach(s => { LT.col[0][s] = 'white'; });
     LT.light = 'w'; ltSet('#lt-lights', 'w'); LT.f1 = 'clear'; ltSet('#lt-filters', 'clear');
   }
@@ -1307,7 +1323,7 @@ $('#lt-papers').innerHTML = PAPERS.map(p => chipHTML(p.id, p.nm, linCSS(specToLi
 chipGroup($('#lt-ch'), ltChal);
 chipGroup($('#lt-lights'), v => { LT.light = v; LT.shown = false; ltDraw(); });
 chipGroup($('#lt-filters'), v => { LT.f1 = v; LT.shown = false; ltDraw(); });
-chipGroup($('#lt-papers'), v => { LT.paint = v; LT.col[LT.cell][LT.seg] = v; ltDraw(); });
+chipGroup($('#lt-papers'), v => { LT.paint = v; }); // 只選顏色；點圖中的段才塗上
 seg($('#lt-n'), v => { ltSetN(+v); ltDraw(); });
 $('#lt-type').addEventListener('click', () => {
   const w = $('#lt-word').value.toUpperCase().replace(/[^A-Z ]/g, '').slice(0, LT.n); $('#lt-word').value = w;
