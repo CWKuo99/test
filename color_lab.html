@@ -127,7 +127,7 @@ footer{border-top:1px solid var(--line);padding-block:18px 28px;color:var(--mute
 .lt-goal th{color:var(--muted);font-weight:500;font-size:12px}
 .lt-mono{font-family:var(--font-mono);letter-spacing:.08em;white-space:nowrap}
 .lt-ok{color:var(--ok);font-weight:700}.lt-no{color:var(--warn)}.lt-tip{color:var(--muted);font-size:14px}
-.lt-word,.lt-own input{font:600 16px var(--font-mono);width:5.2em;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);text-transform:uppercase}
+.lt-word,.lt-own input{font:600 16px var(--font-mono);width:7.5em;max-width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);text-transform:uppercase}
 .lt-own label{display:inline-flex;gap:6px;align-items:center;font-size:14px}
 </style>
 </head>
@@ -148,8 +148,9 @@ footer{border-top:1px solid var(--line);padding-block:18px 28px;color:var(--mute
       <button class="tab" role="tab" data-tab="fil"><span class="sec">2</span>玻璃紙</button>
       <button class="tab" role="tab" data-tab="obj"><span class="sec">3</span>物體的顏色</button>
       <button class="tab" role="tab" data-tab="let"><span class="sec">4</span>字母挑戰</button>
-      <button class="tab" role="tab" data-tab="disp"><span class="sec">5</span>三稜鏡色散</button>
-      <button class="tab" role="tab" data-tab="sub"><span class="sec">6</span>顏料三原色</button>
+      <button class="tab" role="tab" data-tab="han"><span class="sec">5</span>漢字點陣</button>
+      <button class="tab" role="tab" data-tab="disp"><span class="sec">6</span>三稜鏡色散</button>
+      <button class="tab" role="tab" data-tab="sub"><span class="sec">7</span>顏料三原色</button>
     </div>
   </div>
 </nav>
@@ -278,13 +279,13 @@ footer{border-top:1px solid var(--line);padding-block:18px 28px;color:var(--mute
   <div class="controls">
     <div class="ctl wide"><span>挑戰</span><div class="chips" id="lt-ch"></div></div>
     <div class="ctl wide" id="lt-own" hidden><span>自己出題：各種光下想看到的字（不填＝不檢查）</span><div class="row-btns lt-own">
-      <label>白光 <input data-l="w" maxlength="3" autocomplete="off" spellcheck="false"></label><label>紅光 <input data-l="r" maxlength="3" autocomplete="off" spellcheck="false"></label><label>綠光 <input data-l="g" maxlength="3" autocomplete="off" spellcheck="false"></label><label>藍光 <input data-l="b" maxlength="3" autocomplete="off" spellcheck="false"></label>
+      <label>白光 <input data-l="w" maxlength="9" autocomplete="off" spellcheck="false"></label><label>紅光 <input data-l="r" maxlength="9" autocomplete="off" spellcheck="false"></label><label>綠光 <input data-l="g" maxlength="9" autocomplete="off" spellcheck="false"></label><label>藍光 <input data-l="b" maxlength="9" autocomplete="off" spellcheck="false"></label>
     </div></div>
     <div class="ctl wide"><span>① 光源</span><div class="chips" id="lt-lights"></div></div>
     <div class="ctl wide"><span>② 玻璃紙（放在燈前）</span><div class="chips" id="lt-filters"></div></div>
-    <div class="ctl"><span>底盤</span><div class="seg" id="lt-n"><button data-v="1" aria-pressed="true">1 個字母</button><button data-v="3" aria-pressed="false">3 個字母</button></div></div>
+    <div class="ctl"><label for="lt-n">底盤格數（最多 9 個字母）</label><select id="lt-n"></select></div>
     <div class="ctl wide"><span>③ 色紙：先選顏色，再點圖中的段塗上</span><div class="chips" id="lt-papers"></div></div>
-    <div class="ctl wide"><div class="row-btns" style="align-items:center"><input id="lt-word" class="lt-word" maxlength="3" placeholder="例：E" autocomplete="off" spellcheck="false" aria-label="要拼的字母"><button class="btn" id="lt-type">把這個字母的段塗上目前顏色</button><button class="btn" id="lt-clear">全部塗黑（重來）</button><label class="switch"><input type="checkbox" id="lt-hide"> 先預測：遮住看到的結果</label><button class="btn" id="lt-reveal" hidden>揭曉</button></div></div>
+    <div class="ctl wide"><div class="row-btns" style="align-items:center"><input id="lt-word" class="lt-word" maxlength="9" placeholder="例：HELLO" autocomplete="off" spellcheck="false" aria-label="要拼的字母"><button class="btn" id="lt-type">把這個字母的段塗上目前顏色</button><button class="btn" id="lt-clear">全部塗黑（重來）</button><label class="switch"><input type="checkbox" id="lt-hide"> 先預測：遮住看到的結果</label><button class="btn" id="lt-reveal" hidden>揭曉</button></div></div>
   </div>
   <div class="cols two">
     <div class="canvas-box dark"><canvas id="lt-cv" data-w="1000" data-h="560" aria-label="暗室中：光源、玻璃紙、字母底盤與眼睛"></canvas></div>
@@ -300,6 +301,38 @@ footer{border-top:1px solid var(--line);padding-block:18px 28px;color:var(--mute
     <li>紅光下，只有反射紅光的色紙（紅、黃、洋紅、白）看得見；綠光下是綠、黃、青、白；藍光下是藍、青、洋紅、白；黑色紙在任何光下都看不見。</li>
     <li>一段一段想：這段在紅光下要亮嗎？綠光下呢？藍光下呢？三個答案決定要貼哪一種色紙，八種色紙剛好對應八種組合。</li>
     <li>白光含有紅、綠、藍光，所以在任何一種色光下會亮的段，白光下一定亮；白光下暗的段（黑色紙），換什麼光都暗。</li>
+  </ol></div>
+</section>
+
+<!-- 7 漢字點陣 -->
+<section class="lab" id="st-han" data-st="han" hidden>
+  <div class="lab-head"><h2>漢字點陣</h2><span class="tag">像畫解鎖圖形一樣寫字，換一種光，字就變了</span></div>
+  <div class="controls">
+    <div class="ctl wide"><span>挑戰</span><div class="chips" id="hz-ch"></div></div>
+    <div class="ctl wide"><span>範例：載入已完成的作品，換光觀察</span><div class="chips" id="hz-ex"></div></div>
+    <div class="ctl wide"><span>① 光源</span><div class="chips" id="hz-lights"></div></div>
+    <div class="ctl wide"><span>② 玻璃紙（放在燈前）</span><div class="chips" id="hz-filters"></div></div>
+    <div class="ctl"><label for="hz-n">字數（最多 7 個字）</label><select id="hz-n"></select></div>
+    <div class="ctl"><span>點陣（換大小會清空）</span><div class="seg" id="hz-g"><button data-v="5" aria-pressed="true">5 × 5</button><button data-v="7" aria-pressed="false">7 × 7</button><button data-v="9" aria-pressed="false">9 × 9（圖案、藝術創作）</button></div></div>
+    <div class="ctl wide"><span>③ 正在畫</span><div class="seg" id="hz-layer"><button data-v="board" aria-pressed="true">色紙底盤</button><button data-v="w" aria-pressed="false">白光字帖</button><button data-v="r" aria-pressed="false">紅光字帖</button><button data-v="g" aria-pressed="false">綠光字帖</button><button data-v="b" aria-pressed="false">藍光字帖</button></div></div>
+    <div class="ctl wide"><span>④ 色紙：先選顏色，再從一個點拖到相鄰的點畫出筆畫（點一下已畫的筆畫可以換色）</span><div class="chips" id="hz-papers"></div></div>
+    <div class="ctl wide"><div class="row-btns" style="align-items:center"><button class="btn" id="hz-clear">清除色紙底盤</button><button class="btn" id="hz-tclear">清除這張字帖</button><label class="switch"><input type="checkbox" id="hz-guide" checked> 描紅：顯示這種光的字帖</label><label class="switch"><input type="checkbox" id="hz-dots" checked> 顯示點</label></div></div>
+    <div class="ctl wide"><div class="row-btns" style="align-items:center"><span>畫布顯示</span><div class="seg" id="hz-view"><button data-v="light" aria-pressed="true">在目前的光下</button><button data-v="paper" aria-pressed="false">色紙本色（設計圖）</button></div><label class="switch"><input type="checkbox" id="hz-hide"> 先預測：遮住各種光下的結果</label><button class="btn" id="hz-reveal" hidden>揭曉</button></div></div>
+  </div>
+  <div class="cols two">
+    <div class="canvas-box dark"><canvas id="hz-cv" data-w="1000" data-h="520" aria-label="點陣底盤：從一個點拖到相鄰的點畫出筆畫"></canvas></div>
+    <div class="side">
+      <div class="panel lt-goal"><p id="hz-goal-t"></p><div class="row-btns"><button class="btn" id="hz-check">檢查我的設計</button><button class="btn" id="hz-sol" hidden>看一種解法</button></div><div id="hz-res"></div></div>
+      <dl class="readout" id="hz-out"></dl>
+    </div>
+  </div>
+  <div class="strip-box"><h4>同一個底盤，在四種光下（不加玻璃紙）</h4><canvas id="hz-pv" data-w="1000" data-h="330" aria-label="底盤在白光、紅光、綠光、藍光下的樣子"></canvas></div>
+  <div class="design-card"><h4>設計提示</h4><ol>
+    <li>每一段筆畫貼一種色紙。在某種光下看得見的筆畫，才是那種光下的字：紅光下看得見紅、黃、洋紅、白紙；綠光下是綠、黃、青、白紙；藍光下是藍、青、洋紅、白紙。</li>
+    <li>先在「紅光字帖」「綠光字帖」寫下想藏的字，再回到「色紙底盤」一段一段決定色紙：兩張字帖都有的筆畫用黃紙，只在紅光字帖的用紅紙，只在綠光字帖的用綠紙。</li>
+    <li>紅光、綠光下都要消失的「偽裝筆畫」可以用藍紙：它只在白光（和藍光）下出現，讓白光下的字更難被看穿。</li>
+    <li>想一想：紅光下看得見的筆畫，白光下一定看得見；反過來卻不一定。所以「白光下一句話、紅光下變另一句」時，紅光那句的每一筆都必須藏在白光那句裡。</li>
+    <li>延伸到藝術創作：9 × 9 點陣適合畫圖案。紅、綠、藍光各一張圖，最多能藏三張圖；共用的線條越多（例如同一張臉的輪廓），換光時的變化越像「動畫」。</li>
   </ol></div>
 </section>
 
@@ -1146,8 +1179,20 @@ function poly14(L, R, T, B, t) {
 }
 const pCenter = p => [p.reduce((s, q) => s + q[0], 0) / p.length, p.reduce((s, q) => s + q[1], 0) / p.length];
 const pathPoly = (c, p) => { c.beginPath(); p.forEach((q, i) => i ? c.lineTo(q[0], q[1]) : c.moveTo(q[0], q[1])); c.closePath(); };
-const LTLAY = { 1: { cells: [[505, 775]], T: 105, B: 445, t: 30, pad: 60 }, 3: { cells: [[338, 513], [550, 725], [762, 937]], T: 140, B: 420, t: 22, pad: 30 } };
-const DZLAY = { 1: { cells: [[195, 325]], T: 22, B: 198, t: 14 }, 3: { cells: [[55, 185], [195, 325], [335, 465]], T: 22, B: 198, t: 14 } };
+const LTMAX = 9; // 底盤最多 9 格
+const rowCells = (n, w, gap, cx) => { const tot = n * w + (n - 1) * gap, x0 = cx - tot / 2; return Array.from({ length: n }, (_, i) => [x0 + i * (w + gap), x0 + i * (w + gap) + w]); };
+function ltLay(n) { // 1～3 格：底盤在右、光路在左；4 格以上：底盤橫跨下方，燈在左上、眼睛在右上
+  if (n <= 3) {
+    const w = n === 1 ? 270 : Math.min(200, (620 - (n - 1) * 36) / n), h = Math.min(340, w * 1.6), T = 275 - h / 2;
+    return { cells: rowCells(n, w, 36, 640), T, B: T + h, t: w * 0.125, pad: Math.max(30, w * 0.22), lamp: [100, 120], eye: [80, 456], eyeL: [18, 514, 'left'], wordY: T + h + 82 };
+  }
+  const w = Math.min(150, (920 - (n - 1) * 14) / n), h = Math.min(200, w * 1.6), T = 335 - h / 2;
+  return { cells: rowCells(n, w, 14, 500), T, B: T + h, t: w * 0.125, pad: Math.max(18, w * 0.18), lamp: [420, 96], eye: [840, 96], eyeL: [982, 170, 'right'], wordY: T + h + 64 };
+}
+function dzLay(n) {
+  const w = Math.min(130, (500 - (n - 1) * 10) / n), h = Math.min(176, w * 1.4), T = 110 - h / 2;
+  return { cells: rowCells(n, w, 10, 260), T, B: T + h, t: w * 0.108 };
+}
 const layPolys = lay => lay.cells.map(([L, R]) => poly14(L, R, lay.T, lay.B, lay.t));
 function layHit(lay, n, x, y) {
   const P = layPolys(lay).slice(0, n);
@@ -1156,7 +1201,7 @@ function layHit(lay, n, x, y) {
   P.forEach((ps, ci) => SEG14.forEach(s => { const [cx, cy] = pCenter(ps[s]), d = Math.hypot(x - cx, y - cy); if (d < bd) { bd = d; best = [ci, s]; } }));
   return best;
 }
-const LT = { light: 'w', f1: 'clear', paint: 'white', n: 1, cell: 0, seg: 'a1', col: [0, 1, 2].map(() => Object.fromEntries(SEG14.map(s => [s, 'black']))), hide: false, shown: false, ch: 'c1', checked: false, own: { w: '', r: '', g: '', b: '' } };
+const LT = { light: 'w', f1: 'clear', paint: 'white', n: 1, cell: 0, seg: 'a1', col: Array.from({ length: LTMAX }, () => 0).map(() => Object.fromEntries(SEG14.map(s => [s, 'black']))), hide: false, shown: false, ch: 'c1', checked: false, own: { w: '', r: '', g: '', b: '' } };
 const CHAL = [
   { id: 'free', nm: '自由設計' },
   { id: 'c1', nm: '挑戰 1：E → F → L', n: 1, goal: { w: 'E', r: 'F', g: 'L' }, start: 'E', tip: '白光下是 E，換紅光變 F、換綠光變 L。先把 E 全塗白色，再想哪幾段要換顏色。' },
@@ -1205,9 +1250,9 @@ function solve(goal, n) {
 function drawLet() {
   if (!ltCv.resize()) return; setFS(ltCv);
   const c = ltCv.ctx, W = ltCv.W, H = ltCv.H, S = lightById(LT.light), F = ltF(), Sin = mul(S, F), show = !LT.hide || LT.shown;
-  const lay = LTLAY[LT.n], P = layPolys(lay), res = ltWord(S, F);
+  const lay = ltLay(LT.n), P = layPolys(lay), res = ltWord(S, F);
   c.fillStyle = '#07090c'; c.fillRect(0, 0, W, H);
-  const lamp = [100, 120], eye = [80, 456], Lin = specToLin(Sin);
+  const lamp = lay.lamp, eye = lay.eye, Lin = specToLin(Sin);
   const gr = c.createRadialGradient(lamp[0], lamp[1], 10, lamp[0] + 460, lamp[1] + 200, 660);
   gr.addColorStop(0, linCSS(Lin.map(v => v * 0.26))); gr.addColorStop(1, 'rgba(7,9,12,0)');
   c.fillStyle = gr; c.beginPath(); c.moveTo(lamp[0], lamp[1]); c.lineTo(W, 40); c.lineTo(W, H); c.lineTo(260, H); c.closePath(); c.fill();
@@ -1246,17 +1291,17 @@ function drawLet() {
     const mid2 = toward(a0, eye, 150);
     label(c, `${Pp.nm}紙反射：` + chTxt(cR), mid2[0] + 10, mid2[1] - 16, { size: 13, align: 'center', color: '#e9edf1' });
     const lin = res[LT.cell].vis[LT.seg].lin, on = Math.max(...lin) >= 0.06;
-    label(c, on ? '看到這一段：' + colorName(lin) : '看到這一段：黑（沒有光）', 18, eye[1] + 58, { size: 15, weight: 700, color: on ? '#fff' : '#adb5bd' });
+    label(c, on ? '看到這一段：' + colorName(lin) : '看到這一段：黑（沒有光）', lay.eyeL[0], lay.eyeL[1], { size: 15, weight: 700, align: lay.eyeL[2], color: on ? '#fff' : '#adb5bd' });
   }
   eyeIcon(c, eye[0], eye[1]);
   text(c, '暗室：燈光先穿過玻璃紙，再照到字母底盤', 18, 32, { size: 16, color: '#8b96a1' });
-  text(c, show ? '看起來：' + wordTxt(res) : '看起來：？', (bx0 + bx1) / 2, lay.B + 82, { size: 18, align: 'center', color: '#e9edf1', weight: 700 });
+  text(c, show ? '看起來：' + wordTxt(res) : '看起來：？', (bx0 + bx1) / 2, lay.wordY, { size: 18, align: 'center', color: '#e9edf1', weight: 700 });
   text(c, '紅、綠、藍三條線＝光裡的三種色光；✕＝在這裡被吸收', 18, H - 12, { size: 13, color: '#8b96a1' });
   drawLtDz(); drawLtGoal(); drawLtOut(res, Pp, show);
 }
 function drawLtDz() {
   if (!ltDz.resize()) return;
-  const c = ltDz.ctx, W = ltDz.W, H = ltDz.H, lay = DZLAY[LT.n], P = layPolys(lay);
+  const c = ltDz.ctx, W = ltDz.W, H = ltDz.H, lay = dzLay(LT.n), P = layPolys(lay);
   c.clearRect(0, 0, W, H); c.fillStyle = '#0b0e12'; c.beginPath(); c.roundRect(0, 0, W, H, 10); c.fill();
   for (let ci = 0; ci < LT.n; ci++) SEG14.forEach(s => {
     const p = pById(LT.col[ci][s]); pathPoly(c, P[ci][s]);
@@ -1283,7 +1328,7 @@ function drawLtGoal() {
   const long = Object.values(goal).some(w => w.trimEnd().length > LT.n);
   t.innerHTML = `<b>目標</b>（只開這種光、不加玻璃紙）：${Object.entries(goal).map(([L, w]) => `${LTL[L]}下 <b class="lt-mono">${fmtW(w.padEnd(LT.n, ' ').slice(0, Math.max(LT.n, w.trimEnd().length)))}</b>`).join('，')}${ch.tip && ch.id !== 'own' ? `<br><span class="lt-tip">${ch.tip}</span>` : ''}`;
   const sol = solve(Object.fromEntries(Object.entries(goal).map(([L, w]) => [L, w.padEnd(LT.n, ' ')])), LT.n);
-  if (long) { r.innerHTML = `<p class="lt-no">字太長了：底盤只有 ${LT.n} 格，請把「底盤」改成 3 個字母。</p>`; return; }
+  if (long) { r.innerHTML = `<p class="lt-no">字太長了：底盤只有 ${LT.n} 格，請增加「底盤」的格數。</p>`; return; }
   if (sol.bad) { r.innerHTML = `<p class="lt-no">這題無解：第 ${sol.bad.ci + 1} 格有一段要「${sol.bad.need.join('、')}」，找不到這種色紙。想想看：白光裡含有紅、綠、藍光。</p>`; return; }
   if (!LT.checked) { r.innerHTML = ''; return; }
   let all = true;
@@ -1305,7 +1350,7 @@ function drawLtOut(res, Pp, show) {
 const ltDraw = raf(() => { drawLet(); drawLtAbc(); });
 const ltSet = (sel, v) => $$('.chip, button', $(sel)).forEach(x => x.setAttribute('aria-pressed', x.dataset.v === String(v) ? 'true' : 'false'));
 const ltBlank = () => LT.col.forEach(cols => SEG14.forEach(s => { cols[s] = 'black'; }));
-function ltSetN(n) { LT.n = n; if (LT.cell >= n) LT.cell = 0; ltSet('#lt-n', n); }
+function ltSetN(n) { LT.n = n; if (LT.cell >= n) LT.cell = 0; $('#lt-n').value = String(n); }
 function ltChal(id) {
   LT.ch = id; LT.checked = false; const c = curChal();
   $('#lt-own').hidden = id !== 'own'; ltSet('#lt-ch', id);
@@ -1324,7 +1369,8 @@ chipGroup($('#lt-ch'), ltChal);
 chipGroup($('#lt-lights'), v => { LT.light = v; LT.shown = false; ltDraw(); });
 chipGroup($('#lt-filters'), v => { LT.f1 = v; LT.shown = false; ltDraw(); });
 chipGroup($('#lt-papers'), v => { LT.paint = v; }); // 只選顏色；點圖中的段才塗上
-seg($('#lt-n'), v => { ltSetN(+v); ltDraw(); });
+$('#lt-n').innerHTML = Array.from({ length: LTMAX }, (_, i) => `<option value="${i + 1}">${i + 1} 格</option>`).join('');
+$('#lt-n').addEventListener('change', e => { ltSetN(+e.target.value); ltDraw(); });
 $('#lt-type').addEventListener('click', () => {
   const w = $('#lt-word').value.toUpperCase().replace(/[^A-Z ]/g, '').slice(0, LT.n); $('#lt-word').value = w;
   w.split('').forEach((ch, ci) => { if (LETTERS[ch]) LETTERS[ch].forEach(s => { LT.col[ci][s] = LT.paint; }); });
@@ -1341,19 +1387,273 @@ $('#lt-sol').addEventListener('click', () => {
   sol.cols.forEach((cols, ci) => Object.assign(LT.col[ci], cols)); ltDraw();
 });
 $$('#lt-own input').forEach(inp => inp.addEventListener('input', () => {
-  const v = inp.value.toUpperCase().replace(/[^A-Z ]/g, '').slice(0, 3); if (v !== inp.value) inp.value = v;
+  const v = inp.value.toUpperCase().replace(/[^A-Z ]/g, '').slice(0, LTMAX); if (v !== inp.value) inp.value = v;
   LT.own[inp.dataset.l] = v; LT.checked = false; ltDraw();
 }));
 const ltPick = (cv, lay) => e => {
   const [x, y] = cv.pt(e), h = layHit(lay(), LT.n, x, y); if (!h) return;
   [LT.cell, LT.seg] = h; LT.col[LT.cell][LT.seg] = LT.paint; ltDraw();
 };
-ltCv.cv.addEventListener('pointerdown', ltPick(ltCv, () => LTLAY[LT.n]));
-ltDz.cv.addEventListener('pointerdown', ltPick(ltDz, () => DZLAY[LT.n]));
+ltCv.cv.addEventListener('pointerdown', ltPick(ltCv, () => ltLay(LT.n)));
+ltDz.cv.addEventListener('pointerdown', ltPick(ltDz, () => dzLay(LT.n)));
 LETTERS.E.forEach(s => { LT.col[0][s] = 'white'; });
 
+/* ================================================================
+   7. 漢字點陣：像畫解鎖圖形一樣，從點拖到相鄰的點畫出筆畫
+   ================================================================ */
+const HZMAX = 7, HZL = ['w', 'r', 'g', 'b'], HZCOL = { w: '#e9edf1', r: '#ff6b6b', g: '#51cf66', b: '#4dabf7' };
+const HZ = { light: 'w', f1: 'clear', paint: 'white', n: 1, G: 5, layer: 'board', edges: {}, tpl: { w: {}, r: {}, g: {}, b: {} }, guide: true, dots: true, view: 'light', hide: false, shown: false, ch: 'free', checked: false, cur: 0 };
+// 筆畫用折線寫在 5×5 點陣上（座標 0～4）；相鄰兩點之間是一段
+const HZGLYPH = { 5: {
+  王: [[[0, 0], [4, 0]], [[0, 2], [4, 2]], [[0, 4], [4, 4]], [[2, 0], [2, 4]]],
+  土: [[[1, 2], [3, 2]], [[0, 4], [4, 4]], [[2, 0], [2, 4]]],
+  工: [[[1, 0], [3, 0]], [[0, 4], [4, 4]], [[2, 0], [2, 4]]],
+  田: [[[0, 0], [4, 0], [4, 4], [0, 4], [0, 0]], [[0, 2], [4, 2]], [[2, 0], [2, 4]]],
+  日: [[[0, 0], [4, 0], [4, 4], [0, 4], [0, 0]], [[0, 2], [4, 2]]],
+  十: [[[0, 2], [4, 2]], [[2, 0], [2, 4]]],
+  上: [[[2, 0], [2, 4]], [[2, 2], [3, 2]], [[0, 4], [4, 4]]],
+  中: [[[1, 1], [3, 1], [3, 3], [1, 3], [1, 1]], [[2, 0], [2, 4]]],
+  下: [[[0, 0], [4, 0]], [[2, 0], [2, 4]], [[2, 2], [3, 3]]],
+  山: [[[2, 0], [2, 4]], [[0, 2], [0, 4], [4, 4], [4, 2]]],
+}, 7: { // 7×7：人 ⊂ 大 ⊂ 木
+  人: [[[3, 0], [3, 2]], [[3, 2], [0, 5]], [[3, 2], [6, 5]]],
+  大: [[[3, 0], [3, 2]], [[3, 2], [0, 5]], [[3, 2], [6, 5]], [[0, 2], [6, 2]]],
+  木: [[[3, 0], [3, 6]], [[3, 2], [0, 5]], [[3, 2], [6, 5]], [[0, 2], [6, 2]]],
+}, 9: { // 9×9 圖案
+  笑: [[[2, 0], [6, 0], [8, 2], [8, 6], [6, 8], [2, 8], [0, 6], [0, 2], [2, 0]], [[3, 2], [3, 3]], [[5, 2], [5, 3]], [[2, 5], [3, 6], [5, 6], [6, 5]]],
+  哭: [[[2, 0], [6, 0], [8, 2], [8, 6], [6, 8], [2, 8], [0, 6], [0, 2], [2, 0]], [[3, 2], [3, 3]], [[5, 2], [5, 3]], [[2, 7], [3, 6], [5, 6], [6, 7]], [[6, 3], [6, 4]]],
+  心: [[[4, 8], [0, 4], [0, 2], [2, 0], [3, 0], [4, 1], [5, 0], [6, 0], [8, 2], [8, 4], [4, 8]]],
+  樹: [[[4, 0], [1, 3], [7, 3], [4, 0]], [[4, 2], [0, 6], [8, 6], [4, 2]], [[4, 6], [4, 8]]],
+} };
+const HZCH = [
+  { id: 'free', nm: '自由創作', tip: '先選色紙，再從一個點拖到相鄰的點畫筆畫。下方可以同時看到四種光下的樣子。' },
+  { id: 'h1', nm: '挑戰 1：王 → 土 → 工', n: 1, G: 5, tpl: { w: ['王'], r: ['土'], g: ['工'] }, tip: '白光下是「王」，紅光下變「土」，綠光下變「工」。提示：有些筆畫紅光、綠光下都要消失。' },
+  { id: 'h2', nm: '挑戰 2：田 → 日 → 十', n: 1, G: 5, tpl: { w: ['田'], r: ['日'], g: ['十'] }, tip: '白光下是「田」，紅光下變「日」，綠光下變「十」。' },
+  { id: 'h3', nm: '挑戰 3：紅上、綠中、藍下', n: 1, G: 5, tpl: { r: ['上'], g: ['中'], b: ['下'] }, tip: '同一格：紅光下是「上」、綠光下是「中」、藍光下是「下」。白光下看起來像什麼？' },
+  // 範例：載入時直接貼好色紙（由字帖自動算出），讓學生先觀察再自己創作
+  { id: 'e1', ex: true, nm: '上山／下田', n: 2, G: 5, tpl: { r: ['上', '山'], g: ['下', '田'] }, tip: '範例：紅光下是「上山」，綠光下是「下田」。白光下兩句疊在一起，看得出來嗎？換成藍光呢？' },
+  { id: 'e2', ex: true, nm: '木 → 大 → 人（7×7）', n: 1, G: 7, tpl: { w: ['木'], r: ['大'], g: ['人'] }, tip: '範例：白光「木」、紅光「大」、綠光「人」。人 ⊂ 大 ⊂ 木，每少一層就換一種色紙：哪一段是藍紙？為什麼？' },
+  { id: 'e3', ex: true, nm: '笑臉變哭臉（9×9）', n: 1, G: 9, tpl: { r: ['笑'], g: ['哭'] }, tip: '藝術範例：紅光下笑、綠光下哭。臉和眼睛是兩張字帖共用的筆畫（黃紙），嘴巴和眼淚各自只用一種色紙。' },
+  { id: 'e4', ex: true, nm: '愛心與樹（9×9）', n: 1, G: 9, tpl: { r: ['心'], g: ['樹'] }, tip: '藝術範例：紅光下一顆愛心、綠光下一棵樹，交叉的地方用黃紙。試著加入只在藍光下出現的第三張圖。' },
+  { id: 'h4', nm: '資優挑戰：藏一句話（最多 7 字）', n: 4, tip: '在「紅光字帖」「綠光字帖」各寫一句不同的話（最多 7 個字），再貼色紙，讓紅光、綠光下各只看到自己那一句。加分：白光下讓人看不出任何一句。' },
+];
+const hzKey = (c, a, b) => { const [p, q] = (a[0] * 10 + a[1] <= b[0] * 10 + b[1]) ? [a, b] : [b, a]; return `${c}:${p[0]},${p[1]},${q[0]},${q[1]}`; };
+const hzParse = k => { const [c, r] = k.split(':'), v = r.split(',').map(Number); return { c: +c, a: [v[0], v[1]], b: [v[2], v[3]] }; };
+function hzStroke(set, c, pts, val) { // 折線 → 單位段
+  for (let i = 1; i < pts.length; i++) {
+    const a = pts[i - 1], b = pts[i];
+    const dx = b[0] - a[0], dy = b[1] - a[1], g = Math.max(Math.abs(dx), Math.abs(dy)), ux = dx / g, uy = dy / g;
+    for (let s = 0; s < g; s++) set[hzKey(c, [a[0] + ux * s, a[1] + uy * s], [a[0] + ux * (s + 1), a[1] + uy * (s + 1)])] = val;
+  }
+}
+const hzCv = setupCanvas($('#hz-cv')), hzPv = setupCanvas($('#hz-pv'));
+hzCv.cv.style.touchAction = 'none';
+// 呈現方式：字多時，上方一排小格看整句，下方放大正在寫的那一個字（點小格切換）
+function hzRow(n, X0, X1, cy, maxS, gap) { const s = Math.min(maxS, (X1 - X0 - (n - 1) * gap) / n), tot = n * s + (n - 1) * gap, x0 = (X0 + X1) / 2 - tot / 2; return Array.from({ length: n }, (_, c) => ({ c, x: x0 + c * (s + gap), y: cy - s / 2, s })); }
+function hzView(boxes) {
+  const map = {}; boxes.forEach(b => { map[b.c] = b; });
+  const sp = c => map[c].s * 0.8 / (HZ.G - 1);
+  return { boxes, map, sp, node: (c, i, j) => { const b = map[c]; return [b.x + b.s * 0.1 + i * sp(c), b.y + b.s * 0.1 + j * sp(c)]; } };
+}
+const hzEditor = () => hzView(HZ.n === 1 ? [{ c: 0, x: 300, y: 64, s: 400 }] : [{ c: HZ.cur, x: 332, y: 172, s: 336 }]);
+const hzStrip = () => HZ.n === 1 ? null : hzView(hzRow(HZ.n, 30, 970, 100, 90, 12));
+function hzPaperLin(S, F) { const o = {}; PAPERS.forEach(p => { const lin = specToLin(mul(mul(S, F), p.R)); o[p.id] = { lin, on: Math.max(...lin) >= 0.06 }; }); return o; }
+function hzCells(c, V, lw, hl) { // 田字格
+  V.boxes.forEach(({ c: k, x, y, s }) => {
+    c.fillStyle = '#050607'; c.strokeStyle = k === hl ? '#ffd43b' : '#2a323b'; c.lineWidth = k === hl ? 2.5 : lw; c.beginPath(); c.roundRect(x, y, s, s, s * 0.04); c.fill(); c.stroke();
+    c.setLineDash([s * 0.03, s * 0.03]); c.strokeStyle = '#1c232a'; c.lineWidth = 1; c.beginPath(); c.moveTo(x + s / 2, y); c.lineTo(x + s / 2, y + s); c.moveTo(x, y + s / 2); c.lineTo(x + s, y + s / 2); c.stroke(); c.setLineDash([]);
+  });
+}
+function hzLine(c, V, k, wk, col, dash, minW = 2) {
+  const e = hzParse(k); if (!V.map[e.c] || e.c >= HZ.n || Math.max(...e.a, ...e.b) >= HZ.G) return;
+  const p = V.node(e.c, ...e.a), q = V.node(e.c, ...e.b);
+  c.strokeStyle = col; c.lineWidth = Math.max(minW, V.sp(e.c) * wk); c.lineCap = 'round'; if (dash) c.setLineDash(dash);
+  c.beginPath(); c.moveTo(p[0], p[1]); c.lineTo(q[0], q[1]); c.stroke(); if (dash) c.setLineDash([]);
+}
+const hzShow = () => !HZ.hide || HZ.shown;
+function hzStrokes(c, V, PL, lightView, minW) {
+  if (HZ.layer === 'board') Object.entries(HZ.edges).forEach(([k, pid]) => {
+    let col; if (lightView) { const v = PL[pid]; col = linCSS(v.on ? v.lin : v.lin.map(x => x * 0.35)); } else col = linCSS(specToLin(pById(pid).R));
+    hzLine(c, V, k, 0.2, col, null, minW);
+  });
+  else {
+    Object.entries(HZ.edges).forEach(([k, pid]) => hzLine(c, V, k, 0.2, linCSS(specToLin(pById(pid).R).map(v => v * 0.25)), null, minW));
+    Object.keys(HZ.tpl[HZ.layer]).forEach(k => hzLine(c, V, k, 0.16, HZCOL[HZ.layer], null, minW));
+  }
+}
+function drawHan() {
+  if (!hzCv.resize()) return; setFS(hzCv);
+  if (HZ.cur >= HZ.n) HZ.cur = 0;
+  const c = hzCv.ctx, W = hzCv.W, H = hzCv.H, Ve = hzEditor(), Vs = hzStrip(), S = lightById(HZ.light), F = fById(HZ.f1).R, PL = hzPaperLin(S, F);
+  const lightView = HZ.view === 'light' && hzShow() && HZ.layer === 'board';
+  c.fillStyle = '#07090c'; c.fillRect(0, 0, W, H);
+  if (lightView) { // 燈光照亮底盤
+    const Lin = specToLin(mul(S, F)), g = c.createRadialGradient(60, 40, 10, 500, 280, 760);
+    g.addColorStop(0, linCSS(Lin.map(v => v * 0.22))); g.addColorStop(1, 'rgba(7,9,12,0)'); c.fillStyle = g; c.fillRect(0, 0, W, H);
+  }
+  if (Vs) { hzCells(c, Vs, 1, HZ.cur); hzStrokes(c, Vs, PL, lightView, 1.5); }
+  hzCells(c, Ve, 1.5); hzStrokes(c, Ve, PL, lightView, 4);
+  const guide = HZ.layer === 'board' && HZ.guide && HZL.includes(HZ.light) ? HZ.tpl[HZ.light] : null;
+  if (guide) Object.keys(guide).forEach(k => hzLine(c, Ve, k, 0.06, 'rgba(255,212,59,.85)', [6, 6]));
+  if (HZ.dots) { const cc = Ve.boxes[0].c, sp = Ve.sp(cc); for (let i = 0; i < HZ.G; i++) for (let j = 0; j < HZ.G; j++) {
+    const [x, y] = Ve.node(cc, i, j), hot = hzDrag && hzDrag.c === cc && hzDrag.i === i && hzDrag.j === j;
+    c.fillStyle = hot ? '#ffd43b' : 'rgba(139,150,161,.6)'; c.beginPath(); c.arc(x, y, hot ? Math.max(6, sp * 0.12) : Math.max(3, sp * 0.06), 0, 7); c.fill();
+  } }
+  if (Vs) text(c, `正在寫第 ${HZ.cur + 1} 個字（點上面的小格換字）`, 500, 163, { size: 14, align: 'center', color: '#8b96a1' });
+  const lname = LIGHTS.find(x => x.id === HZ.light).nm + (HZ.f1 !== 'clear' ? '＋' + fById(HZ.f1).nm : '');
+  const head = HZ.layer !== 'board' ? `正在畫：${LTL[HZ.layer]}字帖（${LTL[HZ.layer]}下要看到的字）`
+    : !hzShow() ? '色紙本色（先預測：各種光下會看到什麼？）' : HZ.view === 'paper' ? '色紙本色（設計圖）' : `暗室：${lname}照在點陣底盤上`;
+  text(c, head, 18, 32, { size: 16, color: '#8b96a1' });
+  if (guide && Object.keys(guide).length) text(c, `黃色虛線＝${LTL[HZ.light]}字帖（描紅）`, W - 18, 32, { size: 14, align: 'right', color: '#ffd43b' });
+  const nn = Object.keys(HZ.edges).filter(k => hzParse(k).c < HZ.n).length;
+  text(c, HZ.layer === 'board' ? `目前色紙：${HZ.paint === 'erase' ? '橡皮擦' : pById(HZ.paint).nm}　已畫 ${nn} 段` : '字帖只記錄筆畫位置，不用選顏色（橡皮擦可以擦掉）', 18, H - 14, { size: 14, color: '#8b96a1' });
+  drawHzPv(); drawHzGoal(); drawHzOut(nn); hzSave();
+}
+function drawHzPv() {
+  if (!hzPv.resize()) return; setFS(hzPv);
+  const c = hzPv.ctx, W = hzPv.W, H = hzPv.H; c.fillStyle = '#07090c'; c.fillRect(0, 0, W, H);
+  HZL.forEach((Lid, q) => {
+    const ox = (q % 2) * 500, oy = Math.floor(q / 2) * 165, V = hzView(hzRow(HZ.n, ox + 20, ox + 480, oy + 92, 128, 8)), PL = hzPaperLin(lightById(Lid), NOF.R);
+    text(c, LTL[Lid] + '下', ox + 20, oy + 20, { size: 14, color: HZCOL[Lid], weight: 700 });
+    hzCells(c, V, 1);
+    if (!hzShow()) { text(c, '？', ox + 250, oy + 102, { size: 34, align: 'center', color: '#8b96a1', weight: 700 }); return; }
+    Object.entries(HZ.edges).forEach(([k, pid]) => { const v = PL[pid]; hzLine(c, V, k, 0.2, linCSS(v.on ? v.lin : v.lin.map(x => x * 0.35)), null, 2.5); });
+  });
+}
+// 每種色紙在各色光下（不加玻璃紙）看不看得見：沿用字母挑戰的 VIS 表
+function hzVisible(Lid) { const o = {}; Object.entries(HZ.edges).forEach(([k, pid]) => { if (hzParse(k).c < HZ.n && VIS[Lid][pid]) o[k] = 1; }); return o; }
+const hzTpls = () => HZL.filter(L => Object.keys(HZ.tpl[L]).some(k => hzParse(k).c < HZ.n));
+function hzSolve() {
+  const Ls = hzTpls(), U = new Set(); Ls.forEach(L => Object.keys(HZ.tpl[L]).forEach(k => { if (hzParse(k).c < HZ.n) U.add(k); }));
+  const out = {};
+  for (const k of U) {
+    const need = Ls.map(L => !!HZ.tpl[L][k]);
+    const p = ['red', 'green', 'blue', 'yellow', 'cyan', 'magenta', 'white'].find(id => Ls.every((L, i) => VIS[L][id] === need[i])); // 白紙放最後：沒指定的光（如藍光）下就不會多出筆畫
+    if (!p) return { bad: { e: hzParse(k), need: Ls.map((L, i) => LTL[L] + (need[i] ? '亮' : '暗')) } };
+    out[k] = p;
+  }
+  return { edges: out };
+}
+function drawHzGoal() {
+  const ch = HZCH.find(x => x.id === HZ.ch), Ls = hzTpls(), t = $('#hz-goal-t'), r = $('#hz-res');
+  const tplTxt = Ls.length ? '字帖：' + Ls.map(L => `${LTL[L]}（${Object.keys(HZ.tpl[L]).filter(k => hzParse(k).c < HZ.n).length} 段）`).join('、') : '還沒有字帖：可以在「③ 正在畫」切到某種光的字帖，寫下那種光下要看到的字。';
+  t.innerHTML = `<b>${ch.nm}</b><br><span class="lt-tip">${ch.tip}</span><br><span class="lt-tip">${tplTxt}</span>`;
+  $('#hz-check').hidden = !Ls.length; $('#hz-sol').hidden = !(Ls.length && HZ.checked);
+  if (!Ls.length) { r.innerHTML = ''; return; }
+  const sol = hzSolve();
+  if (sol.bad) { r.innerHTML = `<p class="lt-no">這組字帖無解：第 ${sol.bad.e.c + 1} 個字有一段要「${sol.bad.need.join('、')}」，找不到這種色紙。想想看：白光裡含有紅、綠、藍光。</p>`; return; }
+  if (!HZ.checked) { r.innerHTML = ''; return; }
+  let all = true;
+  const rows = Ls.map(L => {
+    const vis = hzVisible(L), tp = Object.fromEntries(Object.keys(HZ.tpl[L]).filter(k => hzParse(k).c < HZ.n).map(k => [k, 1]));
+    const extra = Object.keys(vis).filter(k => !tp[k]).length, miss = Object.keys(tp).filter(k => !vis[k]).length, ok = !extra && !miss; all = all && ok;
+    return `<tr><td>${LTL[L]}下</td><td>${ok ? '和字帖一樣' : [miss ? `少了 ${miss} 段` : '', extra ? `多了 ${extra} 段` : ''].filter(Boolean).join('、')}</td><td class="${ok ? 'lt-ok' : 'lt-no'}">${ok ? '✓' : '✗'}</td></tr>`;
+  }).join('');
+  r.innerHTML = `<table><thead><tr><th>照</th><th>和字帖比較</th><th></th></tr></thead><tbody>${rows}</tbody></table>`
+    + (all ? `<p class="lt-ok">全部達成！${Ls.includes('w') ? '' : '看看下方的白光下：別人看得出你藏的字嗎？'}</p>` : '<p class="lt-tip">切到那種光，打開「描紅」對照黃色虛線，找出多出來或不見的筆畫。</p>');
+}
+function drawHzOut(nn) {
+  const sw = col => `<span class="swatch" style="background:${linCSS(col)}"></span>`;
+  $('#hz-out').innerHTML = `<div><dt>① 光源</dt><dd class="zh">${sw(specToLin(lightById(HZ.light)))}${LIGHTS.find(x => x.id === HZ.light).nm}</dd></div>`
+    + `<div><dt>② 玻璃紙（燈前）</dt><dd class="zh">${sw(specToLin(fById(HZ.f1).R))}${fById(HZ.f1).nm}</dd></div>`
+    + `<div><dt>底盤</dt><dd class="zh">${HZ.n} 個字、${HZ.G}×${HZ.G} 點、已畫 ${nn} 段</dd></div>`;
+}
+const hzDraw = raf(drawHan);
+let hzSaveT = 0;
+function hzSave() { clearTimeout(hzSaveT); hzSaveT = setTimeout(() => store.set('han', JSON.stringify({ n: HZ.n, G: HZ.G, edges: HZ.edges, tpl: HZ.tpl, ch: HZ.ch })), 400); }
+/* 拖曳畫筆畫 */
+let hzDrag = null;
+function hzNodeAt(x, y) {
+  const V = hzEditor(), cc = V.boxes[0].c, sp = V.sp(cc), [x0, y0] = V.node(cc, 0, 0), i = Math.round((x - x0) / sp), j = Math.round((y - y0) / sp);
+  if (i < 0 || j < 0 || i >= HZ.G || j >= HZ.G) return null;
+  const [nx, ny] = V.node(cc, i, j); return Math.hypot(x - nx, y - ny) < sp * 0.34 ? { c: cc, i, j } : null;
+}
+function hzEdgeAt(x, y) { // 點在筆畫上（不在點上）時，找最近的一段
+  const V = hzEditor(), cc = V.boxes[0].c, src = HZ.layer === 'board' ? HZ.edges : HZ.tpl[HZ.layer];
+  let best = null, bd = V.sp(cc) * 0.25;
+  Object.keys(src).forEach(k => {
+    const e = hzParse(k); if (e.c !== cc) return;
+    const p = V.node(cc, ...e.a), q = V.node(cc, ...e.b), dx = q[0] - p[0], dy = q[1] - p[1];
+    const t = clamp(((x - p[0]) * dx + (y - p[1]) * dy) / (dx * dx + dy * dy), 0, 1), d = Math.hypot(x - p[0] - t * dx, y - p[1] - t * dy);
+    if (d < bd) { bd = d; best = k; }
+  });
+  return best;
+}
+function hzApply(k) {
+  const tgt = HZ.layer === 'board' ? HZ.edges : HZ.tpl[HZ.layer];
+  if (HZ.paint === 'erase') delete tgt[k]; else tgt[k] = HZ.layer === 'board' ? HZ.paint : 1;
+}
+hzCv.cv.addEventListener('pointerdown', e => {
+  const [x, y] = hzCv.pt(e), Vs = hzStrip(), hit = Vs && Vs.boxes.find(b => x >= b.x && x <= b.x + b.s && y >= b.y && y <= b.y + b.s);
+  if (hit) { HZ.cur = hit.c; hzDraw(); return; }
+  const nd = hzNodeAt(x, y);
+  if (nd) { hzDrag = nd; try { hzCv.cv.setPointerCapture(e.pointerId); } catch (er) {} e.preventDefault(); hzDraw(); return; }
+  const k = hzEdgeAt(x, y); if (k) { hzApply(k); HZ.shown = false; hzDraw(); }
+});
+hzCv.cv.addEventListener('pointermove', e => {
+  if (!hzDrag) return;
+  const [x, y] = hzCv.pt(e), nd = hzNodeAt(x, y);
+  if (!nd || (nd.c === hzDrag.c && nd.i === hzDrag.i && nd.j === hzDrag.j)) return;
+  if (nd.c === hzDrag.c) {
+    const dx = nd.i - hzDrag.i, dy = nd.j - hzDrag.j, g = Math.max(Math.abs(dx), Math.abs(dy));
+    if (dx === 0 || dy === 0 || Math.abs(dx) === Math.abs(dy)) { // 同一列、同一行或 45° 斜線：補上中間經過的點
+      const ux = dx / g, uy = dy / g;
+      for (let s = 0; s < g; s++) hzApply(hzKey(nd.c, [hzDrag.i + ux * s, hzDrag.j + uy * s], [hzDrag.i + ux * (s + 1), hzDrag.j + uy * (s + 1)]));
+      HZ.shown = false;
+    }
+  }
+  hzDrag = nd; hzDraw();
+});
+['pointerup', 'pointercancel', 'lostpointercapture'].forEach(ev => hzCv.cv.addEventListener(ev, () => { if (hzDrag) { hzDrag = null; hzDraw(); } }));
+/* 控制項 */
+const hzSet = (sel, v) => $$('.chip, button', $(sel)).forEach(x => x.setAttribute('aria-pressed', x.dataset.v === String(v) ? 'true' : 'false'));
+function hzChal(id, keep) {
+  HZ.ch = id; HZ.checked = false; hzSet('#hz-ch', id); hzSet('#hz-ex', id); const ch = HZCH.find(x => x.id === id);
+  if (!keep && ch.tpl) {
+    HZ.n = ch.n; HZ.G = ch.G; HZ.cur = 0; HZ.edges = {}; HZ.tpl = { w: {}, r: {}, g: {}, b: {} };
+    Object.entries(ch.tpl).forEach(([L, arr]) => arr.forEach((g, ci) => { if (HZGLYPH[ch.G][g]) HZGLYPH[ch.G][g].forEach(st => hzStroke(HZ.tpl[L], ci, st, 1)); }));
+    if (ch.ex) { const sv = hzSolve(); if (sv.edges) HZ.edges = sv.edges; }
+    HZ.layer = 'board'; HZ.light = 'w'; HZ.f1 = 'clear'; hzSet('#hz-lights', 'w'); hzSet('#hz-filters', 'clear');
+  }
+  if (!keep && id === 'h4') { HZ.n = Math.max(HZ.n, ch.n); HZ.edges = {}; HZ.tpl = { w: {}, r: {}, g: {}, b: {} }; HZ.layer = 'r'; }
+  $('#hz-n').value = String(HZ.n); hzSet('#hz-g', HZ.G); hzSet('#hz-layer', HZ.layer);
+  HZ.shown = false; hzDraw();
+}
+$('#hz-ex').innerHTML = HZCH.filter(c => c.ex).map(c => `<button class="chip" data-v="${c.id}" aria-pressed="false">${c.nm}</button>`).join('');
+chipGroup($('#hz-ex'), v => hzChal(v));
+$('#hz-ch').innerHTML = HZCH.filter(c => !c.ex).map(c => `<button class="chip" data-v="${c.id}" aria-pressed="${c.id === HZ.ch}">${c.nm}</button>`).join('');
+$('#hz-lights').innerHTML = LIGHTS.map(L => chipHTML(L.id, L.nm, linCSS(specToLin(L.S)), L.id === HZ.light)).join('');
+$('#hz-filters').innerHTML = FILTERS.map(f => chipHTML(f.id, f.nm, f.id === 'clear' ? 'transparent' : linCSS(specToLin(f.R)), f.id === HZ.f1)).join('');
+$('#hz-papers').innerHTML = PAPERS.filter(p => p.id !== 'black').map(p => chipHTML(p.id, p.nm, linCSS(specToLin(p.R)), p.id === HZ.paint)).join('') + chipHTML('erase', '橡皮擦', 'transparent', false);
+$('#hz-n').innerHTML = Array.from({ length: HZMAX }, (_, i) => `<option value="${i + 1}">${i + 1} 個字</option>`).join('');
+chipGroup($('#hz-ch'), v => hzChal(v));
+chipGroup($('#hz-lights'), v => { HZ.light = v; HZ.shown = false; hzDraw(); });
+chipGroup($('#hz-filters'), v => { HZ.f1 = v; HZ.shown = false; hzDraw(); });
+chipGroup($('#hz-papers'), v => { HZ.paint = v; hzDraw(); });
+$('#hz-n').addEventListener('change', e => { HZ.n = +e.target.value; HZ.checked = false; hzDraw(); });
+seg($('#hz-g'), v => {
+  const G = +v; if (G === HZ.G) return;
+  HZ.edges = {}; HZ.tpl = { w: {}, r: {}, g: {}, b: {} }; // 換點陣大小：底盤和字帖都清空（點的位置不同）
+  if (HZCH.find(x => x.id === HZ.ch).tpl) { HZ.ch = 'free'; hzSet('#hz-ch', 'free'); hzSet('#hz-ex', 'free'); }
+  HZ.G = G; HZ.checked = false; HZ.shown = false; hzDraw();
+});
+seg($('#hz-layer'), v => { HZ.layer = v; hzDraw(); });
+seg($('#hz-view'), v => { HZ.view = v; hzDraw(); });
+$('#hz-clear').addEventListener('click', () => { HZ.edges = {}; HZ.shown = false; hzDraw(); });
+$('#hz-tclear').addEventListener('click', () => { if (HZ.layer === 'board') { HZ.edges = {}; } else HZ.tpl[HZ.layer] = {}; hzDraw(); });
+$('#hz-guide').addEventListener('change', e => { HZ.guide = e.target.checked; hzDraw(); });
+$('#hz-dots').addEventListener('change', e => { HZ.dots = e.target.checked; hzDraw(); });
+$('#hz-hide').addEventListener('change', e => { HZ.hide = e.target.checked; $('#hz-reveal').hidden = !HZ.hide; HZ.shown = false; hzDraw(); });
+$('#hz-reveal').addEventListener('click', () => { HZ.shown = true; hzDraw(); });
+$('#hz-check').addEventListener('click', () => { HZ.checked = true; hzDraw(); });
+$('#hz-sol').addEventListener('click', () => { const s = hzSolve(); if (s.bad) return; Object.keys(HZ.edges).forEach(k => { if (hzParse(k).c < HZ.n) delete HZ.edges[k]; }); Object.assign(HZ.edges, s.edges); HZ.layer = 'board'; hzSet('#hz-layer', 'board'); hzDraw(); });
+(() => { // 讀回上次的作品（沒有儲存功能時照常運作）
+  try { const d = JSON.parse(store.get('han') || 'null'); if (d && d.edges && d.tpl && [5, 7, 9].includes(d.G)) { HZ.n = clamp(+d.n || 1, 1, HZMAX); HZ.G = d.G; HZ.edges = d.edges; HZ.tpl = { w: {}, r: {}, g: {}, b: {}, ...d.tpl }; if (HZCH.some(x => x.id === d.ch)) HZ.ch = d.ch; hzChal(HZ.ch, true); return; } } catch (e) {}
+  hzChal('h1');
+})();
+
 /* ---------- 分頁 ---------- */
-const TABS = ['add', 'fil', 'obj', 'let', 'disp', 'sub'], DRAW = { disp: dsDraw, add: adDraw, sub: sbDraw, obj: obDraw, fil: flDraw, let: ltDraw };
+const TABS = ['add', 'fil', 'obj', 'let', 'han', 'disp', 'sub'], DRAW = { disp: dsDraw, add: adDraw, sub: sbDraw, obj: obDraw, fil: flDraw, let: ltDraw, han: hzDraw };
 let cur = null;
 function show(t) {
   if (!TABS.includes(t)) t = 'add'; cur = t;
