@@ -207,6 +207,13 @@ th{font-weight:500;color:var(--muted);font-size:12.5px}
 .anim-bar{align-items:center}
 .anim-bar .seg button{padding:4px 10px}
 
+/* 4-5 彩虹（白底簡約） */
+#st-rainbow .rb-box{background:#fff;border-color:#dfe4ea}
+#st-rainbow .rb-side{display:flex;flex-direction:column;gap:12px;min-width:0}
+@media (min-width:860px){#st-rainbow .rb-cols{grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);align-items:start}#st-rainbow .rb-cols2{grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);align-items:start}#st-rainbow #rs-box .rb-cols2{grid-template-columns:minmax(0,1.2fr) minmax(0,1fr)}}
+#st-rainbow .readout dd{font-size:16px}
+#st-rainbow .hint{font-size:14px}
+@media (max-width:600px){#st-rainbow .readout{grid-template-columns:1fr 1fr}}
 /* 4-5 色散與顏色（光譜計算版） */
 #ob-lamp{position:fixed;inset:0;z-index:9999;background:#00f;cursor:pointer;touch-action:manipulation}
 #ob-lamp[hidden]{display:none}
@@ -612,7 +619,7 @@ footer{border-top:1px solid var(--line);padding-block:18px 28px;color:var(--mute
   <aside class="poe" data-poe="color"></aside>
   <div class="lab">
     <div class="lab-head">
-      <div class="seg" id="co-mode"><button data-v="add" aria-pressed="true">色光三原色</button><button data-v="fil" aria-pressed="false">玻璃紙</button><button data-v="obj" aria-pressed="false">物體的顏色</button><button data-v="let" aria-pressed="false">字母挑戰</button><button data-v="disp" aria-pressed="false">三稜鏡色散</button><button data-v="sub" aria-pressed="false">顏料三原色</button></div>
+      <div class="seg" id="co-mode"><button data-v="add" aria-pressed="true">色光三原色</button><button data-v="fil" aria-pressed="false">玻璃紙</button><button data-v="obj" aria-pressed="false">物體的顏色</button><button data-v="let" aria-pressed="false">字母挑戰</button><button data-v="han" aria-pressed="false">漢字點陣</button><button data-v="disp" aria-pressed="false">三稜鏡色散</button><button data-v="sub" aria-pressed="false">顏料三原色</button></div>
       <span class="tag">探討活動 4-4</span>
     </div>
     <div data-for="disp" class="lab" hidden>
@@ -726,13 +733,13 @@ footer{border-top:1px solid var(--line);padding-block:18px 28px;color:var(--mute
   <div class="controls">
     <div class="ctl wide"><span>挑戰</span><div class="chips" id="lt-ch"></div></div>
     <div class="ctl wide" id="lt-own" hidden><span>自己出題：各種光下想看到的字（不填＝不檢查）</span><div class="row-btns lt-own">
-      <label>白光 <input data-l="w" maxlength="3" autocomplete="off" spellcheck="false"></label><label>紅光 <input data-l="r" maxlength="3" autocomplete="off" spellcheck="false"></label><label>綠光 <input data-l="g" maxlength="3" autocomplete="off" spellcheck="false"></label><label>藍光 <input data-l="b" maxlength="3" autocomplete="off" spellcheck="false"></label>
+      <label>白光 <input data-l="w" maxlength="9" autocomplete="off" spellcheck="false"></label><label>紅光 <input data-l="r" maxlength="9" autocomplete="off" spellcheck="false"></label><label>綠光 <input data-l="g" maxlength="9" autocomplete="off" spellcheck="false"></label><label>藍光 <input data-l="b" maxlength="9" autocomplete="off" spellcheck="false"></label>
     </div></div>
     <div class="ctl wide"><span>① 光源</span><div class="chips" id="lt-lights"></div></div>
     <div class="ctl wide"><span>② 玻璃紙（放在燈前）</span><div class="chips" id="lt-filters"></div></div>
-    <div class="ctl"><span>底盤</span><div class="seg" id="lt-n"><button data-v="1" aria-pressed="true">1 個字母</button><button data-v="3" aria-pressed="false">3 個字母</button></div></div>
+    <div class="ctl"><label for="lt-n">底盤格數（最多 9 個字母）</label><select id="lt-n"></select></div>
     <div class="ctl wide"><span>③ 色紙：先選顏色，再點圖中的段塗上</span><div class="chips" id="lt-papers"></div></div>
-    <div class="ctl wide"><div class="row-btns" style="align-items:center"><input id="lt-word" class="lt-word" maxlength="3" placeholder="例：E" autocomplete="off" spellcheck="false" aria-label="要拼的字母"><button class="btn" id="lt-type">把這個字母的段塗上目前顏色</button><button class="btn" id="lt-clear">全部塗黑（重來）</button><label class="switch"><input type="checkbox" id="lt-hide"> 先預測：遮住看到的結果</label><button class="btn" id="lt-reveal" hidden>揭曉</button></div></div>
+    <div class="ctl wide"><div class="row-btns" style="align-items:center"><input id="lt-word" class="lt-word" maxlength="9" placeholder="例：HELLO" autocomplete="off" spellcheck="false" aria-label="要拼的字母"><button class="btn" id="lt-type">把這個字母的段塗上目前顏色</button><button class="btn" id="lt-clear">全部塗黑（重來）</button><label class="switch"><input type="checkbox" id="lt-hide"> 先預測：遮住看到的結果</label><button class="btn" id="lt-reveal" hidden>揭曉</button></div></div>
   </div>
   <div class="cols two">
     <div class="canvas-box dark"><canvas id="lt-cv" data-w="1000" data-h="560" aria-label="暗室中：光源、玻璃紙、字母底盤與眼睛"></canvas></div>
@@ -750,6 +757,36 @@ footer{border-top:1px solid var(--line);padding-block:18px 28px;color:var(--mute
     <li>白光含有紅、綠、藍光，所以在任何一種色光下會亮的段，白光下一定亮；白光下暗的段（黑色紙），換什麼光都暗。</li>
   </ol></div>
     </div>
+    <div data-for="han" class="lab" hidden>
+
+  <div class="controls">
+    <div class="ctl wide"><span>挑戰</span><div class="chips" id="hz-ch"></div></div>
+    <div class="ctl wide"><span>範例：載入已完成的作品，換光觀察</span><div class="chips" id="hz-ex"></div></div>
+    <div class="ctl wide"><span>① 光源</span><div class="chips" id="hz-lights"></div></div>
+    <div class="ctl wide"><span>② 玻璃紙（放在燈前）</span><div class="chips" id="hz-filters"></div></div>
+    <div class="ctl"><label for="hz-n">字數（最多 7 個字）</label><select id="hz-n"></select></div>
+    <div class="ctl"><span>點陣（換大小會清空）</span><div class="seg" id="hz-g"><button data-v="5" aria-pressed="true">5 × 5</button><button data-v="7" aria-pressed="false">7 × 7</button><button data-v="9" aria-pressed="false">9 × 9（圖案、藝術創作）</button></div></div>
+    <div class="ctl wide"><span>③ 正在畫</span><div class="seg" id="hz-layer"><button data-v="board" aria-pressed="true">色紙底盤</button><button data-v="w" aria-pressed="false">白光字帖</button><button data-v="r" aria-pressed="false">紅光字帖</button><button data-v="g" aria-pressed="false">綠光字帖</button><button data-v="b" aria-pressed="false">藍光字帖</button></div></div>
+    <div class="ctl wide"><span>④ 色紙：先選顏色，再從一個點拖到相鄰的點畫出筆畫（點一下已畫的筆畫可以換色）</span><div class="chips" id="hz-papers"></div></div>
+    <div class="ctl wide"><div class="row-btns" style="align-items:center"><button class="btn" id="hz-clear">清除色紙底盤</button><button class="btn" id="hz-tclear">清除這張字帖</button><label class="switch"><input type="checkbox" id="hz-guide" checked> 描紅：顯示這種光的字帖</label><label class="switch"><input type="checkbox" id="hz-dots" checked> 顯示點</label></div></div>
+    <div class="ctl wide"><div class="row-btns" style="align-items:center"><span>畫布顯示</span><div class="seg" id="hz-view"><button data-v="light" aria-pressed="true">在目前的光下</button><button data-v="paper" aria-pressed="false">色紙本色（設計圖）</button></div><label class="switch"><input type="checkbox" id="hz-hide"> 先預測：遮住各種光下的結果</label><button class="btn" id="hz-reveal" hidden>揭曉</button></div></div>
+  </div>
+  <div class="cols two">
+    <div class="canvas-box dark"><canvas id="hz-cv" data-w="1000" data-h="520" aria-label="點陣底盤：從一個點拖到相鄰的點畫出筆畫"></canvas></div>
+    <div class="side">
+      <div class="panel lt-goal"><p id="hz-goal-t"></p><div class="row-btns"><button class="btn" id="hz-check">檢查我的設計</button><button class="btn" id="hz-sol" hidden>看一種解法</button></div><div id="hz-res"></div></div>
+      <dl class="readout" id="hz-out"></dl>
+    </div>
+  </div>
+  <div class="strip-box"><h4>同一個底盤，在四種光下（不加玻璃紙）</h4><canvas id="hz-pv" data-w="1000" data-h="330" aria-label="底盤在白光、紅光、綠光、藍光下的樣子"></canvas></div>
+  <div class="design-card"><h4>設計提示</h4><ol>
+    <li>每一段筆畫貼一種色紙。在某種光下看得見的筆畫，才是那種光下的字：紅光下看得見紅、黃、洋紅、白紙；綠光下是綠、黃、青、白紙；藍光下是藍、青、洋紅、白紙。</li>
+    <li>先在「紅光字帖」「綠光字帖」寫下想藏的字，再回到「色紙底盤」一段一段決定色紙：兩張字帖都有的筆畫用黃紙，只在紅光字帖的用紅紙，只在綠光字帖的用綠紙。</li>
+    <li>紅光、綠光下都要消失的「偽裝筆畫」可以用藍紙：它只在白光（和藍光）下出現，讓白光下的字更難被看穿。</li>
+    <li>想一想：紅光下看得見的筆畫，白光下一定看得見；反過來卻不一定。所以「白光下一句話、紅光下變另一句」時，紅光那句的每一筆都必須藏在白光那句裡。</li>
+    <li>延伸到藝術創作：9 × 9 點陣適合畫圖案。紅、綠、藍光各一張圖，最多能藏三張圖；共用的線條越多（例如同一張臉的輪廓），換光時的變化越像「動畫」。</li>
+  </ol></div>
+    </div>
   </div>
 </section>
 
@@ -762,25 +799,55 @@ footer{border-top:1px solid var(--line);padding-block:18px 28px;color:var(--mute
       <h3>彩虹</h3>
       <span class="tag">折射＋反射＋色散</span>
     </div>
-    <div data-for="rain" class="lab">
-      <div class="canvas-box dark"><canvas id="cv-rain" aria-label="陽光射入水滴，折射、反射、再折射出來"></canvas></div>
-      <p class="hint"><b>左</b>：一條陽光在水滴裡「折射 → 反射 → 再折射」（色散畫面放大約 3 倍）。<b>右上 ①</b>：改變射入高度，出來的角度先變大再變小；最大角附近很多光擠在一起，那個方向特別亮，就是彩虹。紅光最大角比紫光大。<b>右下 ②</b>：把 ① 的角度放回地面：從頭影方向往上量 42°，看到紅色；40.6° 看到紫色，所以紅色在外圈。太陽越高，彩虹越低。讀數用真實折射率計算。</p>
+    <div data-for="rain" class="lab rb">
       <div class="controls">
-        <div class="ctl"><div class="top"><label for="rn-b">光射入水滴的高度</label><output id="rn-b-v"></output></div><input type="range" id="rn-b" min="0" max="99" value="70"></div>
-        <div class="ctl"><div class="top"><label for="rn-sun">太陽高度（右下圖）</label><output id="rn-sun-v"></output></div><input type="range" id="rn-sun" min="0" max="60" value="15"></div>
-        <div class="ctl"><span>畫哪些光</span><div class="seg" id="rn-mode"><button data-v="one" aria-pressed="true">一條白光</button><button data-v="many" aria-pressed="false">很多條紅光</button></div></div>
+        <div class="ctl"><span>看哪一道</span><div class="seg" id="rn-kind"><button data-v="1" aria-pressed="true">虹（反射 1 次）</button><button data-v="2" aria-pressed="false">霓（反射 2 次）</button></div></div>
+        <div class="ctl"><span>畫面</span><div class="seg" id="rn-mode"><button data-v="one" aria-pressed="true">光的旅程</button><button data-v="many" aria-pressed="false">很多條紅光</button></div></div>
+        <div class="ctl checks" style="flex-direction:row"><label class="switch"><input type="checkbox" id="rn-nrm"> 法線與角度</label></div>
+        <div class="ctl" id="rn-journey" style="grid-column:1/-1">
+          <div class="top"><label for="rn-t">光的旅程（拖曳或播放）</label></div>
+          <input type="range" id="rn-t" min="0" max="1000" value="0">
+          <div class="row-btns" style="align-items:center;margin-top:4px"><button class="btn" id="rn-prev" type="button">⏮ 上一步</button><button class="btn primary" id="rn-go" type="button">▶ 播放</button><button class="btn" id="rn-next" type="button">下一步 ⏭</button><span class="seg" id="rn-spd"><button type="button" data-v="0.5" aria-pressed="false">慢</button><button type="button" data-v="1" aria-pressed="true">中</button><button type="button" data-v="2" aria-pressed="false">快</button></span><label class="switch"><input type="checkbox" id="rn-stop" checked> 每到一個點就暫停</label></div>
+        </div>
       </div>
-      <dl class="readout"><div><dt>紅光出來的角度</dt><dd id="rn-r">—</dd></div><div><dt>紫光出來的角度</dt><dd id="rn-v">—</dd></div><div><dt>紅光最大角（彩虹角）</dt><dd>42.4°</dd></div><div><dt>紫光最大角</dt><dd>40.6°</dd></div><div><dt>彩虹頂端的仰角</dt><dd id="rn-top">—</dd></div></dl>
-      <p class="hint">「出來的角度」：射出的光和陽光反方向的夾角。</p>
+      <div class="cols two rb-cols">
+        <div class="canvas-box rb-box"><canvas id="cv-rain" aria-label="陽光射入水滴，折射、反射、再折射出來；虹反射一次，霓反射兩次"></canvas></div>
+        <div class="rb-side">
+          <div class="canvas-box rb-box"><canvas id="cv-rcomp" aria-label="紅光與紫光的折射角、反射角與出來角度比較"></canvas></div>
+          <div class="canvas-box rb-box"><canvas id="cv-rgraph" aria-label="射入位置與出來角度的關係"></canvas></div>
+        </div>
+      </div>
+      <dl class="readout"><div><dt>光在水滴裡</dt><dd id="rn-count" class="zh">—</dd></div><div><dt>虹（最大角）</dt><dd id="rn-pk1">—</dd></div><div><dt>霓（最小角）</dt><dd id="rn-pk2">—</dd></div></dl>
+      <p class="hint">光固定從「彩虹光線」的位置射入（出來的角度最大或最小、光最集中的位置）。水滴的色散放大約 3 倍，數字用真實折射率。</p>
     </div>
-    <div class="lab" id="rs-box">
+    <div class="lab rb" id="sky-box">
+      <div class="lab-head"><h3>從地面看：3D 彩虹、仰角與反日點</h3><span class="tag">反日點・觀察角度</span></div>
+      <div class="controls">
+        <div class="ctl"><div class="top"><label for="rn-sun">太陽高度（仰角）</label><output id="rn-sun-v"></output></div><input type="range" id="rn-sun" min="0" max="60" value="15"></div>
+        <div class="ctl"><span>3D 視角</span><div class="seg" id="r3-view"><button data-v="orbit" aria-pressed="true">斜看</button><button data-v="side" aria-pressed="false">側面</button><button data-v="top" aria-pressed="false">上方</button><button data-v="eye" aria-pressed="false">你的眼睛</button></div></div>
+        <div class="ctl"><span>畫出光線</span><div class="seg" id="r3-ray"><button data-v="1" aria-pressed="true">虹</button><button data-v="2" aria-pressed="false">霓</button><button data-v="3" aria-pressed="false">都畫</button><button data-v="0" aria-pressed="false">不畫</button></div></div>
+        <div class="ctl checks" style="flex-direction:row"><label class="switch"><input type="checkbox" id="r3-cone" checked> 圓錐面</label><label class="switch"><input type="checkbox" id="r3-ang" checked> 角度標示</label></div>
+      </div>
+      <div class="canvas-box rb-box" style="margin-bottom:12px"><canvas id="cv-r3d" aria-label="3D：太陽、你、雨滴與彩虹圓錐" style="touch-action:none;cursor:grab"></canvas></div>
+      <p class="hint" style="margin-top:0">拖曳 3D 圖可以旋轉（「你的眼睛」視角拖曳是轉頭）。彩虹是以你的眼睛為頂點、繞著「太陽→你的頭→反日點」這條線的圓錐，只有地平線以上的部分看得到。</p>
+      <div class="cols two rb-cols2">
+        <div class="canvas-box rb-box"><canvas id="cv-rside" aria-label="側面看：你、陽光、反日點與虹霓的角度"></canvas></div>
+        <div class="canvas-box rb-box"><canvas id="cv-sky" aria-label="背對太陽看到的虹、霓、暗帶與反日點"></canvas></div>
+      </div>
+      <dl class="readout"><div><dt>虹頂端的仰角</dt><dd id="rn-top">—</dd></div><div><dt>霓頂端的仰角</dt><dd id="rn-top2">—</dd></div></dl>
+      <p class="hint">虹、霓都是以反日點為圓心的圓。太陽越高，整組圓越低。</p>
+    </div>
+    <div class="lab rb" id="rs-box">
       <div class="lab-head"><h3>不同色光的速度</h3><span class="tag">色散的原因</span></div>
       <div class="controls">
         <div class="ctl" style="grid-column:1/-1"><span>速度差異</span><div class="seg" id="rs-k"><button data-v="1" aria-pressed="false">真實比例</button><button data-v="10" aria-pressed="false">放大 10 倍</button><button data-v="30" aria-pressed="true">放大 30 倍</button></div></div>
         <div class="ctl checks" style="flex-direction:row"><button class="btn primary" id="rs-play" type="button">▶ 開始賽跑</button><button class="btn" id="rs-reset" type="button">回到起點</button></div>
       </div>
-      <div class="canvas-box dark"><canvas id="cv-rspeed" aria-label="六種色光同時出發，從真空進入水中；以及射入水面時的偏折"></canvas></div>
-      <p class="hint"><b>左 ③</b>：六種色光同時出發，小點是每隔相同時間光走到的位置。在真空中各色光一樣快（約 30 萬 km/s，空氣中幾乎一樣）；進入水中後都變慢，<b>紫光最慢、紅光最快</b>。<b>右 ④</b>：光射入水滴的那一刻（入射角跟著上面的「射入高度」）：越慢的光折射率越大，偏折越多，所以白光分成各種顏色。表格用真實折射率計算。</p>
+      <div class="cols two rb-cols2">
+        <div class="canvas-box rb-box"><canvas id="cv-rspeed" aria-label="六種色光同時出發，從真空進入水中"></canvas></div>
+        <div class="canvas-box rb-box"><canvas id="cv-rentry" aria-label="白光射入水面時各色光的偏折"></canvas></div>
+      </div>
+      <p class="hint">真空中各色光一樣快（約 30 萬 km/s）；在水中紫光最慢、紅光最快。入射角＝彩虹光線射入水滴的角度。</p>
       <div class="table-box"><table><thead><tr><th>色光</th><th class="num">波長</th><th class="num">真空中的速度</th><th class="num">水的折射率 n</th><th class="num">水中的速度 c/n</th><th class="num">射入水滴後的折射角</th></tr></thead><tbody id="rs-tbody"></tbody></table></div>
       <p class="hint" id="rs-note"></p>
     </div>
@@ -1894,13 +1961,24 @@ const eyStage = new Stage($('#ey-canvas'), { aspect: 0.55, minH: 240, maxH: 420,
   ctx.strokeStyle = C.accent; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(m.X(0.9), m.Y(0), 1.1 * m.sx, -0.95, 0.95); ctx.stroke(); ctx.restore();
   text(ctx, '視網膜', m.X(2.05) + 4, m.Y(0.9), C.accent, { size: 12 });
   line(ctx, m, -0.05, 0.45, -0.05, 0.9, C.ink, 3); line(ctx, m, -0.05, -0.45, -0.05, -0.9, C.ink, 3);
-  const thick = 0.1 + 0.12 * (md.acc / 4);
-  ctx.save(); ctx.fillStyle = C.glass; ctx.globalAlpha = .55; ctx.beginPath(); ctx.ellipse(m.X(0), m.Y(0), thick * m.sx, 0.48 * m.sx, 0, 0, 7); ctx.fill(); ctx.restore();
-  text(ctx, '水晶體', m.X(0), m.Y(-0.62), C.select, { align: 'center', size: 11.5 });
+  // 水晶體：厚薄＝總屈光度（放大示意），虛線＝正常眼放鬆時（50 D）
+  const lensHalf = P => clamp(0.04 + (P - 42) * 0.014, 0.04, 0.32), lensPath = (hc, he, H) => {
+    const x0 = m.X(0), yT = m.Y(H), yB = m.Y(-H), ym = m.Y(0), a = hc * m.sx, e = he * m.sx;
+    ctx.beginPath(); ctx.moveTo(x0 - e, yT); ctx.lineTo(x0 + e, yT); ctx.quadraticCurveTo(x0 + 2 * a - e, ym, x0 + e, yB);
+    ctx.lineTo(x0 - e, yB); ctx.quadraticCurveTo(x0 - 2 * a + e, ym, x0 - e, yT); ctx.closePath(); };
+  const thick = lensHalf(md.Pe);
+  ctx.save(); lensPath(thick, 0.012, 0.48); ctx.fillStyle = C.glass; ctx.globalAlpha = .55; ctx.fill(); ctx.globalAlpha = .9; ctx.strokeStyle = C.select; ctx.lineWidth = 1.2; ctx.stroke(); ctx.restore();
+  const accOn = md.acc > 0.1;
+  if (accOn) { ctx.save(); lensPath(lensHalf(md.Pr), 0.012, 0.48); ctx.strokeStyle = C.muted; ctx.lineWidth = 1; ctx.setLineDash([3, 3]); ctx.globalAlpha = .9; ctx.stroke(); ctx.restore(); }
+  text(ctx, '水晶體' + (md.Pr > 50.4 ? '（較厚）' : md.Pr < 49.6 ? '（較薄）' : ''), m.X(0), m.Y(-1.02), C.select, { align: 'center', size: 11.5 });
+  if (accOn) text(ctx, '調節中：變厚（虛線＝放鬆時）', m.X(0), m.Y(-1.02) + 15, C.muted, { align: 'center', size: 10.5 });
   if (md.G !== 0) {
-    ctx.save(); ctx.fillStyle = C.glass; ctx.strokeStyle = C.select; ctx.globalAlpha = .45; const gx = m.X(XG), H = 0.85; ctx.beginPath();
-    if (md.G > 0) { ctx.moveTo(gx, m.Y(H)); ctx.quadraticCurveTo(gx + 12, m.Y(0), gx, m.Y(-H)); ctx.quadraticCurveTo(gx - 12, m.Y(0), gx, m.Y(H)); }
-    else { ctx.moveTo(gx - 8, m.Y(H)); ctx.lineTo(gx + 8, m.Y(H)); ctx.quadraticCurveTo(gx + 1, m.Y(0), gx + 8, m.Y(-H)); ctx.lineTo(gx - 8, m.Y(-H)); ctx.quadraticCurveTo(gx - 1, m.Y(0), gx - 8, m.Y(H)); }
+    // 鏡片厚薄隨度數：凸透鏡中央變厚、凹透鏡邊緣變厚（示意）
+    const gx = m.X(XG), H = 0.85, yT = m.Y(H), yB = m.Y(-H), ym = m.Y(0), k = Math.abs(md.G) * 1.9;
+    const hc = md.G > 0 ? 1.5 + k : 1.5, he = md.G > 0 ? 1.5 : 1.5 + k;
+    ctx.save(); ctx.fillStyle = C.glass; ctx.strokeStyle = C.select; ctx.globalAlpha = .45; ctx.beginPath();
+    ctx.moveTo(gx - he, yT); ctx.lineTo(gx + he, yT); ctx.quadraticCurveTo(gx + 2 * hc - he, ym, gx + he, yB);
+    ctx.lineTo(gx - he, yB); ctx.quadraticCurveTo(gx - 2 * hc + he, ym, gx - he, yT);
     ctx.closePath(); ctx.fill(); ctx.globalAlpha = 1; ctx.stroke(); ctx.restore();
     text(ctx, `${md.G > 0 ? '凸' : '凹'}透鏡 ${ey.g > 0 ? '+' : ''}${ey.g} 度`, m.X(XG), m.Y(1.05), C.select, { align: 'center', size: 11.5 });
   }
@@ -2135,6 +2213,7 @@ const ST = {
   color: { sec: '4-5 色散與顏色', act: '探討活動 4-4', items: [] },
   rainbow: { sec: '4-5 色散與顏色', act: '彩虹', items: [] },
 };
+
 const STORE_KEY = 'optics-poe-v1';
 let saved = {}; try { saved = JSON.parse(localStorage.getItem(STORE_KEY) || '{}') || {}; } catch (e) { saved = {}; }
 const persist = () => { try { localStorage.setItem(STORE_KEY, JSON.stringify(saved)); } catch (e) {} };
@@ -2753,133 +2832,490 @@ new MutationObserver(readTokens).observe(document.documentElement, { attributes:
 })();
 
 (function () {
-  const st = makeStage($('#cv-rain'), 760, 420);
-  const S = { b: 0.7, mode: 'one', sun: 15 };
-  const C = { x: 220, y: 215 }, R = 165;
+  /* ===== 彩虹站（白底簡約版）===== */
+  const P = { bg: '#ffffff', ink: '#1f2933', mut: '#5f6b78', faint: '#9aa5b1', grid: '#e6eaef', water: '#eaf4fd', waterLine: '#6fa6d6', sun: '#d98e04', band: '#e9edf1' };
+  const S = { b: 0.86, mode: 'one', sun: 15, k: 1 };
   const nW = l => 1.3247 + 3071 / (l * l);                 // 水的近似色散（波長 nm）：紅 1.331、紫 1.343
   const nShow = l => 1.333 + 3 * (nW(l) - 1.333);
-  const WL = [[700, '#ff2a1a'], [620, '#ff8a1a'], [580, '#ffe11a'], [530, '#3dff4a'], [470, '#2a7bff'], [410, '#b34dff']];
-  const theta = (b, n) => (4 * Math.asin(b / n) - 2 * Math.asin(b)) / DEG;
-  const B = bench('b-rain', st, draw);
-  slider('rn-b', v => { S.b = v / 100; B.dirty = true; }, v => (v / 100).toFixed(2));
-  seg($('#rn-mode'), v => { S.mode = v; B.dirty = true; });
-  slider('rn-sun', v => { S.sun = v; B.dirty = true; }, v => v + '°');
+  const WL = [[700, '#e03131'], [620, '#f76707'], [580, '#e0a400'], [530, '#2f9e44'], [470, '#1c7ed6'], [410, '#7048e8']];
+  const RED = '#e03131', VIO = '#7048e8';
+  /* 出來的角度（和陽光反方向＝反日點方向的夾角）：虹 4r−2i，霓 180°＋2i−6r */
+  const theta = (b, n, k = 1) => { const i = Math.asin(b), r = Math.asin(b / n); return (k === 1 ? 4 * r - 2 * i : Math.PI + 2 * i - 6 * r) / DEG; };
+  function peak(n, k) { let m = k === 1 ? 0 : 999, bm = 0; for (let i = 1; i <= 2000; i++) { const b = i / 2000 * 0.9999, t = theta(b, n, k); if (k === 1 ? t > m : t < m) { m = t; bm = b; } } return { m, bm }; }
+  const PK = { 1: { r: peak(nW(700), 1), v: peak(nW(410), 1) }, 2: { r: peak(nW(700), 2), v: peak(nW(410), 2) } };
+  const SPEC = []; for (let l = 410; l <= 700; l += 10) SPEC.push({ l, a1: peak(nW(l), 1).m, a2: peak(nW(l), 2).m });
+  const T = (c, s, x, y, o = {}) => text(c, s, x, y, Object.assign({ color: P.ink, size: 15 }, o));
+
+  /* 射入高度固定在「彩虹光線」：虹＝紅光最大角、霓＝紅光最小角出現的位置 */
+  Object.defineProperty(S, 'b', { get() { return PK[S.k].r.bm; } });
+  const st = makeStage($('#cv-rain'), 560, 640), stC = makeStage($('#cv-rcomp'), 460, 340), stG = makeStage($('#cv-rgraph'), 460, 300), stV = makeStage($('#cv-rside'), 460, 300), st3 = makeStage($('#cv-sky'), 520, 410);
+  const B = bench('b-rain', st, draw), BC = bench('b-rcomp', stC, drawComp), BG = bench('b-rgraph', stG, drawGraph), BV = bench('b-rside', stV, drawSide), B3 = bench('b-sky', st3, drawSky);
+  const LATE = [], dirtyRain = () => { B.dirty = BC.dirty = BG.dirty = BV.dirty = B3.dirty = true; LATE.forEach(b => { b.dirty = true; }); };
+  seg($('#rn-mode'), v => { S.mode = v; $('#rn-journey').hidden = v !== 'one'; dirtyRain(); });
+  seg($('#rn-kind'), v => { S.k = Number(v); RA.run = false; RA.t = 0; playLabel(); syncT(); dirtyRain(); });
+  slider('rn-sun', v => { S.sun = v; dirtyRain(); }, v => v + '°');
+
+  /* ---------- 水滴光路 ---------- */
+  const C = { x: 292, y: 292 }, R = 205;
   function refract(d, nrm, eta) {
     let nx = nrm.x, ny = nrm.y; if (nx * d.x + ny * d.y > 0) { nx = -nx; ny = -ny; }
     const ci = -(nx * d.x + ny * d.y), k = 1 - eta * eta * (1 - ci * ci); if (k < 0) return null;
     const cf = eta * ci - Math.sqrt(k); return { x: eta * d.x + cf * nx, y: eta * d.y + cf * ny };
   }
-  /* 進入→反射一次→射出 */
-  function trace(b, n) {
-    const P = { x: C.x - Math.sqrt(R * R - (b * R) ** 2), y: C.y - b * R };
-    const nP = { x: (P.x - C.x) / R, y: (P.y - C.y) / R };
-    const d1 = refract({ x: 1, y: 0 }, nP, 1 / n);
-    const t1 = -2 * ((P.x - C.x) * d1.x + (P.y - C.y) * d1.y), Q = { x: P.x + d1.x * t1, y: P.y + d1.y * t1 };
-    const nQ = { x: (Q.x - C.x) / R, y: (Q.y - C.y) / R }, dn = d1.x * nQ.x + d1.y * nQ.y;
-    const d2 = { x: d1.x - 2 * dn * nQ.x, y: d1.y - 2 * dn * nQ.y };
-    const t2 = -2 * ((Q.x - C.x) * d2.x + (Q.y - C.y) * d2.y), E = { x: Q.x + d2.x * t2, y: Q.y + d2.y * t2 };
-    const d3 = refract(d2, { x: (E.x - C.x) / R, y: (E.y - C.y) / R }, n);
-    return { P, Q, E, d3 };
+  /* 進入（折射）→ 反射 k 次 → 射出（折射）。虹從水滴上半部射入，霓從下半部射入 */
+  function trace(b, n, k = S.k) {
+    const sg = k === 1 ? -1 : 1;
+    const Pt = { x: C.x - Math.sqrt(Math.max(0, R * R - (b * R) ** 2)), y: C.y + sg * b * R };
+    let d = refract({ x: 1, y: 0 }, { x: (Pt.x - C.x) / R, y: (Pt.y - C.y) / R }, 1 / n);
+    const pts = [Pt]; let A = Pt;
+    for (let j = 0; j <= k; j++) {
+      const t = -2 * ((A.x - C.x) * d.x + (A.y - C.y) * d.y), Q = { x: A.x + d.x * t, y: A.y + d.y * t };
+      pts.push(Q); A = Q;
+      if (j < k) { const nq = { x: (Q.x - C.x) / R, y: (Q.y - C.y) / R }, dn = d.x * nq.x + d.y * nq.y; d = { x: d.x - 2 * dn * nq.x, y: d.y - 2 * dn * nq.y }; }
+    }
+    const E = pts[pts.length - 1], d3 = refract(d, { x: (E.x - C.x) / R, y: (E.y - C.y) / R }, n);
+    return { P: Pt, pts, E, d3 };
   }
-  function drawRay(c, b, n, col, w, inLen) {
-    const T = trace(b, n);
-    c.strokeStyle = col; c.lineWidth = w; c.beginPath(); c.moveTo(T.P.x, T.P.y); c.lineTo(T.Q.x, T.Q.y); c.lineTo(T.E.x, T.E.y);
-    const e = toEdge(T.E.x, T.E.y, T.d3.x, T.d3.y, 450, st.H); c.lineTo(e.x, e.y); c.stroke();
-    return T;
+  function drawRay(c, b, n, col, w) {
+    const Tr = trace(b, n);
+    c.strokeStyle = col; c.lineWidth = w; c.lineJoin = 'round'; c.beginPath(); c.moveTo(Tr.P.x, Tr.P.y); Tr.pts.slice(1).forEach(p => c.lineTo(p.x, p.y));
+    const e = toEdge(Tr.E.x, Tr.E.y, Tr.d3.x, Tr.d3.y, st.W, st.H); c.lineTo(e.x, e.y); c.stroke();
+    return Tr;
   }
-  /* 最大角（彩虹角）與它出現的射入高度 */
-  function peak(n) { let m = 0, bm = 0; for (let i = 0; i <= 2000; i++) { const b = i / 2000 * 0.9999, t = theta(b, n); if (t > m) { m = t; bm = b; } } return { m, bm }; }
-  const PK = { r: peak(nW(700)), v: peak(nW(410)) };
-  function graph(c, ink, mut) {
-    const x0 = 500, x1 = 740, y0 = 58, y1 = 192, X = b => x0 + (x1 - x0) * b, Y = t => y1 - (y1 - y0) * t / 45;
-    c.fillStyle = '#0b1220'; c.fillRect(456, 8, 296, 228);
-    text(c, '① 從哪裡射入，就從什麼角度出來', 464, 26, { color: ink, size: 12.5, weight: 700 });
-    /* 紅光最大角附近（差 1° 以內）的射入範圍：光最集中 */
-    let lo = 1, hi = 0; for (let i = 0; i <= 400; i++) { const bb = i / 400 * 0.9999; if (theta(bb, nW(700)) >= PK.r.m - 1) { lo = Math.min(lo, bb); hi = Math.max(hi, bb); } }
-    c.fillStyle = 'rgba(255,74,58,.14)'; c.fillRect(X(lo), y0, X(hi) - X(lo), y1 - y0);
-    [0, 15, 30, 45].forEach(t => { line(c, x0, Y(t), x1, Y(t), 'rgba(148,163,184,.18)', 1); text(c, t + '°', x0 - 6, Y(t) + 4, { color: mut, size: 10.5, align: 'right', font: MONO }); });
-    [0, 0.5, 1].forEach(b => text(c, String(b), X(b), y1 + 14, { color: mut, size: 10.5, align: 'center', font: MONO }));
-    text(c, '射入高度（0＝正中央，1＝水滴邊緣）', x1, y1 + 30, { color: mut, size: 10.5, align: 'right' });
-    text(c, '出來的角度', x0 - 34, y0 - 14, { color: mut, size: 10.5 });
-    [[700, '#ff4a3a', PK.r, '紅'], [410, '#c77dff', PK.v, '紫']].forEach(([l, col, pk, nm], k) => {
-      c.strokeStyle = col; c.lineWidth = 2; c.beginPath();
-      for (let i = 0; i <= 120; i++) { const b = i / 120 * 0.9999, y = Y(theta(b, nW(l))); i ? c.lineTo(X(b), y) : c.moveTo(X(b), y); } c.stroke();
-      c.fillStyle = col; c.beginPath(); c.arc(X(pk.bm), Y(pk.m), 3.5, 0, TAU); c.fill();
-      text(c, `● ${nm}光最大 ${fx(pk.m)}°`, x0 + 8, y0 + 12 + k * 16, { color: col, size: 11, weight: 700 });
+
+  /* ---------- 光的旅程：連續播放／拖曳 ---------- */
+  const RA = { t: 0, run: false, last: 0, speed: 1 }, RV = 150;
+  function racePath(l) {
+    const n = nShow(l), Tr = trace(S.b, n), pts = [{ x: 0, y: Tr.P.y }, ...Tr.pts], e = toEdge(Tr.E.x, Tr.E.y, Tr.d3.x, Tr.d3.y, st.W, st.H);
+    pts.push(e); const sp = pts.slice(1).map((p, j) => (j === 0 || j === pts.length - 2) ? RV : RV / n);
+    const tk = [0]; for (let j = 0; j < sp.length; j++) tk.push(tk[j] + Math.hypot(pts[j + 1].x - pts[j].x, pts[j + 1].y - pts[j].y) / sp[j]);
+    return { pts, sp, tk, Tr };
+  }
+  function posOn(path, t) {
+    for (let j = 0; j < path.sp.length; j++) {
+      if (t <= path.tk[j + 1]) { const a = path.pts[j], b = path.pts[j + 1], f = Math.max(0, (t - path.tk[j]) / (path.tk[j + 1] - path.tk[j])); return { x: a.x + (b.x - a.x) * f, y: a.y + (b.y - a.y) * f, seg: j }; }
+    }
+    const z = path.pts[path.pts.length - 1]; return { x: z.x, y: z.y, seg: path.sp.length };
+  }
+  function drawPartial(c, path, t, col, w) {
+    const q = posOn(path, t); if (q.seg === 0) return q;
+    c.strokeStyle = col; c.lineWidth = w; c.lineJoin = 'round'; c.beginPath(); c.moveTo(path.pts[1].x, path.pts[1].y);
+    for (let j = 2; j <= Math.min(q.seg, path.pts.length - 1); j++) c.lineTo(path.pts[j].x, path.pts[j].y);
+    c.lineTo(q.x, q.y); c.stroke(); return q;
+  }
+  const tEndR = () => racePath(410).tk.slice(-1)[0];
+  /* 事件時間（以紅光為準）：進入、反射…、射出、結束 */
+  const events = () => { const p = racePath(700); return p.tk.slice(1, -1).concat([tEndR()]); };
+  function stageAt(t) { const ev = events(); let s = 0; ev.forEach(e => { if (t >= e - 1e-6) s++; }); return s; }   // 0＝還沒到水滴
+  const tIn = $('#rn-t');
+  const syncT = () => { tIn.value = Math.round(1000 * RA.t / tEndR()); };
+  const playLabel = () => { $('#rn-go').textContent = RA.run ? '⏸ 暫停' : (RA.t >= tEndR() - 1e-6 ? '↺ 重播' : '▶ 播放'); };
+  tIn.addEventListener('input', () => { RA.run = false; RA.t = tEndR() * tIn.value / 1000; playLabel(); B.dirty = BC.dirty = true; });
+  function raceTick(now) {
+    if (!RA.run) return;
+    RA.t += Math.min(0.05, (now - RA.last) / 1000) * RA.speed; RA.last = now;
+    const ev = events(), st0 = stageAt(RA.t - 1e-3);
+    if (RA.pauseAt && st0 < ev.length && RA.t >= ev[st0]) { RA.t = ev[st0]; RA.run = false; }
+    if (RA.t >= tEndR()) { RA.t = tEndR(); RA.run = false; }
+    syncT(); playLabel(); B.dirty = BC.dirty = true; if (RA.run) requestAnimationFrame(raceTick);
+  }
+  const start = () => { RA.run = true; RA.last = performance.now(); playLabel(); requestAnimationFrame(raceTick); };
+  $('#rn-go').addEventListener('click', () => {
+    if (RA.run) { RA.run = false; playLabel(); return; }
+    if (RA.t >= tEndR() - 1e-6) RA.t = 0;
+    RA.pauseAt = $('#rn-stop').checked; start();
+  });
+  $('#rn-prev').addEventListener('click', () => { RA.run = false; const ev = [0, ...events()]; let k = ev.length - 1; while (k > 0 && ev[k] >= RA.t - 1e-3) k--; RA.t = ev[k]; syncT(); playLabel(); B.dirty = BC.dirty = true; });
+  $('#rn-next').addEventListener('click', () => { RA.run = false; const ev = events(); RA.t = ev.find(e => e > RA.t + 1e-3) ?? tEndR(); syncT(); playLabel(); B.dirty = BC.dirty = true; });
+  seg($('#rn-spd'), v => { RA.speed = Number(v); });
+  S.nrm = false;
+  $('#rn-nrm').addEventListener('change', e => { S.nrm = e.target.checked; B.dirty = true; });
+
+  /* 法線（過球心的半徑方向）與入射角、折射角、反射角。標示值用紅光的真實折射率 */
+  function angArc(c, p, u1, u2, rad, col, label) {
+    let a1 = Math.atan2(u1.y, u1.x), a2 = Math.atan2(u2.y, u2.x), d = a2 - a1;
+    while (d > Math.PI) d -= TAU; while (d < -Math.PI) d += TAU;
+    c.save(); c.strokeStyle = col; c.lineWidth = 2; c.beginPath(); c.arc(p.x, p.y, rad, a1, a1 + d, d < 0); c.stroke(); c.restore();
+    if (!label) return;
+    const am = a1 + d / 2, lx = p.x + Math.cos(am) * (rad + 22), ly = p.y + Math.sin(am) * (rad + 22);
+    c.font = `700 13.5px ${FONT}`; const w = c.measureText(label).width + 8;
+    c.fillStyle = 'rgba(255,255,255,.9)'; c.fillRect(lx - w / 2, ly - 10, w, 20);
+    T(c, label, lx, ly + 5, { color: col, size: 13.5, weight: 700, align: 'center' });
+  }
+  const unit = (a, b) => { const L = Math.hypot(b.x - a.x, b.y - a.y); return { x: (b.x - a.x) / L, y: (b.y - a.y) / L }; };
+  const neg = v => ({ x: -v.x, y: -v.y });
+  function normals(c, Tr, upto) {
+    const pts = Tr.pts, n = pts.length, I = Math.asin(S.b) / DEG, Rr = Math.asin(S.b / nW(700)) / DEG;
+    const iS = `i ${fx(I)}°`, rS = `r ${fx(Rr)}°`, CI = '#c2410c', CR = '#1c6fb8';
+    pts.forEach((p, j) => {
+      if (j >= upto) return;
+      const o = { x: (p.x - C.x) / R, y: (p.y - C.y) / R };
+      line(c, p.x - o.x * 70, p.y - o.y * 70, p.x + o.x * 60, p.y + o.y * 60, '#868e96', 1.4, [5, 4]);
+      if (j === 0) { angArc(c, p, o, { x: -1, y: 0 }, 30, CI, iS); angArc(c, p, neg(o), unit(p, pts[1]), 34, CR, rS); }
+      else if (j < n - 1) { angArc(c, p, neg(o), unit(p, pts[j - 1]), 30, CR, rS); angArc(c, p, neg(o), unit(p, pts[j + 1]), 30, CR, ''); }
+      else { angArc(c, p, neg(o), unit(p, pts[j - 1]), 44, CR, rS); angArc(c, p, o, Tr.d3, 30, CI, iS); }
     });
-    text(c, '紅色帶：出來的角度都擠在最大角附近', X(lo) - 4, y1 - 8, { color: '#ff8a7a', size: 10.5, align: 'right' });
-    /* 目前這條光 */
-    line(c, X(S.b), y0, X(S.b), y1, 'rgba(255,255,255,.75)', 1.5, [3, 3]);
-    [[700, '#ff4a3a'], [410, '#c77dff']].forEach(([l, col]) => { c.fillStyle = '#fff'; c.beginPath(); c.arc(X(S.b), Y(theta(S.b, nW(l))), 3, 0, TAU); c.fill(); });
-    text(c, '目前的光', clamp(X(S.b), x0 + 22, x1 - 22), y0 - 4, { color: '#fff', size: 10.5, align: 'center' });
   }
-  function scene(c, ink, mut) {
-    const x0 = 456, y0 = 244, w = 296, h = 168, gy = y0 + h - 26, E = { x: x0 + 52, y: gy - 30 };
-    c.fillStyle = '#0b1220'; c.fillRect(x0, y0, w, h);
-    text(c, '② 站在地上的你，從哪個方向看到彩虹', x0 + 8, y0 + 18, { color: ink, size: 12.5, weight: 700 });
-    line(c, x0, gy, x0 + w, gy, 'rgba(148,163,184,.6)', 1.5);
-    text(c, '地平線', x0 + w - 6, gy - 4, { color: mut, size: 10.5, align: 'right' });
-    const se = S.sun * DEG, u = { x: Math.cos(se), y: Math.sin(se) };          // 陽光前進方向（往右下）
-    for (let k = 0; k < 3; k++) { const sx = x0 + 8 + k * 16, sy = y0 + 34 + k * 9; ray(c, sx, sy, sx + u.x * 56, sy + u.y * 56, '#ffd34d', 1.6); }
-    text(c, `陽光（太陽高度 ${S.sun}°）`, x0 + 8, y0 + 32 + 3 * 9 + 22, { color: '#ffd34d', size: 10.5 });
-    /* 反日點方向：沿陽光前進方向，也就是你頭部影子指的方向 */
-    const Lr = 200; dashed(c, E.x, E.y, E.x + u.x * Lr, E.y + u.y * Lr, mut, 1);
-    const lab = toEdge(E.x, E.y, u.x, u.y, x0 + w - 4, gy - 2);
-    text(c, '頭影方向（陽光反方向）', Math.min(lab.x, x0 + w - 6), Math.min(lab.y, gy) - 6, { color: mut, size: 10.5, align: 'right' });
-    [[PK.r.m, '#ff4a3a', '紅', 150], [PK.v.m, '#c77dff', '紫', 128]].forEach(([a, col, nm, L]) => {
-      const t = se - a * DEG, x = E.x + Math.cos(t) * L, y = E.y + Math.sin(t) * L, elev = a - S.sun;
-      if (elev >= 0) { line(c, E.x, E.y, x, y, col, 1.8); c.fillStyle = col; c.beginPath(); c.arc(x, y, 4.5, 0, TAU); c.fill(); }
-      else dashed(c, E.x, E.y, x, y, alpha(col, 0.6), 1.4);
-      text(c, `${nm} ${fx(a)}°`, x + 6, y + (nm === '紅' ? -4 : 12), { color: col, size: 11, weight: 700 });
-    });
-    c.save(); c.strokeStyle = 'rgba(255,255,255,.5)'; c.lineWidth = 1; c.beginPath(); c.arc(E.x, E.y, 46, se - PK.r.m * DEG, se); c.stroke(); c.restore();
-    c.fillStyle = ink; c.beginPath(); c.arc(E.x, E.y - 8, 5, 0, TAU); c.fill(); line(c, E.x, E.y - 3, E.x, gy, ink, 2);
-    text(c, '你', E.x - 10, E.y - 8, { color: ink, size: 11, align: 'right' });
-    const top = PK.r.m - S.sun;
-    text(c, top > 0 ? `彩虹頂端仰角 ${fx(top)}°（紅在上＝外圈）` : '太陽太高：整道彩虹在地平線下', x0 + 8, gy + 16, { color: top > 0 ? ink : '#ff8a7a', size: 11, weight: 700 });
+  function badge(c, x, y, num, label, col, dx, dy, align = 'left') {
+    c.fillStyle = col; c.beginPath(); c.arc(x, y, 11, 0, TAU); c.fill();
+    T(c, String(num), x, y + 5, { color: '#fff', size: 13, weight: 700, align: 'center', font: MONO });
+    if (label) T(c, label, x + dx, y + dy, { color: col, size: 15, weight: 700, align });
+  }
+  function stageText(s) {
+    const k = S.k, last = k + 2;
+    if (s === 0) return '陽光（白光）射向水滴';
+    if (s === 1) return `${'①'} 進入水滴：折射，紫光偏折較多，顏色開始分開`;
+    if (s <= k + 1) return k === 2 && s === 3 ? '③ 第二次反射（只有霓才有）' : `② 在水滴背面反射${k === 2 ? '（第一次）' : ''}`;
+    if (s === last) return `${k === 1 ? '③' : '④'} 射出水滴：再折射一次，顏色分得更開`;
+    return `射向觀察者：紅 ${fx(theta(S.b, nW(700), k))}°、紫 ${fx(theta(S.b, nW(410), k))}°（和陽光反方向的夾角）`;
   }
   function draw() {
-    const c = st.begin(TK.dark), ink = TK.darkInk, mut = TK.darkMuted;
-    const g = c.createRadialGradient(C.x - 50, C.y - 60, 20, C.x, C.y, R); g.addColorStop(0, 'rgba(150,200,255,.22)'); g.addColorStop(1, 'rgba(80,140,220,.12)');
-    c.fillStyle = g; c.beginPath(); c.arc(C.x, C.y, R, 0, TAU); c.fill(); c.strokeStyle = 'rgba(170,210,255,.6)'; c.lineWidth = 2; c.stroke();
-    c.save(); c.beginPath(); c.rect(0, 0, 450, st.H); c.clip(); c.globalCompositeOperation = 'lighter';
+    const c = st.begin(P.bg), W = st.W, H = st.H;
+    c.fillStyle = P.water; c.beginPath(); c.arc(C.x, C.y, R, 0, TAU); c.fill(); c.strokeStyle = P.waterLine; c.lineWidth = 2; c.stroke();
+    const kn = S.k === 1 ? '虹' : '霓';
     if (S.mode === 'one') {
-      const y = C.y - S.b * R; line(c, 0, y, C.x - Math.sqrt(R * R - (S.b * R) ** 2), y, '#ffffff', 3);
-      let T = null; WL.forEach(([l, col]) => { T = drawRay(c, S.b, nShow(l), col, 2.2) || T; });
-      c.restore();
-      const Tr = trace(S.b, nShow(700));
-      dashed(c, Tr.E.x, Tr.E.y, Math.max(4, Tr.E.x - 200), Tr.E.y, mut, 1.2);
-      text(c, '陽光反方向（量角度的基準）', Math.max(6, Tr.E.x - 200), Tr.E.y - 6, { color: mut, size: 11 });
-      text(c, '折射＋色散', Tr.P.x - 8, Tr.P.y - 12, { color: ink, size: 12, weight: 700, align: 'right' });
-      text(c, '反射', Tr.Q.x + 10, Tr.Q.y, { color: ink, size: 12, weight: 700 });
-      text(c, '再折射', Tr.E.x + 12, Tr.E.y - 4, { color: ink, size: 12, weight: 700 });
-      text(c, '水滴（放大很多倍）', 16, 26, { color: ink, size: 13, weight: 700 });
+      const pr = racePath(700), Tr = pr.Tr, t = RA.t, s = stageAt(t), pts = Tr.pts, n = pts.length;
+      /* 白光：到水滴之前 */
+      const qW = posOn(pr, Math.min(t, pr.tk[1]));
+      line(c, 0, Tr.P.y, qW.x, qW.y, '#495057', 3.2);
+      if (s === 0) { c.fillStyle = '#495057'; c.beginPath(); c.arc(qW.x, qW.y, 7, 0, TAU); c.fill(); }
+      T(c, '陽光（白光）', 8, Tr.P.y + (S.k === 1 ? -12 : 24), { color: '#495057', size: 14, weight: 700 });
+      if (s >= 1) {
+        WL.forEach(([l, col]) => { if (l !== 700 && l !== 410) drawPartial(c, racePath(l), t, alpha(col, 0.55), 2); });
+        [[700, RED], [410, VIO]].forEach(([l, col]) => {
+          const q = drawPartial(c, racePath(l), t, col, 2.8);
+          if (t < tEndR() - 1e-6) { c.fillStyle = col; c.beginPath(); c.arc(q.x, q.y, 7, 0, TAU); c.fill(); c.strokeStyle = '#fff'; c.lineWidth = 2; c.stroke(); }
+        });
+      }
+      if (S.nrm) normals(c, Tr, s);
+      if (s >= n) {
+        const E = Tr.E; dashed(c, E.x, E.y, Math.max(4, E.x - 200), E.y, P.mut, 1.3);
+        T(c, '陽光反方向', Math.max(6, E.x - 200), E.y - 8, { color: P.mut, size: 13 });
+      }
+      pts.forEach((p, j) => { if (j < s) badge(c, p.x, p.y, j + 1, S.nrm ? '' : (j === 0 || j === n - 1 ? '折射' : '反射'), j === 0 || j === n - 1 ? '#1c6fb8' : '#b7791f', 16, (j === 0 || j === n - 1) ? (S.k === 1 ? -14 : 28) : 6); });
+      T(c, `${kn}：折射 → ${S.k === 1 ? '反射' : '反射 → 反射'} → 折射`, 14, 28, { size: 17, weight: 700 });
+      c.font = `700 15px ${FONT}`; const msg = stageText(s), w = c.measureText(msg).width + 20;
+      c.fillStyle = '#fff4e6'; c.fillRect(10, H - 48, Math.min(W - 20, w), 34); c.strokeStyle = '#f0b37e'; c.lineWidth = 1; c.strokeRect(10, H - 48, Math.min(W - 20, w), 34);
+      T(c, msg, 20, H - 25, { color: '#9a3412', size: 15, weight: 700 });
     } else {
-      for (let i = 1; i <= 24; i++) { const b = i / 24.5, y = C.y - b * R; line(c, 0, y, C.x - Math.sqrt(R * R - (b * R) ** 2), y, 'rgba(255,80,60,.5)', 1.2); drawRay(c, b, nW(700), 'rgba(255,60,40,.55)', 1.4); }
-      c.restore();
-      text(c, '很多條光擠在同一個方向出來 → 那個方向特別亮', 16, 26, { color: ink, size: 13, weight: 700 });
+      for (let i = 1; i <= 22; i++) { const b = i / 22.5, Tr = trace(b, nW(700)); line(c, 0, Tr.P.y, Tr.P.x, Tr.P.y, alpha(RED, 0.35), 1.2); drawRay(c, b, nW(700), alpha(RED, 0.45), 1.4); }
+      T(c, `${kn}：很多條紅光擠在同一方向出來`, 14, 28, { size: 17, weight: 700 });
+      T(c, '水滴（放大）', W - 12, H - 14, { color: P.faint, size: 13, align: 'right' });
     }
-    graph(c, ink, mut); scene(c, ink, mut);
-    $('#rn-r').textContent = fx(theta(S.b, nW(700))) + '°';
-    $('#rn-v').textContent = fx(theta(S.b, nW(410))) + '°';
-    const top = PK.r.m - S.sun; $('#rn-top').textContent = top > 0 ? fx(top) + '°' : '看不到';
-    B2.dirty = true;
+    $('#rn-count').textContent = S.k === 1 ? '折射 2 次＋反射 1 次' : '折射 2 次＋反射 2 次';
+    $('#rn-pk1').textContent = `紅 ${fx(PK[1].r.m)}°　紫 ${fx(PK[1].v.m)}°`;
+    $('#rn-pk2').textContent = `紅 ${fx(PK[2].r.m)}°　紫 ${fx(PK[2].v.m)}°`;
+    const top = PK[1].r.m - S.sun, top2 = PK[2].v.m - S.sun;
+    $('#rn-top').textContent = top > 0 ? fx(top) + '°' : '看不到';
+    $('#rn-top2').textContent = top2 > 0 ? fx(top2) + '°' : '看不到';
+  }
+
+  /* ---------- ① 紅光與紫光對比（跟著旅程的步驟） ---------- */
+  const XG = 8;                                   // 畫面上把紅紫角度差放大的倍數
+  function drawComp() {
+    const c = stC.begin(P.bg), W = stC.W, s = S.mode === 'one' ? stageAt(RA.t) : 1, k = S.k, n = k + 2;
+    const I = Math.asin(S.b) / DEG, rR = Math.asin(S.b / nW(700)) / DEG, rV = Math.asin(S.b / nW(410)) / DEG;
+    const thR = theta(S.b, nW(700), k), thV = theta(S.b, nW(410), k);
+    const view = s <= 1 ? 'in' : s < n ? 'refl' : 'out';
+    T(c, '① 紅光與紫光比一比', 14, 26, { size: 16, weight: 700 });
+    T(c, `角度差放大 ${XG} 倍畫出，數字是真實值`, W - 12, 26, { color: P.faint, size: 12.5, align: 'right' });
+    const O = { x: 150, y: 140 }, L = 105;
+    const dirA = a => ({ x: Math.sin(a * DEG), y: Math.cos(a * DEG) });       // 從法線（往下）量起的方向
+    const mid = (rR + rV) / 2, ex = a => mid + (a - mid) * XG;
+    if (view === 'in' || view === 'refl') {
+      c.fillStyle = P.water; c.fillRect(20, O.y, 260, 112); line(c, 20, O.y, 280, O.y, P.waterLine, 1.5);
+      dashed(c, O.x, O.y - 100, O.x, O.y + 110, '#868e96', 1.3);
+      T(c, '法線', O.x + 6, O.y - 92, { color: P.mut, size: 12.5 });
+      if (view === 'in') {
+        T(c, '空氣', 28, O.y - 8, { color: P.mut, size: 13 }); T(c, '水', 28, O.y + 22, { color: '#1c6fb8', size: 13, weight: 700 });
+        const u = dirA(I); ray(c, O.x - u.x * L, O.y - u.y * L, O.x, O.y, '#495057', 2.6);
+        [[rR, RED], [rV, VIO]].forEach(([r, col]) => { const d = dirA(ex(r)); line(c, O.x, O.y, O.x + d.x * L, O.y + d.y * L, col, 2.8); });
+        T(c, '進入水滴時的折射', 20, 298, { size: 14, weight: 700 });
+      } else {
+        T(c, '水滴背面', 28, O.y - 8, { color: P.mut, size: 13 });
+        [[rR, RED], [rV, VIO]].forEach(([r, col]) => { const d = dirA(ex(r)); ray(c, O.x - d.x * L, O.y + d.y * L, O.x, O.y, col, 2.6); ray(c, O.x, O.y, O.x + d.x * L, O.y + d.y * L, col, 2.6); });
+        T(c, '反射：入射角＝反射角＝r', 20, 298, { size: 14, weight: 700 });
+      }
+    } else {
+      /* 射出後：和陽光反方向的夾角 */
+      const Q = { x: 260, y: 90 }; dashed(c, Q.x, Q.y, 30, Q.y, P.mut, 1.3); T(c, '陽光反方向', 30, Q.y - 8, { color: P.mut, size: 13 });
+      const m2 = (thR + thV) / 2, e2 = a => m2 + (a - m2) * XG / 2;
+      [[thR, RED], [thV, VIO]].forEach(([a, col]) => ray(c, Q.x, Q.y, Q.x - Math.cos(e2(a) * DEG) * 220, Q.y + Math.sin(e2(a) * DEG) * 220, col, 2.8));
+      T(c, '射出後的方向', 20, 298, { size: 14, weight: 700 });
+    }
+    /* 右側數值 */
+    const rows = view === 'out'
+      ? [['出來的角度', thR, thV], ['紅比紫', thR - thV, null]]
+      : view === 'refl' ? [['反射角 r', rR, rV], ['入射角 r', rR, rV]] : [['入射角 i', I, I], ['折射角 r', rR, rV]];
+    let y = 92;
+    T(c, '紅', 372, 64, { color: RED, size: 15, weight: 700, align: 'center' }); T(c, '紫', 428, 64, { color: VIO, size: 15, weight: 700, align: 'center' });
+    rows.forEach(([nm, a, b]) => {
+      T(c, nm, 296, y, { color: P.mut, size: 13.5 });
+      if (b === null) T(c, `${a > 0 ? '大' : '小'} ${fx(Math.abs(a))}°`, 400, y + 24, { size: 16, weight: 700, align: 'center' });
+      else { T(c, fx(a) + '°', 372, y + 24, { color: RED, size: 17, weight: 700, align: 'center', font: MONO }); T(c, fx(b) + '°', 428, y + 24, { color: VIO, size: 17, weight: 700, align: 'center', font: MONO }); }
+      y += 64;
+    });
+    const say = view === 'in' ? '紫光在水中較慢 → 折射角較小 → 偏折較多' : view === 'refl' ? '反射時兩色的角度差保持不變' : (k === 1 ? '紅光角度較大 → 在天空較高 → 虹的外圈是紅色' : '霓：紫光角度較大 → 紫色在外圈');
+    T(c, say, 20, 326, { color: '#9a3412', size: 14, weight: 700 });
+  }
+
+  /* ---------- ① 射入高度與出來角度 ---------- */
+  function drawGraph() {
+    const c = stG.begin(P.bg), x0 = 58, x1 = 444, y0 = 44, y1 = 236, TM = 70, X = b => x0 + (x1 - x0) * b, Y = t => y1 - (y1 - y0) * t / TM;
+    T(c, '② 射入位置 → 出來的角度', 14, 26, { size: 16, weight: 700 });
+    c.fillStyle = P.band; c.fillRect(x0, Y(PK[2].r.m), x1 - x0, Y(PK[1].r.m) - Y(PK[2].r.m));
+    T(c, '暗帶：沒有光', x0 + 8, (Y(PK[2].r.m) + Y(PK[1].r.m)) / 2 + 5, { color: P.mut, size: 13, weight: 700 });
+    [0, 20, 40, 60].forEach(t => { line(c, x0, Y(t), x1, Y(t), P.grid, 1); T(c, t + '°', x0 - 8, Y(t) + 5, { color: P.mut, size: 13, align: 'right', font: MONO }); });
+    line(c, x0, y1, x1, y1, P.faint, 1.2);
+    [0, 0.5, 1].forEach(b => T(c, String(b), X(b), y1 + 18, { color: P.mut, size: 13, align: 'center', font: MONO }));
+    T(c, '射入高度（0＝中央，1＝邊緣）', x1, y1 + 40, { color: P.mut, size: 13, align: 'right' });
+    c.save(); c.beginPath(); c.rect(x0, y0 - 4, x1 - x0, y1 - y0 + 4); c.clip();
+    [1, 2].forEach(k => [[700, RED], [410, VIO]].forEach(([l, col]) => {
+      const on = k === S.k; c.strokeStyle = on ? col : alpha(col, 0.3); c.lineWidth = on ? 2.6 : 1.6; c.setLineDash(k === 1 ? [] : [6, 4]); c.beginPath();
+      for (let i = 0; i <= 200; i++) { const b = i / 200 * 0.9999, y = Y(theta(b, nW(l), k)); i ? c.lineTo(X(b), y) : c.moveTo(X(b), y); } c.stroke();
+    }));
+    c.restore(); c.setLineDash([]);
+    T(c, `虹　紅 ${fx(PK[1].r.m)}°　紫 ${fx(PK[1].v.m)}°（最大）`, X(0.36), Y(10), { color: S.k === 1 ? P.ink : P.faint, size: 13.5, weight: 700 });
+    T(c, `霓　紅 ${fx(PK[2].r.m)}°　紫 ${fx(PK[2].v.m)}°（最小）`, x0 + 8, Y(64), { color: S.k === 2 ? P.ink : P.faint, size: 13.5, weight: 700 });
+    line(c, X(S.b), y0, X(S.b), y1, P.faint, 1.3, [3, 3]); T(c, '這條光', X(S.b) - 6, y1 - 8, { color: P.mut, size: 12.5, align: 'right' });
+    [[700, RED], [410, VIO]].forEach(([l, col]) => { const t = theta(S.b, nW(l), S.k); if (t <= TM) { c.fillStyle = col; c.beginPath(); c.arc(X(S.b), Y(t), 5, 0, TAU); c.fill(); c.strokeStyle = '#fff'; c.lineWidth = 1.5; c.stroke(); } });
+  }
+
+  /* ---------- ② 側面看：你、陽光與反日點 ---------- */
+  function drawSide() {
+    const c = stV.begin(P.bg), W = stV.W, H = stV.H, gy = 246, E = { x: 70, y: gy - 44 };
+    T(c, '③ 側面看：角度從反日點量起', 14, 26, { size: 16, weight: 700 });
+    c.fillStyle = '#f1f3f0'; c.fillRect(0, gy, W, H - gy); line(c, 0, gy, W, gy, P.faint, 1.5);
+    T(c, '地平線', W - 10, gy - 8, { color: P.mut, size: 13, align: 'right' });
+    const se = S.sun * DEG, u = { x: Math.cos(se), y: Math.sin(se) };
+    for (let k = 0; k < 3; k++) { const sx = 16 + k * 18, sy = 50 + k * 10; ray(c, sx, sy, sx + u.x * 52, sy + u.y * 52, P.sun, 2); }
+    T(c, `陽光（仰角 ${S.sun}°）`, 14, 120, { color: P.sun, size: 13.5, weight: 700 });
+    const ASc = toEdge(E.x, E.y, u.x, u.y, W - 4, H - 4), AS = { x: E.x + u.x * 300, y: E.y + u.y * 300 };
+    const ap = Math.hypot(AS.x - E.x, AS.y - E.y) < Math.hypot(ASc.x - E.x, ASc.y - E.y) ? AS : ASc;
+    dashed(c, E.x, E.y, ap.x, ap.y, P.mut, 1.3);
+    c.strokeStyle = P.ink; c.lineWidth = 2; c.beginPath(); c.arc(ap.x, ap.y, 5, 0, TAU); c.stroke();
+    T(c, '反日點', ap.x - 10, ap.y + (S.sun > 4 ? -8 : 20), { size: 13.5, weight: 700, align: 'right' });
+    const L = [[PK[1].r.m, RED, '虹', 210, 1], [PK[1].v.m, VIO, '', 170, 1], [PK[2].r.m, RED, '', 150, 2], [PK[2].v.m, VIO, '霓', 240, 2]];
+    L.forEach(([a, col, nm, len, k]) => {
+      const t = se - a * DEG, x = E.x + Math.cos(t) * len, y = E.y + Math.sin(t) * len, on = k === S.k, cc = on ? col : alpha(col, 0.3);
+      if (a - S.sun < 0) { dashed(c, E.x, E.y, x, y, alpha(col, 0.25), 1); return; }
+      line(c, E.x, E.y, x, y, cc, on ? 2.2 : 1.4, k === 2 ? [6, 4] : null);
+      c.fillStyle = cc; c.beginPath(); c.arc(x, y, 4, 0, TAU); c.fill();
+      if (on) T(c, `${nm ? nm + ' ' : ''}${col === RED ? '紅' : '紫'} ${fx(a)}°`, x + 8, y + 5, { color: col, size: 13.5, weight: 700 });
+    });
+    c.fillStyle = P.ink; c.beginPath(); c.arc(E.x, E.y - 10, 7, 0, TAU); c.fill(); line(c, E.x, E.y - 3, E.x, gy, P.ink, 3);
+    T(c, '你', E.x - 12, E.y - 6, { size: 14, weight: 700, align: 'right' });
+  }
+
+  /* ---------- ⑤ 抬頭看天空：虹與霓 ---------- */
+  function wlRGB(l) {
+    let r = 0, g = 0, b = 0;
+    if (l < 440) { r = (440 - l) / 60; b = 1; } else if (l < 490) { g = (l - 440) / 50; b = 1; } else if (l < 510) { g = 1; b = (510 - l) / 20; }
+    else if (l < 580) { r = (l - 510) / 70; g = 1; } else if (l < 645) { r = 1; g = (645 - l) / 65; } else r = 1;
+    return [r, g, b].map(v => Math.round(225 * Math.pow(v, 0.8)));
+  }
+  function drawSky() {
+    const c = st3.begin(P.bg), W = st3.W, H = st3.H, s = 4.3, cx = W / 2, hy = 36 + 56 * s;
+    const A = { x: cx, y: hy + S.sun * s };
+    c.fillStyle = '#f4f8fc'; c.fillRect(0, 0, W, hy);
+    c.save(); c.beginPath(); c.rect(0, 0, W, hy); c.clip();
+    c.fillStyle = '#ffffff'; c.beginPath(); c.arc(A.x, A.y, PK[1].v.m * s, 0, TAU); c.fill();
+    c.fillStyle = '#dfe6ee'; c.beginPath(); c.arc(A.x, A.y, PK[2].r.m * s, 0, TAU); c.arc(A.x, A.y, PK[1].r.m * s, 0, TAU, true); c.fill();
+    c.lineWidth = 2.2;
+    SPEC.forEach(({ l, a1, a2 }) => {
+      const [r, g, b] = wlRGB(l);
+      c.strokeStyle = `rgba(${r},${g},${b},${S.k === 1 ? 1 : 0.55})`; c.beginPath(); c.arc(A.x, A.y, a1 * s, 0, TAU); c.stroke();
+      c.strokeStyle = `rgba(${r},${g},${b},${S.k === 2 ? 0.8 : 0.4})`; c.beginPath(); c.arc(A.x, A.y, a2 * s, 0, TAU); c.stroke();
+    });
+    c.restore();
+    c.fillStyle = '#eef0ea'; c.fillRect(0, hy, W, H - hy); line(c, 0, hy, W, hy, P.faint, 1.5);
+    T(c, '地平線', W - 12, hy - 8, { color: P.mut, size: 13, align: 'right' });
+    T(c, '④ 背對太陽抬頭看', 14, 26, { size: 16, weight: 700 });
+    /* 你、頭影、反日點 */
+    const me = { x: cx, y: H - 12 };
+    if (A.y < H - 56) {
+      line(c, me.x, me.y - 46, A.x, A.y + 8, '#c3c9cf', 6);
+      c.strokeStyle = P.ink; c.lineWidth = 2; c.beginPath(); c.arc(A.x, A.y, 7, 0, TAU); c.moveTo(A.x - 12, A.y); c.lineTo(A.x + 12, A.y); c.moveTo(A.x, A.y - 12); c.lineTo(A.x, A.y + 12); c.stroke();
+      T(c, `反日點（地平線下 ${S.sun}°）`, A.x + 18, A.y + 5, { size: 14, weight: 700 });
+    } else T(c, `反日點在地平線下 ${S.sun}°（畫面外）`, cx + 22, H - 40, { size: 14, weight: 700 });
+    c.fillStyle = '#495057'; c.beginPath(); c.arc(me.x, me.y - 36, 9, 0, TAU); c.fill(); c.fillRect(me.x - 12, me.y - 26, 24, 26);
+    T(c, '你', me.x - 20, me.y - 8, { size: 14, weight: 700, align: 'right' });
+    const lab = (a, col, s1, dy) => { const y = A.y - a * s; if (y > hy - 8) return; T(c, s1, cx, y + dy, { color: col, size: 15, weight: 700, align: 'center' }); };
+    lab(PK[1].r.m, '#c92a2a', `虹 ${fx(PK[1].r.m)}°：紅在外`, 30);
+    lab(PK[2].v.m, '#5f3dc4', `霓 ${fx(PK[2].v.m)}°：紫在外`, -12);
+    const my = A.y - (PK[1].r.m + PK[2].r.m) / 2 * s; if (my < hy - 10) T(c, '暗帶', cx, my + 5, { color: P.mut, size: 14, weight: 700, align: 'center' });
+    if (PK[1].r.m - S.sun <= 0) T(c, '太陽太高：虹在地平線下', cx, 64, { color: '#c92a2a', size: 15, weight: 700, align: 'center' });
+    else if (PK[2].v.m - S.sun <= 0) T(c, '太陽太高：霓在地平線下', cx, 64, { color: '#c92a2a', size: 15, weight: 700, align: 'center' });
+  }
+
+  /* ---------- 3D：太陽、你、雨滴與彩虹圓錐 ---------- */
+  const st5 = makeStage($('#cv-r3d'), 900, 520);
+  const V3 = { view: 'orbit', yaw: 128, pitch: 18, zoom: 1, eyeYaw: 0, eyePitch: 22, rays: 1, cone: true, ang: true };
+  const B5 = bench('b-r3d', st5, draw3D); LATE.push(B5);
+  const PRE = { orbit: [128, 18, 1], side: [90, 3, 2.2], top: [180, 82, 1.8] };
+  seg($('#r3-view'), v => { V3.view = v; if (PRE[v]) [V3.yaw, V3.pitch, V3.zoom] = PRE[v]; else { V3.eyeYaw = 0; V3.eyePitch = 22; } B5.dirty = true; });
+  seg($('#r3-ray'), v => { V3.rays = Number(v); B5.dirty = true; });
+  $('#r3-cone').addEventListener('change', e => { V3.cone = e.target.checked; B5.dirty = true; });
+  $('#r3-ang').addEventListener('change', e => { V3.ang = e.target.checked; B5.dirty = true; });
+  (() => {
+    const cv = st5.canvas; let drag = null;
+    cv.addEventListener('pointerdown', e => { drag = { x: e.clientX, y: e.clientY }; cv.setPointerCapture(e.pointerId); cv.style.cursor = 'grabbing'; });
+    cv.addEventListener('pointermove', e => {
+      if (!drag) return; const k = st5.W / cv.getBoundingClientRect().width, dx = (e.clientX - drag.x) * k, dy = (e.clientY - drag.y) * k; drag = { x: e.clientX, y: e.clientY };
+      if (V3.view === 'eye') { V3.eyeYaw = Math.max(-80, Math.min(80, V3.eyeYaw + dx * 0.15)); V3.eyePitch = Math.max(-15, Math.min(70, V3.eyePitch + dy * 0.15)); }
+      else { V3.yaw = (V3.yaw - dx * 0.35 + 360) % 360; V3.pitch = Math.max(2, Math.min(85, V3.pitch + dy * 0.3)); }
+      B5.dirty = true;
+    });
+    const up = () => { drag = null; cv.style.cursor = 'grab'; };
+    cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
+  })();
+  const v3 = (x, y, z) => ({ x, y, z }), add = (a, b) => v3(a.x + b.x, a.y + b.y, a.z + b.z), mul = (a, k) => v3(a.x * k, a.y * k, a.z * k);
+  const dot = (a, b) => a.x * b.x + a.y * b.y + a.z * b.z, crs = (a, b) => v3(a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x);
+  const nrm3 = a => mul(a, 1 / Math.hypot(a.x, a.y, a.z));
+  /* 雨滴位置固定（示意），避免每次重畫亂跳 */
+  const DROPS = (() => { let q = 7; const rnd = () => (q = (q * 16807) % 2147483647) / 2147483647, out = []; for (let i = 0; i < 260; i++) out.push(v3(12 + rnd() * 16, -26 + rnd() * 52, rnd() * 26)); return out; })();
+  function draw3D() {
+    const c = st5.begin('#ffffff'), W = st5.W, H = st5.H, eye = V3.view === 'eye';
+    const h = S.sun * DEG, E = v3(0, 0, 1.6), Dd = eye ? 400 : 24, HZ = E.z;
+    const sv = v3(-Math.cos(h), 0, Math.sin(h)), a = mul(sv, -1), e1 = v3(Math.sin(h), 0, Math.cos(h)), e2 = v3(0, 1, 0);
+    /* 相機 */
+    let Cp, fw, f;
+    if (eye) { const y = V3.eyeYaw * DEG, p = V3.eyePitch * DEG; Cp = E; fw = v3(Math.cos(p) * Math.cos(y), Math.cos(p) * Math.sin(y), Math.sin(p)); f = 360; }
+    else { const y = V3.yaw * DEG, p = V3.pitch * DEG, Tg = v3(9, 0, 6), dist = 82 * V3.zoom; Cp = add(Tg, v3(dist * Math.cos(p) * Math.cos(y), dist * Math.cos(p) * Math.sin(y), dist * Math.sin(p))); fw = nrm3(add(Tg, mul(Cp, -1))); f = 1060 * V3.zoom; }
+    const rt = nrm3(crs(fw, v3(0, 0, 1))), up = crs(rt, fw), cx = W / 2, cy = H / 2 + (eye ? 0 : 20), NEAR = 0.15;
+    const cam = p => { const d = add(p, mul(Cp, -1)); return v3(dot(d, rt), dot(d, up), dot(d, fw)); };
+    const scr = q => ({ x: cx + f * q.x / q.z, y: cy - f * q.y / q.z, z: q.z });
+    const P2 = p => { const q = cam(p); return q.z > NEAR ? scr(q) : null; };
+    function seg2(p1, p2) {
+      let a1 = cam(p1), a2 = cam(p2); if (a1.z <= NEAR && a2.z <= NEAR) return null;
+      if (a1.z < NEAR) { const t = (NEAR - a1.z) / (a2.z - a1.z); a1 = add(a1, mul(add(a2, mul(a1, -1)), t)); }
+      if (a2.z < NEAR) { const t = (NEAR - a2.z) / (a1.z - a2.z); a2 = add(a2, mul(add(a1, mul(a2, -1)), t)); }
+      return [scr(a1), scr(a2)];
+    }
+    function path(pts, color, w, dash) {
+      c.strokeStyle = color; c.lineWidth = w; c.setLineDash(dash || []); c.lineCap = 'round'; c.beginPath();
+      for (let i = 1; i < pts.length; i++) { const s2 = seg2(pts[i - 1], pts[i]); if (!s2) continue; c.moveTo(s2[0].x, s2[0].y); c.lineTo(s2[1].x, s2[1].y); }
+      c.stroke(); c.setLineDash([]);
+    }
+    /* 把一條 3D 線依地面切成「地面上／地面下」兩組 */
+    function splitZ(pts) {
+      const above = [], below = []; let cur = null, curA = null;
+      for (let i = 0; i < pts.length; i++) {
+        const p = pts[i], A = p.z >= HZ;
+        if (cur && A !== curA) { const q = pts[i - 1], t = (q.z - HZ) / (q.z - p.z), m = add(q, mul(add(p, mul(q, -1)), t)); cur.push(m); (curA ? above : below).push(cur); cur = [m]; }
+        if (!cur) cur = [];
+        cur.push(p); curA = A;
+      }
+      if (cur) (curA ? above : below).push(cur);
+      return { above, below };
+    }
+    const onCone = (al, ph, D = Dd) => { const s1 = Math.sin(al * DEG), c1 = Math.cos(al * DEG); return add(E, mul(add(mul(a, c1), add(mul(e1, s1 * Math.cos(ph)), mul(e2, s1 * Math.sin(ph)))), D)); };
+    const circle = (al, D = Dd, n = 120) => { const o = []; for (let i = 0; i <= n; i++) o.push(onCone(al, i / n * TAU, D)); return o; };
+    /* 天空與地面 */
+    if (eye) {
+      const hz = d => scr(v3(dot(d, rt), dot(d, up), dot(d, fw)));
+      const yl = V3.eyeYaw * DEG, L = hz(v3(Math.cos(yl - 1.3), Math.sin(yl - 1.3), 0)), Rr = hz(v3(Math.cos(yl + 1.3), Math.sin(yl + 1.3), 0));
+      const sl = (Rr.y - L.y) / (Rr.x - L.x), yA = L.y + sl * (0 - L.x), yB = L.y + sl * (W - L.x);
+      c.fillStyle = '#f4f8fc'; c.fillRect(0, 0, W, H);
+      c.fillStyle = '#eef0ea'; c.beginPath(); c.moveTo(0, yA); c.lineTo(W, yB); c.lineTo(W, H); c.lineTo(0, H); c.closePath(); c.fill();
+      line(c, 0, yA, W, yB, P.faint, 1.5); var hzLab = () => T(c, '地平線（眼睛高度）', W / 2, (yA + yB) / 2 + 22, { color: P.mut, size: 14, align: 'center' });
+    } else {
+      const G = [v3(-20, -30, 0), v3(34, -30, 0), v3(34, 30, 0), v3(-20, 30, 0)].map(P2);
+      if (G.every(Boolean)) { c.fillStyle = '#f1f3ee'; c.beginPath(); G.forEach((p, i) => i ? c.lineTo(p.x, p.y) : c.moveTo(p.x, p.y)); c.closePath(); c.fill(); }
+      for (let x = -20; x <= 34; x += 6) path([v3(x, -30, 0), v3(x, 30, 0)], '#e1e5dc', 1);
+      for (let y = -30; y <= 30; y += 6) path([v3(-20, y, 0), v3(34, y, 0)], '#e1e5dc', 1);
+    }
+    const kinds = V3.rays === 3 ? [1, 2] : V3.rays ? [V3.rays] : [];
+    /* 頭→反日點的線、影子 */
+    const far = 1.6 / Math.max(Math.sin(h), 1e-3), AP = add(E, mul(a, Math.min(far, 30)));
+    if (!eye) {
+      if (S.sun > 0) path([v3(0, 0, 0.01), v3(Math.min(1.6 / Math.tan(h), 30), 0, 0.01)], '#b8bec6', 5);
+      path([add(E, mul(sv, 15)), E], alpha(P.sun, 0.7), 1.6, [7, 5]);
+    }
+    const ax = splitZ([E, add(E, mul(a, 34))]);
+    ax.above.forEach(p => path(p, P.ink, 1.6, [7, 5])); ax.below.forEach(p => path(p, alpha(P.ink, 0.3), 1.3, [4, 5]));
+    /* 圓錐面 */
+    const coneK = kinds.length ? kinds : [1];
+    if (V3.cone) coneK.forEach(k => {
+      const al = PK[k].r.m, col = k === 1 ? RED : VIO;
+      for (let i = 0; i < 12; i++) {
+        const sp = splitZ([E, onCone(al, i / 12 * TAU)]);
+        sp.above.forEach(p => path(p, alpha(col, 0.22), 1.1)); sp.below.forEach(p => path(p, alpha(col, 0.1), 1, [3, 5]));
+      }
+      const pts = circle(al, Dd, 72); c.fillStyle = alpha(col, 0.05);
+      for (let i = 1; i < pts.length; i++) { if (pts[i].z < HZ || pts[i - 1].z < HZ) continue; const A0 = P2(E), A1 = P2(pts[i - 1]), A2 = P2(pts[i]); if (!A0 || !A1 || !A2) continue; c.beginPath(); c.moveTo(A0.x, A0.y); c.lineTo(A1.x, A1.y); c.lineTo(A2.x, A2.y); c.closePath(); c.fill(); }
+    });
+    /* 雨滴（示意） */
+    c.fillStyle = 'rgba(77,141,214,0.28)';
+    DROPS.forEach(p => { const q = P2(p); if (q) { c.beginPath(); c.arc(q.x, q.y, Math.max(1, Math.min(2.4, 40 / q.z)), 0, TAU); c.fill(); } });
+    /* 彩色的虹與霓（以反日點方向為軸的圓，地面下畫淡虛線） */
+    SPEC.forEach(({ l, a1, a2 }) => {
+      const [r, g, b] = wlRGB(l);
+      [[a1, S.k === 1 || kinds.includes(1) ? 1 : 0.6], [a2, kinds.includes(2) || S.k === 2 ? 0.85 : 0.45]].forEach(([al, op]) => {
+        const sp = splitZ(circle(al));
+        sp.above.forEach(p => path(p, `rgba(${r},${g},${b},${op})`, eye ? 2 : 2.6));
+        if (l === 700 || l === 410) sp.below.forEach(p => path(p, `rgba(${r},${g},${b},0.3)`, 1.2, [4, 5]));
+      });
+    });
+    /* 光線：陽光（平行）→ 雨滴 → 你的眼睛 */
+    const arrow = (p1, p2, col, w) => { const s2 = seg2(p1, p2); if (!s2) return; const [A, Bp] = s2, mx = (A.x + Bp.x) / 2, my = (A.y + Bp.y) / 2; line(c, A.x, A.y, Bp.x, Bp.y, col, w); if (Math.hypot(Bp.x - A.x, Bp.y - A.y) > 30) head(c, mx, my, Math.atan2(Bp.y - A.y, Bp.x - A.x), col, 9); };
+    const phis = V3.view === 'side' ? [0] : [0, 1.05, -1.05];
+    kinds.forEach(k => {
+      [[PK[k].r.m, RED], [PK[k].v.m, VIO]].forEach(([al, col]) => phis.forEach(ph => {
+        const Q = onCone(al, ph); if (Q.z < HZ) return;
+        if (!eye) arrow(add(Q, mul(sv, 14)), Q, '#e8b100', 1.8);
+        if (!eye) arrow(Q, E, col, 2.2);
+        const q = P2(Q); if (q) { c.fillStyle = '#fff'; c.strokeStyle = '#4d8dd6'; c.lineWidth = 1.6; c.beginPath(); c.arc(q.x, q.y, eye ? 4 : 4.5, 0, TAU); c.fill(); c.stroke(); }
+      }));
+    });
+    /* 角度標示 */
+    if (V3.ang && !eye) {
+      const arc3 = (u, w, ang, r) => { const o = []; for (let i = 0; i <= 24; i++) { const t = ang * i / 24; o.push(add(E, mul(add(mul(u, Math.cos(t)), mul(w, Math.sin(t))), r))); } return o; };
+      const hzv = v3(-1, 0, 0);
+      path([add(E, mul(hzv, 10)), add(E, mul(hzv, -34))], P.mut, 1.2, [5, 4]);
+      if (S.sun > 0) { const ap = arc3(hzv, v3(0, 0, 1), h, 7); path(ap, '#c08a00', 2); const q = P2(ap[12]); if (q) T(c, `仰角 ${S.sun}°`, q.x - 10, q.y - 6, { color: '#a87900', size: 15, weight: 700, align: 'right' }); }
+      kinds.forEach(k => {
+        const al = PK[k].r.m, ap = arc3(a, e1, al * DEG, k === 1 ? 8 : 11); path(ap, k === 1 ? RED : VIO, 2);
+        const q = P2(ap[k === 1 ? 11 : 21]); if (q) T(c, `${k === 1 ? '虹' : '霓'} ${fx(al)}°`, q.x + 8, q.y + (k === 1 ? 10 : 0), { color: k === 1 ? RED : VIO, size: 15, weight: 700 });
+      });
+    }
+    /* 太陽、你 */
+    if (!eye) {
+      const sp = P2(add(E, mul(sv, 15)));
+      if (sp) { const g = c.createRadialGradient(sp.x, sp.y, 2, sp.x, sp.y, 30); g.addColorStop(0, 'rgba(255,200,40,1)'); g.addColorStop(0.45, 'rgba(255,200,40,0.85)'); g.addColorStop(1, 'rgba(255,200,40,0)'); c.fillStyle = g; c.beginPath(); c.arc(sp.x, sp.y, 30, 0, TAU); c.fill(); T(c, '太陽', sp.x, sp.y - 34, { color: '#a87900', size: 15, weight: 700, align: 'center' }); }
+      path([v3(0, 0, 0), v3(0, 0, 1.25)], '#495057', 4);
+      const hq = P2(E); if (hq) { c.fillStyle = '#495057'; c.beginPath(); c.arc(hq.x, hq.y, Math.max(5, f * 0.25 / hq.z), 0, TAU); c.fill(); T(c, '你', hq.x - 12, hq.y - 8, { size: 15, weight: 700, align: 'right' }); }
+      const apq = P2(add(E, mul(a, 34))); if (apq) T(c, S.sun > 0 ? '往反日點（地平線下）' : '往反日點', apq.x + 8, apq.y + 5, { size: 14, weight: 700 });
+    } else {
+      const apq = P2(add(E, mul(a, 400)));
+      if (apq) { c.strokeStyle = alpha(P.ink, S.sun > 0 ? 0.4 : 1); c.lineWidth = 2; c.beginPath(); c.arc(apq.x, apq.y, 7, 0, TAU); c.moveTo(apq.x - 12, apq.y); c.lineTo(apq.x + 12, apq.y); c.moveTo(apq.x, apq.y - 12); c.lineTo(apq.x, apq.y + 12); c.stroke(); T(c, '反日點', apq.x + 16, apq.y + 5, { size: 14, weight: 700, color: S.sun > 0 ? P.mut : P.ink }); }
+    }
+    /* 標題與說明框 */
+    T(c, eye ? '從你的眼睛看出去（背對太陽）' : '3D：陽光 → 雨滴 → 你的眼睛', 16, 28, { size: 17, weight: 700 });
+    const t1 = PK[1].r.m - S.sun, t2 = PK[2].v.m - S.sun;
+    const L1 = `太陽仰角 ${S.sun}° → 虹頂仰角 ${fx(PK[1].r.m)}° − ${S.sun}° = ${t1 > 0 ? fx(t1) + '°' : '在地平線下'}`;
+    const L2 = `霓頂仰角 ${fx(PK[2].v.m)}° − ${S.sun}° = ${t2 > 0 ? fx(t2) + '°' : '在地平線下'}`;
+    c.font = `600 14px ${FONT}`; const bw = Math.max(c.measureText(L1).width, c.measureText(L2).width) + 24;
+    c.fillStyle = 'rgba(255,255,255,0.92)'; c.strokeStyle = '#dfe4ea'; c.lineWidth = 1; c.beginPath(); c.rect(16, H - 66, bw, 52); c.fill(); c.stroke();
+    T(c, L1, 28, H - 44, { size: 14, weight: 600 }); T(c, L2, 28, H - 22, { size: 14, weight: 600, color: P.mut });
+    if (eye) hzLab();
+    if (!eye) T(c, '拖曳可旋轉', W - 16, 28, { size: 13, color: P.mut, align: 'right' });
   }
 
   /* ---------- ③④ 不同色光的速度 ---------- */
-  const st2 = makeStage($('#cv-rspeed'), 760, 400);
+  const st2 = makeStage($('#cv-rspeed'), 460, 380), st4 = makeStage($('#cv-rentry'), 380, 380);
   const NAMES = { 700: '紅', 620: '橙', 580: '黃', 530: '綠', 470: '藍', 410: '紫' };
   const CKM = 299792, NC = (nW(700) + nW(410)) / 2;
   const SP = { k: 30, t: null, run: false, last: 0 };
   const nD = l => NC + SP.k * (nW(l) - NC);                  // 畫面用：差異放大 k 倍
-  const RX0 = 78, RXV = 232, RX1 = 440, VPX = 80, DT = 0.5;   // 起點、水面、終點；真空中 80 px/s
+  const RX0 = 62, RXV = 200, RX1 = 440, VPX = 80, DT = 0.5;
   const tEnd = () => ((RXV - RX0) + (RX1 - RXV) * nD(410)) / VPX;
   const posAt = (t, n) => { const d = VPX * t, dv = RXV - RX0; return d <= dv ? RX0 + d : Math.min(RX1, RXV + (d - dv) / n); };
-  const B2 = bench('b-rspeed', st2, drawSpeed);
-  seg($('#rs-k'), v => { SP.k = Number(v); SP.run = false; SP.t = null; $('#rs-play').textContent = '▶ 開始賽跑'; B2.dirty = true; });
+  const B2 = bench('b-rspeed', st2, drawSpeed), B4 = bench('b-rentry', st4, drawEntry); LATE.push(B2, B4);
+  seg($('#rs-k'), v => { SP.k = Number(v); SP.run = false; SP.t = null; $('#rs-play').textContent = '▶ 開始賽跑'; B2.dirty = B4.dirty = true; });
   function tick(now) {
     if (!SP.run) return;
-    const dt = Math.min(0.05, (now - SP.last) / 1000); SP.last = now; SP.t += dt;
+    SP.t += Math.min(0.05, (now - SP.last) / 1000); SP.last = now;
     if (SP.t >= tEnd()) { SP.t = tEnd(); SP.run = false; $('#rs-play').textContent = '▶ 再跑一次'; }
     B2.dirty = true; if (SP.run) requestAnimationFrame(tick);
   }
@@ -2889,77 +3325,59 @@ new MutationObserver(readTokens).observe(document.documentElement, { attributes:
     SP.run = true; SP.last = performance.now(); $('#rs-play').textContent = '⏸ 暫停'; requestAnimationFrame(tick);
   });
   $('#rs-reset').addEventListener('click', () => { SP.run = false; SP.t = 0; $('#rs-play').textContent = '▶ 開始賽跑'; B2.dirty = true; });
-  /* 表格（真實數值） */
   const fmtKm = v => Math.round(v).toLocaleString('en-US');
   function table() {
-    const i = Math.asin(S.b);
     $('#rs-tbody').innerHTML = WL.map(([l, col]) => {
       const n = nW(l), r = Math.asin(S.b / n) / DEG;
-      return `<tr><td><span style="display:inline-block;width:.9em;height:.9em;border-radius:3px;background:${col};vertical-align:-.1em;margin-right:6px"></span>${NAMES[l]}光</td><td class="num">${l} nm</td><td class="num">${fmtKm(CKM)} km/s</td><td class="num">${n.toFixed(3)}</td><td class="num">${fmtKm(CKM / n)} km/s</td><td class="num">${S.b > 0 ? fx(r, 2) + '°' : '0°（直直射入）'}</td></tr>`;
+      return `<tr><td><span style="display:inline-block;width:.9em;height:.9em;border-radius:3px;background:${col};vertical-align:-.1em;margin-right:6px"></span>${NAMES[l]}光</td><td class="num">${l} nm</td><td class="num">${fmtKm(CKM)} km/s</td><td class="num">${n.toFixed(3)}</td><td class="num">${fmtKm(CKM / n)} km/s</td><td class="num">${S.b > 0 ? fx(r, 2) + '°' : '0°'}</td></tr>`;
     }).join('');
     const nr = nW(700), nv = nW(410), lag = 100 * (1 - nr / nv);
-    $('#rs-note').innerHTML = `入射角 ${fx(i / DEG)}°。紫光在水中比紅光慢約 ${fx(100 * (1 - nr / nv), 1)}%：一起走 1 公尺的水，紅光出水時，紫光還落後約 <b>${fx(lag, 2)} cm</b>。差異很小，所以畫面要放大才看得出來。`;
+    $('#rs-note').innerHTML = `紫光在水中比紅光慢約 ${fx(lag, 1)}%：一起走 1 公尺的水，紅光出水時，紫光還落後約 <b>${fx(lag, 2)} cm</b>。`;
   }
   function drawSpeed() {
-    const c = st2.begin(TK.dark), ink = TK.darkInk, mut = TK.darkMuted;
-    const t = SP.t === null ? tEnd() : SP.t;
-    /* ③ 賽跑 */
-    c.fillStyle = '#0b1220'; c.fillRect(8, 8, 440, 384);
-    c.fillStyle = 'rgba(77,171,247,.16)'; c.fillRect(RXV, 44, RX1 - RXV + 6, 300);
-    line(c, RXV, 44, RXV, 344, 'rgba(120,190,255,.7)', 1.5);
-    text(c, '③ 同時出發：誰先跑完水？', 16, 28, { color: ink, size: 12.5, weight: 700 });
-    text(c, '真空', (RX0 + RXV) / 2, 60, { color: mut, size: 11.5, align: 'center' });
-    text(c, '水', (RXV + RX1) / 2, 60, { color: '#9fd0ff', size: 11.5, align: 'center', weight: 700 });
-    line(c, RX1, 44, RX1, 344, 'rgba(255,255,255,.35)', 1, [3, 3]);
-    text(c, '終點', RX1 - 4, 40, { color: mut, size: 10.5, align: 'right' });
-    let yRed = 0, yVio = 0;
+    const c = st2.begin(P.bg), t = SP.t === null ? tEnd() : SP.t;
+    T(c, '⑤ 同時出發，誰先跑完水？', 14, 26, { size: 16, weight: 700 });
+    c.fillStyle = P.water; c.fillRect(RXV, 44, RX1 - RXV, 290);
+    line(c, RXV, 44, RXV, 334, P.waterLine, 1.5);
+    T(c, '真空', (RX0 + RXV) / 2, 62, { color: P.mut, size: 14, align: 'center', weight: 700 });
+    T(c, '水', (RXV + RX1) / 2, 62, { color: '#1c6fb8', size: 14, align: 'center', weight: 700 });
+    line(c, RX1, 44, RX1, 334, P.faint, 1, [3, 3]);
+    let yVio = 0;
     WL.forEach(([l, col], k) => {
-      const y = 86 + k * 46, n = nD(l); if (l === 700) yRed = y; if (l === 410) yVio = y;
-      line(c, RX0, y, RX1, y, 'rgba(148,163,184,.18)', 1);
-      text(c, `${NAMES[l]} ${l}`, RX0 - 10, y + 4, { color: col, size: 11.5, weight: 700, align: 'right' });
-      for (let tt = DT; tt < t - 1e-6; tt += DT) { c.fillStyle = alpha(col, 0.55); c.beginPath(); c.arc(posAt(tt, n), y, 2.4, 0, TAU); c.fill(); }
-      const x = posAt(t, n);
-      c.save(); c.shadowColor = col; c.shadowBlur = 10; c.fillStyle = col; c.beginPath(); c.arc(x, y, 6, 0, TAU); c.fill(); c.restore();
+      const y = 92 + k * 44, n = nD(l); if (l === 410) yVio = y;
+      line(c, RX0, y, RX1, y, P.grid, 1);
+      T(c, NAMES[l], RX0 - 12, y + 5, { color: col, size: 15, weight: 700, align: 'right' });
+      for (let tt = DT; tt < t - 1e-6; tt += DT) { c.fillStyle = alpha(col, 0.6); c.beginPath(); c.arc(posAt(tt, n), y, 3, 0, TAU); c.fill(); }
+      c.fillStyle = col; c.beginPath(); c.arc(posAt(t, n), y, 7.5, 0, TAU); c.fill();
     });
-    /* 紅光到終點時，紫光在哪裡 */
     const tr = ((RXV - RX0) + (RX1 - RXV) * nD(700)) / VPX;
     if (t >= tr - 1e-6) {
       const xv = posAt(tr, nD(410));
-      line(c, xv, yVio + 14, RX1, yVio + 14, '#c77dff', 1.5);
-      line(c, xv, yVio + 9, xv, yVio + 19, '#c77dff', 1.5); line(c, RX1, yVio + 9, RX1, yVio + 19, '#c77dff', 1.5);
-      text(c, '紅光到終點時，紫光還差這段', RX1 - 4, yVio + 32, { color: '#d6a8ff', size: 11, align: 'right' });
+      line(c, xv, yVio + 16, RX1, yVio + 16, VIO, 1.8); line(c, xv, yVio + 10, xv, yVio + 22, VIO, 1.8); line(c, RX1, yVio + 10, RX1, yVio + 22, VIO, 1.8);
+      T(c, '紅光到終點時，紫光還差這段', RX1, yVio + 40, { color: VIO, size: 13.5, weight: 700, align: 'right' });
     }
-    text(c, SP.k === 1 ? '真實比例：差異不到 1%，幾乎看不出來' : `速度差異放大 ${SP.k} 倍`, 16, 382, { color: SP.k === 1 ? '#ffd34d' : mut, size: 11, weight: 700 });
-    text(c, '● 每 0.5 秒的位置', RX1, 382, { color: mut, size: 10.5, align: 'right' });
-
-    /* ④ 射入水面 */
-    const x0 = 456; c.fillStyle = '#0b1220'; c.fillRect(x0, 8, 296, 384);
-    text(c, '④ 射入水滴：越慢，偏折越多', x0 + 8, 28, { color: ink, size: 12.5, weight: 700 });
-    const O = { x: x0 + 148, y: 170 }, i = Math.asin(S.b);
-    c.fillStyle = 'rgba(77,171,247,.16)'; c.fillRect(x0, O.y, 296, 392 - O.y);
-    line(c, x0, O.y, x0 + 296, O.y, 'rgba(120,190,255,.75)', 1.5);
-    text(c, '空氣', x0 + 288, O.y - 8, { color: mut, size: 11, align: 'right' });
-    text(c, '水', x0 + 288, O.y + 18, { color: '#9fd0ff', size: 11, align: 'right', weight: 700 });
-    dashed(c, O.x, 44, O.x, 384, 'rgba(255,255,255,.45)', 1);
-    text(c, '法線', O.x + 4, 54, { color: mut, size: 10.5 });
-    const L1 = 128, ux = Math.sin(i), uy = Math.cos(i), A = { x: O.x - ux * L1, y: O.y - uy * L1 };
-    ray(c, A.x, A.y, O.x, O.y, '#ffffff', 2.6);
-    const step = 22;
-    for (let d = step; d < L1; d += step) { c.fillStyle = 'rgba(255,255,255,.8)'; c.beginPath(); c.arc(O.x - ux * d, O.y - uy * d, 2.2, 0, TAU); c.fill(); }
-    if (S.b > 0.02) arcAngle(c, O.x, O.y, 34, -Math.PI / 2 - i, -Math.PI / 2, '#ffffff', '');
-    text(c, `入射角 ${fx(i / DEG)}°`, O.x + 8, O.y - 44, { color: '#fff', size: 11 });
-    c.save(); c.globalCompositeOperation = 'lighter';
+    T(c, SP.k === 1 ? '真實比例：差異不到 1%' : `速度差異放大 ${SP.k} 倍・點＝每 0.5 秒的位置`, 14, 372, { color: SP.k === 1 ? '#c92a2a' : P.mut, size: 13 });
+  }
+  function drawEntry() {
+    const c = st4.begin(P.bg), W = st4.W, O = { x: W / 2, y: 170 }, i = Math.asin(S.b);
+    T(c, '⑥ 射入水滴：越慢，偏折越多', 14, 26, { size: 16, weight: 700 });
+    c.fillStyle = P.water; c.fillRect(0, O.y, W, st4.H - O.y); line(c, 0, O.y, W, O.y, P.waterLine, 1.5);
+    T(c, '空氣', W - 12, O.y - 10, { color: P.mut, size: 14, align: 'right' });
+    T(c, '水', W - 12, O.y + 22, { color: '#1c6fb8', size: 14, align: 'right', weight: 700 });
+    dashed(c, O.x, 44, O.x, 372, P.faint, 1.2);
+    T(c, '法線', O.x + 6, 56, { color: P.mut, size: 13 });
+    const L1 = 120, ux = Math.sin(i), uy = Math.cos(i), A = { x: O.x - ux * L1, y: O.y - uy * L1 }, step = 22;
+    ray(c, A.x, A.y, O.x, O.y, '#495057', 2.8);
+    for (let d = step; d < L1; d += step) { c.fillStyle = '#495057'; c.beginPath(); c.arc(O.x - ux * d, O.y - uy * d, 2.6, 0, TAU); c.fill(); }
+    T(c, `入射角 ${fx(i / DEG)}°`, O.x + 10, O.y - 40, { size: 14, weight: 700 });
     WL.forEach(([l, col]) => {
-      const n = nD(l), r = Math.asin(Math.min(1, S.b / n)), dx = Math.sin(r), dy = Math.cos(r), L2 = 200;
-      line(c, O.x, O.y, O.x + dx * L2, O.y + dy * L2, col, 2);
-      for (let d = step / n; d < L2; d += step / n) { c.fillStyle = col; c.beginPath(); c.arc(O.x + dx * d, O.y + dy * d, 2.2, 0, TAU); c.fill(); }
+      const n = nD(l), r = Math.asin(Math.min(1, S.b / n)), dx = Math.sin(r), dy = Math.cos(r), L2 = 190;
+      line(c, O.x, O.y, O.x + dx * L2, O.y + dy * L2, col, 2.2);
+      for (let d = step / n; d < L2; d += step / n) { c.fillStyle = col; c.beginPath(); c.arc(O.x + dx * d, O.y + dy * d, 2.6, 0, TAU); c.fill(); }
     });
-    c.restore();
-    if (S.b > 0.05) {
-      text(c, '紅：最快、偏折最少', x0 + 8, 360, { color: '#ff8a7a', size: 11, weight: 700 });
-      text(c, '紫：最慢、偏折最多', x0 + 8, 378, { color: '#d6a8ff', size: 11, weight: 700 });
-    } else text(c, '垂直射入：不偏折', O.x + 8, 384, { color: mut, size: 11, weight: 700 });
-    text(c, '點越密＝跑越慢', x0 + 8, O.y + 18, { color: mut, size: 10.5 });
+    if (S.b > 0.05) { T(c, '紅：最快、偏折最少', 12, 340, { color: RED, size: 14, weight: 700 }); T(c, '紫：最慢、偏折最多', 12, 364, { color: VIO, size: 14, weight: 700 }); }
+    else T(c, '垂直射入：不偏折', 12, 364, { color: P.mut, size: 14, weight: 700 });
+    T(c, '點越密＝越慢', 12, O.y + 24, { color: P.mut, size: 13 });
     table();
   }
 })();
@@ -3822,8 +4240,20 @@ function poly14(L, R, T, B, t) {
 }
 const pCenter = p => [p.reduce((s, q) => s + q[0], 0) / p.length, p.reduce((s, q) => s + q[1], 0) / p.length];
 const pathPoly = (c, p) => { c.beginPath(); p.forEach((q, i) => i ? c.lineTo(q[0], q[1]) : c.moveTo(q[0], q[1])); c.closePath(); };
-const LTLAY = { 1: { cells: [[505, 775]], T: 105, B: 445, t: 30, pad: 60 }, 3: { cells: [[338, 513], [550, 725], [762, 937]], T: 140, B: 420, t: 22, pad: 30 } };
-const DZLAY = { 1: { cells: [[195, 325]], T: 22, B: 198, t: 14 }, 3: { cells: [[55, 185], [195, 325], [335, 465]], T: 22, B: 198, t: 14 } };
+const LTMAX = 9; // 底盤最多 9 格
+const rowCells = (n, w, gap, cx) => { const tot = n * w + (n - 1) * gap, x0 = cx - tot / 2; return Array.from({ length: n }, (_, i) => [x0 + i * (w + gap), x0 + i * (w + gap) + w]); };
+function ltLay(n) { // 1～3 格：底盤在右、光路在左；4 格以上：底盤橫跨下方，燈在左上、眼睛在右上
+  if (n <= 3) {
+    const w = n === 1 ? 270 : Math.min(200, (620 - (n - 1) * 36) / n), h = Math.min(340, w * 1.6), T = 275 - h / 2;
+    return { cells: rowCells(n, w, 36, 640), T, B: T + h, t: w * 0.125, pad: Math.max(30, w * 0.22), lamp: [100, 120], eye: [80, 456], eyeL: [18, 514, 'left'], wordY: T + h + 82 };
+  }
+  const w = Math.min(150, (920 - (n - 1) * 14) / n), h = Math.min(200, w * 1.6), T = 335 - h / 2;
+  return { cells: rowCells(n, w, 14, 500), T, B: T + h, t: w * 0.125, pad: Math.max(18, w * 0.18), lamp: [420, 96], eye: [840, 96], eyeL: [982, 170, 'right'], wordY: T + h + 64 };
+}
+function dzLay(n) {
+  const w = Math.min(130, (500 - (n - 1) * 10) / n), h = Math.min(176, w * 1.4), T = 110 - h / 2;
+  return { cells: rowCells(n, w, 10, 260), T, B: T + h, t: w * 0.108 };
+}
 const layPolys = lay => lay.cells.map(([L, R]) => poly14(L, R, lay.T, lay.B, lay.t));
 function layHit(lay, n, x, y) {
   const P = layPolys(lay).slice(0, n);
@@ -3832,7 +4262,7 @@ function layHit(lay, n, x, y) {
   P.forEach((ps, ci) => SEG14.forEach(s => { const [cx, cy] = pCenter(ps[s]), d = Math.hypot(x - cx, y - cy); if (d < bd) { bd = d; best = [ci, s]; } }));
   return best;
 }
-const LT = { light: 'w', f1: 'clear', paint: 'white', n: 1, cell: 0, seg: 'a1', col: [0, 1, 2].map(() => Object.fromEntries(SEG14.map(s => [s, 'black']))), hide: false, shown: false, ch: 'c1', checked: false, own: { w: '', r: '', g: '', b: '' } };
+const LT = { light: 'w', f1: 'clear', paint: 'white', n: 1, cell: 0, seg: 'a1', col: Array.from({ length: LTMAX }, () => 0).map(() => Object.fromEntries(SEG14.map(s => [s, 'black']))), hide: false, shown: false, ch: 'c1', checked: false, own: { w: '', r: '', g: '', b: '' } };
 const CHAL = [
   { id: 'free', nm: '自由設計' },
   { id: 'c1', nm: '挑戰 1：E → F → L', n: 1, goal: { w: 'E', r: 'F', g: 'L' }, start: 'E', tip: '白光下是 E，換紅光變 F、換綠光變 L。先把 E 全塗白色，再想哪幾段要換顏色。' },
@@ -3881,9 +4311,9 @@ function solve(goal, n) {
 function drawLet() {
   if (!ltCv.resize()) return; setFS(ltCv);
   const c = ltCv.ctx, W = ltCv.W, H = ltCv.H, S = lightById(LT.light), F = ltF(), Sin = mul(S, F), show = !LT.hide || LT.shown;
-  const lay = LTLAY[LT.n], P = layPolys(lay), res = ltWord(S, F);
+  const lay = ltLay(LT.n), P = layPolys(lay), res = ltWord(S, F);
   c.fillStyle = '#07090c'; c.fillRect(0, 0, W, H);
-  const lamp = [100, 120], eye = [80, 456], Lin = specToLin(Sin);
+  const lamp = lay.lamp, eye = lay.eye, Lin = specToLin(Sin);
   const gr = c.createRadialGradient(lamp[0], lamp[1], 10, lamp[0] + 460, lamp[1] + 200, 660);
   gr.addColorStop(0, linCSS(Lin.map(v => v * 0.26))); gr.addColorStop(1, 'rgba(7,9,12,0)');
   c.fillStyle = gr; c.beginPath(); c.moveTo(lamp[0], lamp[1]); c.lineTo(W, 40); c.lineTo(W, H); c.lineTo(260, H); c.closePath(); c.fill();
@@ -3922,17 +4352,17 @@ function drawLet() {
     const mid2 = toward(a0, eye, 150);
     label(c, `${Pp.nm}紙反射：` + chTxt(cR), mid2[0] + 10, mid2[1] - 16, { size: 13, align: 'center', color: '#e9edf1' });
     const lin = res[LT.cell].vis[LT.seg].lin, on = Math.max(...lin) >= 0.06;
-    label(c, on ? '看到這一段：' + colorName(lin) : '看到這一段：黑（沒有光）', 18, eye[1] + 58, { size: 15, weight: 700, color: on ? '#fff' : '#adb5bd' });
+    label(c, on ? '看到這一段：' + colorName(lin) : '看到這一段：黑（沒有光）', lay.eyeL[0], lay.eyeL[1], { size: 15, weight: 700, align: lay.eyeL[2], color: on ? '#fff' : '#adb5bd' });
   }
   eyeIcon(c, eye[0], eye[1]);
   text(c, '暗室：燈光先穿過玻璃紙，再照到字母底盤', 18, 32, { size: 16, color: '#8b96a1' });
-  text(c, show ? '看起來：' + wordTxt(res) : '看起來：？', (bx0 + bx1) / 2, lay.B + 82, { size: 18, align: 'center', color: '#e9edf1', weight: 700 });
+  text(c, show ? '看起來：' + wordTxt(res) : '看起來：？', (bx0 + bx1) / 2, lay.wordY, { size: 18, align: 'center', color: '#e9edf1', weight: 700 });
   text(c, '紅、綠、藍三條線＝光裡的三種色光；✕＝在這裡被吸收', 18, H - 12, { size: 13, color: '#8b96a1' });
   drawLtDz(); drawLtGoal(); drawLtOut(res, Pp, show);
 }
 function drawLtDz() {
   if (!ltDz.resize()) return;
-  const c = ltDz.ctx, W = ltDz.W, H = ltDz.H, lay = DZLAY[LT.n], P = layPolys(lay);
+  const c = ltDz.ctx, W = ltDz.W, H = ltDz.H, lay = dzLay(LT.n), P = layPolys(lay);
   c.clearRect(0, 0, W, H); c.fillStyle = '#0b0e12'; c.beginPath(); c.roundRect(0, 0, W, H, 10); c.fill();
   for (let ci = 0; ci < LT.n; ci++) SEG14.forEach(s => {
     const p = pById(LT.col[ci][s]); pathPoly(c, P[ci][s]);
@@ -3959,7 +4389,7 @@ function drawLtGoal() {
   const long = Object.values(goal).some(w => w.trimEnd().length > LT.n);
   t.innerHTML = `<b>目標</b>（只開這種光、不加玻璃紙）：${Object.entries(goal).map(([L, w]) => `${LTL[L]}下 <b class="lt-mono">${fmtW(w.padEnd(LT.n, ' ').slice(0, Math.max(LT.n, w.trimEnd().length)))}</b>`).join('，')}${ch.tip && ch.id !== 'own' ? `<br><span class="lt-tip">${ch.tip}</span>` : ''}`;
   const sol = solve(Object.fromEntries(Object.entries(goal).map(([L, w]) => [L, w.padEnd(LT.n, ' ')])), LT.n);
-  if (long) { r.innerHTML = `<p class="lt-no">字太長了：底盤只有 ${LT.n} 格，請把「底盤」改成 3 個字母。</p>`; return; }
+  if (long) { r.innerHTML = `<p class="lt-no">字太長了：底盤只有 ${LT.n} 格，請增加「底盤」的格數。</p>`; return; }
   if (sol.bad) { r.innerHTML = `<p class="lt-no">這題無解：第 ${sol.bad.ci + 1} 格有一段要「${sol.bad.need.join('、')}」，找不到這種色紙。想想看：白光裡含有紅、綠、藍光。</p>`; return; }
   if (!LT.checked) { r.innerHTML = ''; return; }
   let all = true;
@@ -3981,7 +4411,7 @@ function drawLtOut(res, Pp, show) {
 const ltDraw = raf(() => { drawLet(); drawLtAbc(); });
 const ltSet = (sel, v) => $$('.chip, button', $(sel)).forEach(x => x.setAttribute('aria-pressed', x.dataset.v === String(v) ? 'true' : 'false'));
 const ltBlank = () => LT.col.forEach(cols => SEG14.forEach(s => { cols[s] = 'black'; }));
-function ltSetN(n) { LT.n = n; if (LT.cell >= n) LT.cell = 0; ltSet('#lt-n', n); }
+function ltSetN(n) { LT.n = n; if (LT.cell >= n) LT.cell = 0; $('#lt-n').value = String(n); }
 function ltChal(id) {
   LT.ch = id; LT.checked = false; const c = curChal();
   $('#lt-own').hidden = id !== 'own'; ltSet('#lt-ch', id);
@@ -4000,7 +4430,8 @@ chipGroup($('#lt-ch'), ltChal);
 chipGroup($('#lt-lights'), v => { LT.light = v; LT.shown = false; ltDraw(); });
 chipGroup($('#lt-filters'), v => { LT.f1 = v; LT.shown = false; ltDraw(); });
 chipGroup($('#lt-papers'), v => { LT.paint = v; }); // 只選顏色；點圖中的段才塗上
-seg($('#lt-n'), v => { ltSetN(+v); ltDraw(); });
+$('#lt-n').innerHTML = Array.from({ length: LTMAX }, (_, i) => `<option value="${i + 1}">${i + 1} 格</option>`).join('');
+$('#lt-n').addEventListener('change', e => { ltSetN(+e.target.value); ltDraw(); });
 $('#lt-type').addEventListener('click', () => {
   const w = $('#lt-word').value.toUpperCase().replace(/[^A-Z ]/g, '').slice(0, LT.n); $('#lt-word').value = w;
   w.split('').forEach((ch, ci) => { if (LETTERS[ch]) LETTERS[ch].forEach(s => { LT.col[ci][s] = LT.paint; }); });
@@ -4017,24 +4448,278 @@ $('#lt-sol').addEventListener('click', () => {
   sol.cols.forEach((cols, ci) => Object.assign(LT.col[ci], cols)); ltDraw();
 });
 $$('#lt-own input').forEach(inp => inp.addEventListener('input', () => {
-  const v = inp.value.toUpperCase().replace(/[^A-Z ]/g, '').slice(0, 3); if (v !== inp.value) inp.value = v;
+  const v = inp.value.toUpperCase().replace(/[^A-Z ]/g, '').slice(0, LTMAX); if (v !== inp.value) inp.value = v;
   LT.own[inp.dataset.l] = v; LT.checked = false; ltDraw();
 }));
 const ltPick = (cv, lay) => e => {
   const [x, y] = cv.pt(e), h = layHit(lay(), LT.n, x, y); if (!h) return;
   [LT.cell, LT.seg] = h; LT.col[LT.cell][LT.seg] = LT.paint; ltDraw();
 };
-ltCv.cv.addEventListener('pointerdown', ltPick(ltCv, () => LTLAY[LT.n]));
-ltDz.cv.addEventListener('pointerdown', ltPick(ltDz, () => DZLAY[LT.n]));
+ltCv.cv.addEventListener('pointerdown', ltPick(ltCv, () => ltLay(LT.n)));
+ltDz.cv.addEventListener('pointerdown', ltPick(ltDz, () => dzLay(LT.n)));
 LETTERS.E.forEach(s => { LT.col[0][s] = 'white'; });
 
+/* ================================================================
+   7. 漢字點陣：像畫解鎖圖形一樣，從點拖到相鄰的點畫出筆畫
+   ================================================================ */
+const HZMAX = 7, HZL = ['w', 'r', 'g', 'b'], HZCOL = { w: '#e9edf1', r: '#ff6b6b', g: '#51cf66', b: '#4dabf7' };
+const HZ = { light: 'w', f1: 'clear', paint: 'white', n: 1, G: 5, layer: 'board', edges: {}, tpl: { w: {}, r: {}, g: {}, b: {} }, guide: true, dots: true, view: 'light', hide: false, shown: false, ch: 'free', checked: false, cur: 0 };
+// 筆畫用折線寫在 5×5 點陣上（座標 0～4）；相鄰兩點之間是一段
+const HZGLYPH = { 5: {
+  王: [[[0, 0], [4, 0]], [[0, 2], [4, 2]], [[0, 4], [4, 4]], [[2, 0], [2, 4]]],
+  土: [[[1, 2], [3, 2]], [[0, 4], [4, 4]], [[2, 0], [2, 4]]],
+  工: [[[1, 0], [3, 0]], [[0, 4], [4, 4]], [[2, 0], [2, 4]]],
+  田: [[[0, 0], [4, 0], [4, 4], [0, 4], [0, 0]], [[0, 2], [4, 2]], [[2, 0], [2, 4]]],
+  日: [[[0, 0], [4, 0], [4, 4], [0, 4], [0, 0]], [[0, 2], [4, 2]]],
+  十: [[[0, 2], [4, 2]], [[2, 0], [2, 4]]],
+  上: [[[2, 0], [2, 4]], [[2, 2], [3, 2]], [[0, 4], [4, 4]]],
+  中: [[[1, 1], [3, 1], [3, 3], [1, 3], [1, 1]], [[2, 0], [2, 4]]],
+  下: [[[0, 0], [4, 0]], [[2, 0], [2, 4]], [[2, 2], [3, 3]]],
+  山: [[[2, 0], [2, 4]], [[0, 2], [0, 4], [4, 4], [4, 2]]],
+}, 7: { // 7×7：人 ⊂ 大 ⊂ 木
+  人: [[[3, 0], [3, 2]], [[3, 2], [0, 5]], [[3, 2], [6, 5]]],
+  大: [[[3, 0], [3, 2]], [[3, 2], [0, 5]], [[3, 2], [6, 5]], [[0, 2], [6, 2]]],
+  木: [[[3, 0], [3, 6]], [[3, 2], [0, 5]], [[3, 2], [6, 5]], [[0, 2], [6, 2]]],
+}, 9: { // 9×9 圖案
+  笑: [[[2, 0], [6, 0], [8, 2], [8, 6], [6, 8], [2, 8], [0, 6], [0, 2], [2, 0]], [[3, 2], [3, 3]], [[5, 2], [5, 3]], [[2, 5], [3, 6], [5, 6], [6, 5]]],
+  哭: [[[2, 0], [6, 0], [8, 2], [8, 6], [6, 8], [2, 8], [0, 6], [0, 2], [2, 0]], [[3, 2], [3, 3]], [[5, 2], [5, 3]], [[2, 7], [3, 6], [5, 6], [6, 7]], [[6, 3], [6, 4]]],
+  心: [[[4, 8], [0, 4], [0, 2], [2, 0], [3, 0], [4, 1], [5, 0], [6, 0], [8, 2], [8, 4], [4, 8]]],
+  樹: [[[4, 0], [1, 3], [7, 3], [4, 0]], [[4, 2], [0, 6], [8, 6], [4, 2]], [[4, 6], [4, 8]]],
+} };
+const HZCH = [
+  { id: 'free', nm: '自由創作', tip: '先選色紙，再從一個點拖到相鄰的點畫筆畫。下方可以同時看到四種光下的樣子。' },
+  { id: 'h1', nm: '挑戰 1：王 → 土 → 工', n: 1, G: 5, tpl: { w: ['王'], r: ['土'], g: ['工'] }, tip: '白光下是「王」，紅光下變「土」，綠光下變「工」。提示：有些筆畫紅光、綠光下都要消失。' },
+  { id: 'h2', nm: '挑戰 2：田 → 日 → 十', n: 1, G: 5, tpl: { w: ['田'], r: ['日'], g: ['十'] }, tip: '白光下是「田」，紅光下變「日」，綠光下變「十」。' },
+  { id: 'h3', nm: '挑戰 3：紅上、綠中、藍下', n: 1, G: 5, tpl: { r: ['上'], g: ['中'], b: ['下'] }, tip: '同一格：紅光下是「上」、綠光下是「中」、藍光下是「下」。白光下看起來像什麼？' },
+  // 範例：載入時直接貼好色紙（由字帖自動算出），讓學生先觀察再自己創作
+  { id: 'e1', ex: true, nm: '上山／下田', n: 2, G: 5, tpl: { r: ['上', '山'], g: ['下', '田'] }, tip: '範例：紅光下是「上山」，綠光下是「下田」。白光下兩句疊在一起，看得出來嗎？換成藍光呢？' },
+  { id: 'e2', ex: true, nm: '木 → 大 → 人（7×7）', n: 1, G: 7, tpl: { w: ['木'], r: ['大'], g: ['人'] }, tip: '範例：白光「木」、紅光「大」、綠光「人」。人 ⊂ 大 ⊂ 木，每少一層就換一種色紙：哪一段是藍紙？為什麼？' },
+  { id: 'e3', ex: true, nm: '笑臉變哭臉（9×9）', n: 1, G: 9, tpl: { r: ['笑'], g: ['哭'] }, tip: '藝術範例：紅光下笑、綠光下哭。臉和眼睛是兩張字帖共用的筆畫（黃紙），嘴巴和眼淚各自只用一種色紙。' },
+  { id: 'e4', ex: true, nm: '愛心與樹（9×9）', n: 1, G: 9, tpl: { r: ['心'], g: ['樹'] }, tip: '藝術範例：紅光下一顆愛心、綠光下一棵樹，交叉的地方用黃紙。試著加入只在藍光下出現的第三張圖。' },
+  { id: 'h4', nm: '資優挑戰：藏一句話（最多 7 字）', n: 4, tip: '在「紅光字帖」「綠光字帖」各寫一句不同的話（最多 7 個字），再貼色紙，讓紅光、綠光下各只看到自己那一句。加分：白光下讓人看不出任何一句。' },
+];
+const hzKey = (c, a, b) => { const [p, q] = (a[0] * 10 + a[1] <= b[0] * 10 + b[1]) ? [a, b] : [b, a]; return `${c}:${p[0]},${p[1]},${q[0]},${q[1]}`; };
+const hzParse = k => { const [c, r] = k.split(':'), v = r.split(',').map(Number); return { c: +c, a: [v[0], v[1]], b: [v[2], v[3]] }; };
+function hzStroke(set, c, pts, val) { // 折線 → 單位段
+  for (let i = 1; i < pts.length; i++) {
+    const a = pts[i - 1], b = pts[i];
+    const dx = b[0] - a[0], dy = b[1] - a[1], g = Math.max(Math.abs(dx), Math.abs(dy)), ux = dx / g, uy = dy / g;
+    for (let s = 0; s < g; s++) set[hzKey(c, [a[0] + ux * s, a[1] + uy * s], [a[0] + ux * (s + 1), a[1] + uy * (s + 1)])] = val;
+  }
+}
+const hzCv = setupCanvas($('#hz-cv')), hzPv = setupCanvas($('#hz-pv'));
+hzCv.cv.style.touchAction = 'none';
+// 呈現方式：字多時，上方一排小格看整句，下方放大正在寫的那一個字（點小格切換）
+function hzRow(n, X0, X1, cy, maxS, gap) { const s = Math.min(maxS, (X1 - X0 - (n - 1) * gap) / n), tot = n * s + (n - 1) * gap, x0 = (X0 + X1) / 2 - tot / 2; return Array.from({ length: n }, (_, c) => ({ c, x: x0 + c * (s + gap), y: cy - s / 2, s })); }
+function hzView(boxes) {
+  const map = {}; boxes.forEach(b => { map[b.c] = b; });
+  const sp = c => map[c].s * 0.8 / (HZ.G - 1);
+  return { boxes, map, sp, node: (c, i, j) => { const b = map[c]; return [b.x + b.s * 0.1 + i * sp(c), b.y + b.s * 0.1 + j * sp(c)]; } };
+}
+const hzEditor = () => hzView(HZ.n === 1 ? [{ c: 0, x: 300, y: 64, s: 400 }] : [{ c: HZ.cur, x: 332, y: 172, s: 336 }]);
+const hzStrip = () => HZ.n === 1 ? null : hzView(hzRow(HZ.n, 30, 970, 100, 90, 12));
+function hzPaperLin(S, F) { const o = {}; PAPERS.forEach(p => { const lin = specToLin(mul(mul(S, F), p.R)); o[p.id] = { lin, on: Math.max(...lin) >= 0.06 }; }); return o; }
+function hzCells(c, V, lw, hl) { // 田字格
+  V.boxes.forEach(({ c: k, x, y, s }) => {
+    c.fillStyle = '#050607'; c.strokeStyle = k === hl ? '#ffd43b' : '#2a323b'; c.lineWidth = k === hl ? 2.5 : lw; c.beginPath(); c.roundRect(x, y, s, s, s * 0.04); c.fill(); c.stroke();
+    c.setLineDash([s * 0.03, s * 0.03]); c.strokeStyle = '#1c232a'; c.lineWidth = 1; c.beginPath(); c.moveTo(x + s / 2, y); c.lineTo(x + s / 2, y + s); c.moveTo(x, y + s / 2); c.lineTo(x + s, y + s / 2); c.stroke(); c.setLineDash([]);
+  });
+}
+function hzLine(c, V, k, wk, col, dash, minW = 2) {
+  const e = hzParse(k); if (!V.map[e.c] || e.c >= HZ.n || Math.max(...e.a, ...e.b) >= HZ.G) return;
+  const p = V.node(e.c, ...e.a), q = V.node(e.c, ...e.b);
+  c.strokeStyle = col; c.lineWidth = Math.max(minW, V.sp(e.c) * wk); c.lineCap = 'round'; if (dash) c.setLineDash(dash);
+  c.beginPath(); c.moveTo(p[0], p[1]); c.lineTo(q[0], q[1]); c.stroke(); if (dash) c.setLineDash([]);
+}
+const hzShow = () => !HZ.hide || HZ.shown;
+function hzStrokes(c, V, PL, lightView, minW) {
+  if (HZ.layer === 'board') Object.entries(HZ.edges).forEach(([k, pid]) => {
+    let col; if (lightView) { const v = PL[pid]; col = linCSS(v.on ? v.lin : v.lin.map(x => x * 0.35)); } else col = linCSS(specToLin(pById(pid).R));
+    hzLine(c, V, k, 0.2, col, null, minW);
+  });
+  else {
+    Object.entries(HZ.edges).forEach(([k, pid]) => hzLine(c, V, k, 0.2, linCSS(specToLin(pById(pid).R).map(v => v * 0.25)), null, minW));
+    Object.keys(HZ.tpl[HZ.layer]).forEach(k => hzLine(c, V, k, 0.16, HZCOL[HZ.layer], null, minW));
+  }
+}
+function drawHan() {
+  if (!hzCv.resize()) return; setFS(hzCv);
+  if (HZ.cur >= HZ.n) HZ.cur = 0;
+  const c = hzCv.ctx, W = hzCv.W, H = hzCv.H, Ve = hzEditor(), Vs = hzStrip(), S = lightById(HZ.light), F = fById(HZ.f1).R, PL = hzPaperLin(S, F);
+  const lightView = HZ.view === 'light' && hzShow() && HZ.layer === 'board';
+  c.fillStyle = '#07090c'; c.fillRect(0, 0, W, H);
+  if (lightView) { // 燈光照亮底盤
+    const Lin = specToLin(mul(S, F)), g = c.createRadialGradient(60, 40, 10, 500, 280, 760);
+    g.addColorStop(0, linCSS(Lin.map(v => v * 0.22))); g.addColorStop(1, 'rgba(7,9,12,0)'); c.fillStyle = g; c.fillRect(0, 0, W, H);
+  }
+  if (Vs) { hzCells(c, Vs, 1, HZ.cur); hzStrokes(c, Vs, PL, lightView, 1.5); }
+  hzCells(c, Ve, 1.5); hzStrokes(c, Ve, PL, lightView, 4);
+  const guide = HZ.layer === 'board' && HZ.guide && HZL.includes(HZ.light) ? HZ.tpl[HZ.light] : null;
+  if (guide) Object.keys(guide).forEach(k => hzLine(c, Ve, k, 0.06, 'rgba(255,212,59,.85)', [6, 6]));
+  if (HZ.dots) { const cc = Ve.boxes[0].c, sp = Ve.sp(cc); for (let i = 0; i < HZ.G; i++) for (let j = 0; j < HZ.G; j++) {
+    const [x, y] = Ve.node(cc, i, j), hot = hzDrag && hzDrag.c === cc && hzDrag.i === i && hzDrag.j === j;
+    c.fillStyle = hot ? '#ffd43b' : 'rgba(139,150,161,.6)'; c.beginPath(); c.arc(x, y, hot ? Math.max(6, sp * 0.12) : Math.max(3, sp * 0.06), 0, 7); c.fill();
+  } }
+  if (Vs) text(c, `正在寫第 ${HZ.cur + 1} 個字（點上面的小格換字）`, 500, 163, { size: 14, align: 'center', color: '#8b96a1' });
+  const lname = LIGHTS.find(x => x.id === HZ.light).nm + (HZ.f1 !== 'clear' ? '＋' + fById(HZ.f1).nm : '');
+  const head = HZ.layer !== 'board' ? `正在畫：${LTL[HZ.layer]}字帖（${LTL[HZ.layer]}下要看到的字）`
+    : !hzShow() ? '色紙本色（先預測：各種光下會看到什麼？）' : HZ.view === 'paper' ? '色紙本色（設計圖）' : `暗室：${lname}照在點陣底盤上`;
+  text(c, head, 18, 32, { size: 16, color: '#8b96a1' });
+  if (guide && Object.keys(guide).length) text(c, `黃色虛線＝${LTL[HZ.light]}字帖（描紅）`, W - 18, 32, { size: 14, align: 'right', color: '#ffd43b' });
+  const nn = Object.keys(HZ.edges).filter(k => hzParse(k).c < HZ.n).length;
+  text(c, HZ.layer === 'board' ? `目前色紙：${HZ.paint === 'erase' ? '橡皮擦' : pById(HZ.paint).nm}　已畫 ${nn} 段` : '字帖只記錄筆畫位置，不用選顏色（橡皮擦可以擦掉）', 18, H - 14, { size: 14, color: '#8b96a1' });
+  drawHzPv(); drawHzGoal(); drawHzOut(nn); hzSave();
+}
+function drawHzPv() {
+  if (!hzPv.resize()) return; setFS(hzPv);
+  const c = hzPv.ctx, W = hzPv.W, H = hzPv.H; c.fillStyle = '#07090c'; c.fillRect(0, 0, W, H);
+  HZL.forEach((Lid, q) => {
+    const ox = (q % 2) * 500, oy = Math.floor(q / 2) * 165, V = hzView(hzRow(HZ.n, ox + 20, ox + 480, oy + 92, 128, 8)), PL = hzPaperLin(lightById(Lid), NOF.R);
+    text(c, LTL[Lid] + '下', ox + 20, oy + 20, { size: 14, color: HZCOL[Lid], weight: 700 });
+    hzCells(c, V, 1);
+    if (!hzShow()) { text(c, '？', ox + 250, oy + 102, { size: 34, align: 'center', color: '#8b96a1', weight: 700 }); return; }
+    Object.entries(HZ.edges).forEach(([k, pid]) => { const v = PL[pid]; hzLine(c, V, k, 0.2, linCSS(v.on ? v.lin : v.lin.map(x => x * 0.35)), null, 2.5); });
+  });
+}
+// 每種色紙在各色光下（不加玻璃紙）看不看得見：沿用字母挑戰的 VIS 表
+function hzVisible(Lid) { const o = {}; Object.entries(HZ.edges).forEach(([k, pid]) => { if (hzParse(k).c < HZ.n && VIS[Lid][pid]) o[k] = 1; }); return o; }
+const hzTpls = () => HZL.filter(L => Object.keys(HZ.tpl[L]).some(k => hzParse(k).c < HZ.n));
+function hzSolve() {
+  const Ls = hzTpls(), U = new Set(); Ls.forEach(L => Object.keys(HZ.tpl[L]).forEach(k => { if (hzParse(k).c < HZ.n) U.add(k); }));
+  const out = {};
+  for (const k of U) {
+    const need = Ls.map(L => !!HZ.tpl[L][k]);
+    const p = ['red', 'green', 'blue', 'yellow', 'cyan', 'magenta', 'white'].find(id => Ls.every((L, i) => VIS[L][id] === need[i])); // 白紙放最後：沒指定的光（如藍光）下就不會多出筆畫
+    if (!p) return { bad: { e: hzParse(k), need: Ls.map((L, i) => LTL[L] + (need[i] ? '亮' : '暗')) } };
+    out[k] = p;
+  }
+  return { edges: out };
+}
+function drawHzGoal() {
+  const ch = HZCH.find(x => x.id === HZ.ch), Ls = hzTpls(), t = $('#hz-goal-t'), r = $('#hz-res');
+  const tplTxt = Ls.length ? '字帖：' + Ls.map(L => `${LTL[L]}（${Object.keys(HZ.tpl[L]).filter(k => hzParse(k).c < HZ.n).length} 段）`).join('、') : '還沒有字帖：可以在「③ 正在畫」切到某種光的字帖，寫下那種光下要看到的字。';
+  t.innerHTML = `<b>${ch.nm}</b><br><span class="lt-tip">${ch.tip}</span><br><span class="lt-tip">${tplTxt}</span>`;
+  $('#hz-check').hidden = !Ls.length; $('#hz-sol').hidden = !(Ls.length && HZ.checked);
+  if (!Ls.length) { r.innerHTML = ''; return; }
+  const sol = hzSolve();
+  if (sol.bad) { r.innerHTML = `<p class="lt-no">這組字帖無解：第 ${sol.bad.e.c + 1} 個字有一段要「${sol.bad.need.join('、')}」，找不到這種色紙。想想看：白光裡含有紅、綠、藍光。</p>`; return; }
+  if (!HZ.checked) { r.innerHTML = ''; return; }
+  let all = true;
+  const rows = Ls.map(L => {
+    const vis = hzVisible(L), tp = Object.fromEntries(Object.keys(HZ.tpl[L]).filter(k => hzParse(k).c < HZ.n).map(k => [k, 1]));
+    const extra = Object.keys(vis).filter(k => !tp[k]).length, miss = Object.keys(tp).filter(k => !vis[k]).length, ok = !extra && !miss; all = all && ok;
+    return `<tr><td>${LTL[L]}下</td><td>${ok ? '和字帖一樣' : [miss ? `少了 ${miss} 段` : '', extra ? `多了 ${extra} 段` : ''].filter(Boolean).join('、')}</td><td class="${ok ? 'lt-ok' : 'lt-no'}">${ok ? '✓' : '✗'}</td></tr>`;
+  }).join('');
+  r.innerHTML = `<table><thead><tr><th>照</th><th>和字帖比較</th><th></th></tr></thead><tbody>${rows}</tbody></table>`
+    + (all ? `<p class="lt-ok">全部達成！${Ls.includes('w') ? '' : '看看下方的白光下：別人看得出你藏的字嗎？'}</p>` : '<p class="lt-tip">切到那種光，打開「描紅」對照黃色虛線，找出多出來或不見的筆畫。</p>');
+}
+function drawHzOut(nn) {
+  const sw = col => `<span class="swatch" style="background:${linCSS(col)}"></span>`;
+  $('#hz-out').innerHTML = `<div><dt>① 光源</dt><dd class="zh">${sw(specToLin(lightById(HZ.light)))}${LIGHTS.find(x => x.id === HZ.light).nm}</dd></div>`
+    + `<div><dt>② 玻璃紙（燈前）</dt><dd class="zh">${sw(specToLin(fById(HZ.f1).R))}${fById(HZ.f1).nm}</dd></div>`
+    + `<div><dt>底盤</dt><dd class="zh">${HZ.n} 個字、${HZ.G}×${HZ.G} 點、已畫 ${nn} 段</dd></div>`;
+}
+const hzDraw = raf(drawHan);
+let hzSaveT = 0;
+function hzSave() { clearTimeout(hzSaveT); hzSaveT = setTimeout(() => store.set('han', JSON.stringify({ n: HZ.n, G: HZ.G, edges: HZ.edges, tpl: HZ.tpl, ch: HZ.ch })), 400); }
+/* 拖曳畫筆畫 */
+let hzDrag = null;
+function hzNodeAt(x, y) {
+  const V = hzEditor(), cc = V.boxes[0].c, sp = V.sp(cc), [x0, y0] = V.node(cc, 0, 0), i = Math.round((x - x0) / sp), j = Math.round((y - y0) / sp);
+  if (i < 0 || j < 0 || i >= HZ.G || j >= HZ.G) return null;
+  const [nx, ny] = V.node(cc, i, j); return Math.hypot(x - nx, y - ny) < sp * 0.34 ? { c: cc, i, j } : null;
+}
+function hzEdgeAt(x, y) { // 點在筆畫上（不在點上）時，找最近的一段
+  const V = hzEditor(), cc = V.boxes[0].c, src = HZ.layer === 'board' ? HZ.edges : HZ.tpl[HZ.layer];
+  let best = null, bd = V.sp(cc) * 0.25;
+  Object.keys(src).forEach(k => {
+    const e = hzParse(k); if (e.c !== cc) return;
+    const p = V.node(cc, ...e.a), q = V.node(cc, ...e.b), dx = q[0] - p[0], dy = q[1] - p[1];
+    const t = clamp(((x - p[0]) * dx + (y - p[1]) * dy) / (dx * dx + dy * dy), 0, 1), d = Math.hypot(x - p[0] - t * dx, y - p[1] - t * dy);
+    if (d < bd) { bd = d; best = k; }
+  });
+  return best;
+}
+function hzApply(k) {
+  const tgt = HZ.layer === 'board' ? HZ.edges : HZ.tpl[HZ.layer];
+  if (HZ.paint === 'erase') delete tgt[k]; else tgt[k] = HZ.layer === 'board' ? HZ.paint : 1;
+}
+hzCv.cv.addEventListener('pointerdown', e => {
+  const [x, y] = hzCv.pt(e), Vs = hzStrip(), hit = Vs && Vs.boxes.find(b => x >= b.x && x <= b.x + b.s && y >= b.y && y <= b.y + b.s);
+  if (hit) { HZ.cur = hit.c; hzDraw(); return; }
+  const nd = hzNodeAt(x, y);
+  if (nd) { hzDrag = nd; try { hzCv.cv.setPointerCapture(e.pointerId); } catch (er) {} e.preventDefault(); hzDraw(); return; }
+  const k = hzEdgeAt(x, y); if (k) { hzApply(k); HZ.shown = false; hzDraw(); }
+});
+hzCv.cv.addEventListener('pointermove', e => {
+  if (!hzDrag) return;
+  const [x, y] = hzCv.pt(e), nd = hzNodeAt(x, y);
+  if (!nd || (nd.c === hzDrag.c && nd.i === hzDrag.i && nd.j === hzDrag.j)) return;
+  if (nd.c === hzDrag.c) {
+    const dx = nd.i - hzDrag.i, dy = nd.j - hzDrag.j, g = Math.max(Math.abs(dx), Math.abs(dy));
+    if (dx === 0 || dy === 0 || Math.abs(dx) === Math.abs(dy)) { // 同一列、同一行或 45° 斜線：補上中間經過的點
+      const ux = dx / g, uy = dy / g;
+      for (let s = 0; s < g; s++) hzApply(hzKey(nd.c, [hzDrag.i + ux * s, hzDrag.j + uy * s], [hzDrag.i + ux * (s + 1), hzDrag.j + uy * (s + 1)]));
+      HZ.shown = false;
+    }
+  }
+  hzDrag = nd; hzDraw();
+});
+['pointerup', 'pointercancel', 'lostpointercapture'].forEach(ev => hzCv.cv.addEventListener(ev, () => { if (hzDrag) { hzDrag = null; hzDraw(); } }));
+/* 控制項 */
+const hzSet = (sel, v) => $$('.chip, button', $(sel)).forEach(x => x.setAttribute('aria-pressed', x.dataset.v === String(v) ? 'true' : 'false'));
+function hzChal(id, keep) {
+  HZ.ch = id; HZ.checked = false; hzSet('#hz-ch', id); hzSet('#hz-ex', id); const ch = HZCH.find(x => x.id === id);
+  if (!keep && ch.tpl) {
+    HZ.n = ch.n; HZ.G = ch.G; HZ.cur = 0; HZ.edges = {}; HZ.tpl = { w: {}, r: {}, g: {}, b: {} };
+    Object.entries(ch.tpl).forEach(([L, arr]) => arr.forEach((g, ci) => { if (HZGLYPH[ch.G][g]) HZGLYPH[ch.G][g].forEach(st => hzStroke(HZ.tpl[L], ci, st, 1)); }));
+    if (ch.ex) { const sv = hzSolve(); if (sv.edges) HZ.edges = sv.edges; }
+    HZ.layer = 'board'; HZ.light = 'w'; HZ.f1 = 'clear'; hzSet('#hz-lights', 'w'); hzSet('#hz-filters', 'clear');
+  }
+  if (!keep && id === 'h4') { HZ.n = Math.max(HZ.n, ch.n); HZ.edges = {}; HZ.tpl = { w: {}, r: {}, g: {}, b: {} }; HZ.layer = 'r'; }
+  $('#hz-n').value = String(HZ.n); hzSet('#hz-g', HZ.G); hzSet('#hz-layer', HZ.layer);
+  HZ.shown = false; hzDraw();
+}
+$('#hz-ex').innerHTML = HZCH.filter(c => c.ex).map(c => `<button class="chip" data-v="${c.id}" aria-pressed="false">${c.nm}</button>`).join('');
+chipGroup($('#hz-ex'), v => hzChal(v));
+$('#hz-ch').innerHTML = HZCH.filter(c => !c.ex).map(c => `<button class="chip" data-v="${c.id}" aria-pressed="${c.id === HZ.ch}">${c.nm}</button>`).join('');
+$('#hz-lights').innerHTML = LIGHTS.map(L => chipHTML(L.id, L.nm, linCSS(specToLin(L.S)), L.id === HZ.light)).join('');
+$('#hz-filters').innerHTML = FILTERS.map(f => chipHTML(f.id, f.nm, f.id === 'clear' ? 'transparent' : linCSS(specToLin(f.R)), f.id === HZ.f1)).join('');
+$('#hz-papers').innerHTML = PAPERS.filter(p => p.id !== 'black').map(p => chipHTML(p.id, p.nm, linCSS(specToLin(p.R)), p.id === HZ.paint)).join('') + chipHTML('erase', '橡皮擦', 'transparent', false);
+$('#hz-n').innerHTML = Array.from({ length: HZMAX }, (_, i) => `<option value="${i + 1}">${i + 1} 個字</option>`).join('');
+chipGroup($('#hz-ch'), v => hzChal(v));
+chipGroup($('#hz-lights'), v => { HZ.light = v; HZ.shown = false; hzDraw(); });
+chipGroup($('#hz-filters'), v => { HZ.f1 = v; HZ.shown = false; hzDraw(); });
+chipGroup($('#hz-papers'), v => { HZ.paint = v; hzDraw(); });
+$('#hz-n').addEventListener('change', e => { HZ.n = +e.target.value; HZ.checked = false; hzDraw(); });
+seg($('#hz-g'), v => {
+  const G = +v; if (G === HZ.G) return;
+  HZ.edges = {}; HZ.tpl = { w: {}, r: {}, g: {}, b: {} }; // 換點陣大小：底盤和字帖都清空（點的位置不同）
+  if (HZCH.find(x => x.id === HZ.ch).tpl) { HZ.ch = 'free'; hzSet('#hz-ch', 'free'); hzSet('#hz-ex', 'free'); }
+  HZ.G = G; HZ.checked = false; HZ.shown = false; hzDraw();
+});
+seg($('#hz-layer'), v => { HZ.layer = v; hzDraw(); });
+seg($('#hz-view'), v => { HZ.view = v; hzDraw(); });
+$('#hz-clear').addEventListener('click', () => { HZ.edges = {}; HZ.shown = false; hzDraw(); });
+$('#hz-tclear').addEventListener('click', () => { if (HZ.layer === 'board') { HZ.edges = {}; } else HZ.tpl[HZ.layer] = {}; hzDraw(); });
+$('#hz-guide').addEventListener('change', e => { HZ.guide = e.target.checked; hzDraw(); });
+$('#hz-dots').addEventListener('change', e => { HZ.dots = e.target.checked; hzDraw(); });
+$('#hz-hide').addEventListener('change', e => { HZ.hide = e.target.checked; $('#hz-reveal').hidden = !HZ.hide; HZ.shown = false; hzDraw(); });
+$('#hz-reveal').addEventListener('click', () => { HZ.shown = true; hzDraw(); });
+$('#hz-check').addEventListener('click', () => { HZ.checked = true; hzDraw(); });
+$('#hz-sol').addEventListener('click', () => { const s = hzSolve(); if (s.bad) return; Object.keys(HZ.edges).forEach(k => { if (hzParse(k).c < HZ.n) delete HZ.edges[k]; }); Object.assign(HZ.edges, s.edges); HZ.layer = 'board'; hzSet('#hz-layer', 'board'); hzDraw(); });
+(() => { // 讀回上次的作品（沒有儲存功能時照常運作）
+  try { const d = JSON.parse(store.get('han') || 'null'); if (d && d.edges && d.tpl && [5, 7, 9].includes(d.G)) { HZ.n = clamp(+d.n || 1, 1, HZMAX); HZ.G = d.G; HZ.edges = d.edges; HZ.tpl = { w: {}, r: {}, g: {}, b: {}, ...d.tpl }; if (HZCH.some(x => x.id === d.ch)) HZ.ch = d.ch; hzChal(HZ.ch, true); return; } } catch (e) {}
+  hzChal('h1');
+})();
+
 /* ---------- 站內模式切換與重畫 ---------- */
-const DRAW = { disp: dsDraw, add: adDraw, sub: sbDraw, obj: obDraw, fil: flDraw, let: ltDraw };
+const DRAW = { disp: dsDraw, add: adDraw, sub: sbDraw, obj: obDraw, fil: flDraw, let: ltDraw, han: hzDraw };
 let mode = 'add';
 seg($('#co-mode'), v => { mode = v; $$('#st-color > .lab > [data-for]').forEach(el => { el.hidden = el.dataset.for !== v; }); DRAW[v](); });
 // 分頁從隱藏變成顯示、或視窗改變寬度時，畫布寬度會變，藉此重畫
 const ro = new ResizeObserver(raf(() => { if ($('#st-color').offsetParent !== null) DRAW[mode](); }));
-['#ds-cv', '#ad-cv', '#sb-cv', '#ob-cv', '#fl-cv', '#lt-cv', '#lt-dz', '#lt-abc'].forEach(id => ro.observe($(id)));
+['#ds-cv', '#ad-cv', '#sb-cv', '#ob-cv', '#fl-cv', '#lt-cv', '#lt-dz', '#lt-abc', '#hz-cv', '#hz-pv'].forEach(id => ro.observe($(id)));
 const redraw = () => { if ($('#st-color').offsetParent !== null) DRAW[mode](); };
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', redraw);
 new MutationObserver(redraw).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
@@ -4043,5 +4728,6 @@ redraw();
 
 })();
 </script>
+
 </body>
 </html>
