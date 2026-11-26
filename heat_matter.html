@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>5-4 熱對物質的影響</title>
+<style>
+:root{--ink:#1d2329;--muted:#5f6b76;--line:#d5dce2;--soft:#f3f6f8;--accent:#d9480f;--sel:#1864ab;--sel-soft:#e7f1fb;--water:#1c7ed6;--alc:#e8590c;--cold:#d0ebff;--hot:#ffe3d1;--ok:#2b8a3e}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:#fff;color:var(--ink);font-family:system-ui,-apple-system,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;font-size:18px;line-height:1.55}
+.wrap{max-width:1180px;margin:0 auto;padding:0 max(16px,env(safe-area-inset-left,0px)) 40px max(16px,env(safe-area-inset-right,0px))}
+header{padding:14px 0 8px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.top{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between}
+h1{font-size:26px;margin:0}
+h2{font-size:21px;margin:22px 0 8px}
+.nav{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.nav a{font-size:16px;text-decoration:none;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:8px 12px;min-height:44px;display:inline-flex;align-items:center}
+.nav a[aria-current]{background:var(--sel);color:#fff;border-color:var(--sel)}
+.bar{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;margin:8px 0}
+.grp{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.grp>.lab{font-size:16px;color:var(--muted);margin-right:2px}
+.seg{display:inline-flex;flex-wrap:wrap;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.seg button{border:0;border-right:1px solid var(--line);background:#fff;font:inherit;font-size:17px;min-height:44px;min-width:44px;padding:6px 12px;cursor:pointer;color:var(--ink)}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--sel);color:#fff}
+.btn{font:inherit;font-size:17px;min-height:44px;padding:6px 14px;border:1px solid var(--line);border-radius:10px;background:#fff;cursor:pointer;color:var(--ink)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn:disabled{opacity:.45}
+.switch{display:inline-flex;align-items:center;gap:8px;min-height:44px;font-size:17px;cursor:pointer;user-select:none}
+.switch input{width:22px;height:22px;accent-color:var(--sel)}
+input[type=range]{width:180px;height:44px;accent-color:var(--sel)}
+.stage{display:grid;grid-template-columns:minmax(0,440px) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:860px){.stage{grid-template-columns:minmax(0,1fr)}}
+canvas{display:block;width:100%;height:auto;max-width:100%;border:1px solid var(--line);border-radius:12px;background:#fff;touch-action:manipulation}
+.reads{display:flex;flex-wrap:wrap;gap:8px 22px;margin:8px 0;font-size:18px}
+.reads b{font-variant-numeric:tabular-nums;font-size:22px}
+.note{font-size:16px;color:var(--muted);margin:6px 0}
+.panel{border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin:10px 0;background:var(--soft)}
+.ans{font-weight:700;color:var(--accent)}
+.tbl{border-collapse:collapse;margin:12px 0;font-size:17px;font-variant-numeric:tabular-nums}
+.tbl th,.tbl td{border:1px solid var(--line);padding:6px 10px;text-align:center;white-space:nowrap}
+@media (max-width:480px){.tbl th,.tbl td{padding:6px 6px}}
+.tbl th{background:var(--soft);font-weight:600}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="top">
+    <h1>5-4 熱對物質的影響</h1>
+    <div class="grp">
+      <label class="switch"><input type="checkbox" id="adv">進階</label>
+    </div>
+  </div>
+  <nav class="nav" aria-label="第五章各站">
+    <a href="heat_thermometer.html">1 溫度計</a>
+    <a href="heat_rise.html">2 水溫上升</a>
+    <a href="heat_equilibrium.html">3 熱平衡</a>
+    <a href="heat_specific.html">4 比熱</a>
+    <a href="heat_matter.html" aria-current="page">5 體積與三態</a>
+    <a href="heat_transfer.html">6 熱的傳播</a>
+  </nav>
+</header>
+<div class="bar">
+  <div class="grp"><span class="lab">實驗</span>
+    <div class="seg" id="mode"><button data-v="curve" aria-pressed="true">冰的加熱</button><button data-v="anom">0～10℃ 的水</button><button data-v="exp">氣、液、固的膨脹</button></div>
+  </div>
+</div>
+
+<section id="m-curve">
+<div class="bar">
+  <div class="grp"><span class="lab">火力</span><div class="seg" id="fire"><button data-v="500">小</button><button data-v="1000" aria-pressed="true">中</button><button data-v="2000">大</button></div></div>
+  <button class="btn primary" id="go">開始加熱</button>
+  <button class="btn" id="reset">重新開始</button>
+  <div class="grp"><span class="lab">時間快轉</span><div class="seg" id="speed"><button data-v="10">×10</button><button data-v="60" aria-pressed="true">×60</button><button data-v="300">×300</button></div></div>
+</div>
+<div class="stage">
+  <div>
+    <canvas id="scene" width="440" height="400" style="max-width:440px" aria-label="粒子示意"></canvas>
+    <div class="reads"><span>時間 <b id="rt">0.0</b> 分</span><span>溫度 <b id="rT">−20.0</b>℃</span><span>狀態 <b id="rP">固態</b></span></div>
+  </div>
+  <div>
+    <canvas id="graph" width="640" height="340" aria-label="溫度與加熱時間"></canvas>
+    <p class="note">100 g 的冰，從 −20℃ 開始用穩定熱源加熱，在 1 大氣壓的密閉容器中，熱量全部被吸收。</p>
+    <div class="panel advonly" id="hpanel" hidden></div>
+  </div>
+</div>
+</section>
+
+<section id="m-anom" hidden>
+<div class="bar"><div class="grp"><span class="lab">水溫</span><input type="range" id="aT" min="0" max="10" step="0.1" value="8" style="width:260px"><b id="aTv"></b></div></div>
+<div class="stage">
+  <div><canvas id="ascene" width="440" height="400" style="max-width:440px" aria-label="1 公克水的體積"></canvas>
+    <div class="reads"><span>體積 <b id="aV"></b> cm³</span><span>密度 <b id="aD"></b> g/cm³</span></div>
+  </div>
+  <div><canvas id="agraph" width="640" height="340" aria-label="1 公克水的體積與溫度"></canvas>
+    <p class="note">1 公克純水的體積（依實測密度計算）。左圖量筒中液面的升降放大了 2000 倍。</p>
+  </div>
+</div>
+</section>
+
+<section id="m-exp" hidden>
+<div class="bar"><div class="grp"><span class="lab">溫度</span><input type="range" id="eT" min="20" max="80" step="1" value="80" style="width:260px"><b id="eTv"></b></div></div>
+<canvas id="escene" width="900" height="330" style="max-width:900px" aria-label="空氣、水、鐵的膨脹"></canvas>
+<p class="note">三種物質在 20℃ 時都是 100 cm³，加熱後增加的體積。空氣在定壓下膨脹；水和鐵的長條各放大了 5 倍和 100 倍。框線長度代表 25 cm³。</p>
+</section>
+
+
+</div>
+<script>
+(() => {
+'use strict';
+const $ = s => document.querySelector(s);
+const PFX = 'heatmatter-';
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(PFX + k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(PFX + k, JSON.stringify(v)); } catch (e) {} }
+};
+const FONT = 'system-ui,-apple-system,"PingFang TC","Noto Sans TC",sans-serif';
+// 畫布：fixed=true 時固定邏輯尺寸、整張縮放；否則依實際寬度重設（文字維持原大小）
+function setup(cv, fixed, hOf) {
+  const o = { cv, c: cv.getContext('2d'), W: cv.width, H: cv.height, fixed, hOf };
+  fit(o); return o;
+}
+function fit(o) {
+  const dpr = Math.min(window.devicePixelRatio || 1, 3);
+  if (!o.fixed) { const w = Math.round(o.cv.getBoundingClientRect().width) || o.W; o.W = w; o.H = o.hOf(w); }
+  o.cv.width = o.W * dpr; o.cv.height = o.H * dpr;
+  if (!o.fixed) o.cv.style.height = o.H + 'px';
+  o.c.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+function seg(id, cb) {
+  const el = $(id);
+  el.addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b || !el.contains(b)) return;
+    el.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b));
+    const v = b.dataset.v; cb(isNaN(+v) ? v : +v);
+  });
+}
+function setSeg(id, v) { $(id).querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x.dataset.v) === String(v))); }
+function axes(c, W, H, x0, x1, y0, y1, xl, yl, P) {
+  c.strokeStyle = '#adb5bd'; c.lineWidth = 1; c.fillStyle = '#5f6b76'; c.font = `16px ${FONT}`;
+  const X = x => P.l + (x - x0) / (x1 - x0) * (W - P.l - P.r), Y = y => H - P.b - (y - y0) / (y1 - y0) * (H - P.t - P.b);
+  const nice = r => { const e = Math.pow(10, Math.floor(Math.log10(r / 5))), m = r / 5 / e; return (m < 1.5 ? 1 : m < 3.5 ? 2 : m < 7.5 ? 5 : 10) * e; };
+  const dx = nice(x1 - x0), dy = nice(y1 - y0);
+  c.textAlign = 'center'; c.textBaseline = 'top';
+  for (let x = Math.ceil(x0 / dx) * dx; x <= x1 + 1e-9; x += dx) { c.globalAlpha = .4; c.beginPath(); c.moveTo(X(x), P.t); c.lineTo(X(x), H - P.b); c.stroke(); c.globalAlpha = 1; c.fillText(+x.toFixed(6) + '', X(x), H - P.b + 5); }
+  c.textAlign = 'right'; c.textBaseline = 'middle';
+  for (let y = Math.ceil(y0 / dy) * dy; y <= y1 + 1e-9; y += dy) { c.globalAlpha = .4; c.beginPath(); c.moveTo(P.l, Y(y)); c.lineTo(W - P.r, Y(y)); c.stroke(); c.globalAlpha = 1; c.fillText(+y.toFixed(6) + '', P.l - 6, Y(y)); }
+  c.strokeStyle = '#495057'; c.lineWidth = 1.5; c.beginPath(); c.moveTo(P.l, P.t); c.lineTo(P.l, H - P.b); c.lineTo(W - P.r, H - P.b); c.stroke();
+  c.font = `16px ${FONT}`; c.fillStyle = '#343a40';
+  c.textAlign = 'right'; c.textBaseline = 'bottom'; c.fillText(xl, W - P.r, H - P.b - 4);
+  c.textAlign = 'left'; c.textBaseline = 'top'; c.fillText(yl, P.l + 6, 4);
+  return { X, Y };
+}
+
+/* ---------- 物理常數（卡、公克、℃） ---------- */
+const M = 100, T_START = -20, T_END = 120;
+const C_ICE = 0.50, C_W = 1.0, C_ST = 0.48, LF = 80, LV = 540;
+// 各段累積熱量（卡）
+const Q1 = M * C_ICE * (0 - T_START), Q2 = Q1 + M * LF, Q3 = Q2 + M * C_W * 100, Q4 = Q3 + M * LV, Q5 = Q4 + M * C_ST * (T_END - 100);
+function stateOf(Q) {
+  if (Q < Q1) return { T: T_START + Q / (M * C_ICE), p: '固態', s: 1, g: 0 };
+  if (Q < Q2) return { T: 0, p: '固液共存（熔化中）', s: 1 - (Q - Q1) / (M * LF), g: 0 };
+  if (Q < Q3) return { T: (Q - Q2) / (M * C_W), p: '液態', s: 0, g: 0 };
+  if (Q < Q4) return { T: 100, p: '液氣共存（沸騰中）', s: 0, g: (Q - Q3) / (M * LV) };
+  return { T: 100 + Math.min(Q - Q4, Q5 - Q4) / (M * C_ST), p: '氣態', s: 0, g: 1 };
+}
+function rhoWater(T) {
+  return (999.83952 + 16.945176 * T - 7.9870401e-3 * T * T - 46.170461e-6 * T ** 3 + 105.56302e-9 * T ** 4 - 280.54253e-12 * T ** 5) / (1 + 16.879850e-3 * T) / 1000;
+}
+const S = { mode: 'curve', fire: 1000, speed: 60, run: false, t: 0, Q: 0, hist: [[0, T_START]], adv: store.get('adv', false) };
+
+const sc = setup($('#scene'), true);
+const gH = w => w < 520 ? 280 : 340;
+const gr = setup($('#graph'), false, gH);
+const as = setup($('#ascene'), true), ag = setup($('#agraph'), false, gH), es = setup($('#escene'), false, () => 330);
+window.addEventListener('resize', () => { [gr, ag, es].forEach(fit); drawAnom(); drawExp(); });
+
+/* ---------- 粒子 ---------- */
+const N = 42, parts = [];
+for (let i = 0; i < N; i++) parts.push({ x: 0, y: 0, vx: 0, vy: 0, gx: 70 + (i % 7) * 46, gy: 360 - Math.floor(i / 7) * 30 });
+function resetParts() { parts.forEach(p => { p.x = p.gx; p.y = p.gy; p.vx = 0; p.vy = 0; }); }
+function moveParts(st, dt) {
+  const nS = Math.round(N * st.s), nG = Math.round(N * st.g);
+  const amp = 1 + Math.max(0, st.T + 30) / 40;
+  parts.forEach((p, i) => {
+    const phase = i < nS ? 's' : i >= N - nG ? 'g' : 'l';
+    p.ph = phase;
+    if (phase === 's') { p.x = p.gx + (Math.random() - .5) * amp * 2; p.y = p.gy + (Math.random() - .5) * amp * 2; return; }
+    const sp = phase === 'g' ? 240 + st.T : 40 + st.T * 0.6;
+    if (p.vx === 0 && p.vy === 0 || Math.hypot(p.vx, p.vy) < sp * .5 || Math.hypot(p.vx, p.vy) > sp * 1.6) { const a = Math.random() * 6.283; p.vx = Math.cos(a) * sp; p.vy = Math.sin(a) * sp; }
+    p.x += p.vx * dt; p.y += p.vy * dt;
+    const nL = N - nS - nG, top = phase === 'g' ? 40 : Math.max(200, 375 - Math.ceil(nL / 8) * 34 - (nS ? Math.ceil(nS / 7) * 30 : 0)), bot = phase === 'l' && nS ? 375 - Math.ceil(nS / 7) * 30 + 10 : 375;
+    if (p.x < 40) { p.x = 40; p.vx *= -1; } if (p.x > 400) { p.x = 400; p.vx *= -1; }
+    if (p.y < top) { p.y = top; p.vy = Math.abs(p.vy); } if (p.y > bot) { p.y = bot; p.vy = -Math.abs(p.vy); }
+    if (phase === 'l') { p.vx *= 0.98; p.vy *= 0.98; }
+    if (phase === 'l') { p.vx += (Math.random() - .5) * 60; p.vy += (Math.random() - .5) * 60; }
+  });
+}
+function drawParts(st) {
+  const { c, W, H } = sc; c.clearRect(0, 0, W, H);
+  c.strokeStyle = '#495057'; c.lineWidth = 3; c.strokeRect(28, 28, 384, 360);
+  parts.forEach(p => {
+    c.fillStyle = p.ph === 's' ? '#74c0fc' : p.ph === 'l' ? '#1c7ed6' : '#adb5bd';
+    c.beginPath(); c.arc(p.x, p.y, 10, 0, 7); c.fill();
+  });
+  c.fillStyle = '#343a40'; c.font = `bold 18px ${FONT}`; c.textAlign = 'center'; c.textBaseline = 'top';
+  c.fillText('粒子示意（不是真實的大小與數量）', W / 2, 2); c.textAlign = 'left';
+}
+function drawCurve() {
+  const { c, W, H } = gr; c.clearRect(0, 0, W, H);
+  const P = { l: 52, r: 16, t: 30, b: 36 };
+  const tTot = Q5 / S.fire;   // 分
+  const { X: Xp, Y } = axes(c, W, H, 0, Math.ceil(tTot / 10) * 10, -30, 130, '加熱時間（分）', '溫度（℃）', P);
+  c.strokeStyle = '#d9480f'; c.lineWidth = 3; c.beginPath();
+  S.hist.forEach((p, i) => { const x = Xp(p[0]), y = Y(p[1]); i ? c.lineTo(x, y) : c.moveTo(x, y); });
+  c.stroke();
+  c.strokeStyle = '#adb5bd'; c.setLineDash([5, 5]); c.lineWidth = 1;
+  for (const v of [0, 100]) { c.beginPath(); c.moveTo(P.l, Y(v)); c.lineTo(W - P.r, Y(v)); c.stroke(); }
+  c.setLineDash([]);
+}
+function hpanel() {
+  const el = $('#hpanel'); el.hidden = !S.adv; if (!S.adv) return;
+  el.innerHTML = `已吸收熱量 <b>${Math.round(S.Q).toLocaleString()}</b> 卡<br>熔化 1 g 冰需 80 卡，汽化 1 g 水需 540 卡（國中不要求計算）。`;
+}
+function stepCurve(dt) {
+  S.Q = Math.min(Q5, S.Q + S.fire / 60 * dt); S.t += dt / 60;
+  const st = stateOf(S.Q);
+  const lt = S.hist[S.hist.length - 1][0];
+  if (S.t - lt > 0.05) S.hist.push([S.t, st.T]);
+  if (S.Q >= Q5) { S.run = false; $('#go').textContent = '已結束'; S.hist.push([S.t, st.T]); }
+}
+function resetCurve() { S.run = false; S.t = 0; S.Q = 0; S.hist = [[0, T_START]]; resetParts(); $('#go').textContent = '開始加熱'; }
+
+/* ---------- 0～10℃ 的水 ---------- */
+function drawAnom() {
+  const T = +$('#aT').value, V = 1 / rhoWater(T);
+  $('#aTv').textContent = T.toFixed(1) + '℃'; $('#aV').textContent = V.toFixed(5); $('#aD').textContent = rhoWater(T).toFixed(5);
+  { // 量筒
+    const { c, W, H } = as; c.clearRect(0, 0, W, H);
+    const base = 360, h0 = 200, x0 = 170, w = 100;
+    const h = h0 + (V - 1) * h0 * 2000; // 量筒高 h0 代表 1 cm³，液面變化放大 2000 倍
+    c.fillStyle = 'rgba(28,126,214,.45)'; c.fillRect(x0, base - h, w, h);
+    c.strokeStyle = '#495057'; c.lineWidth = 2.5; c.beginPath(); c.moveTo(x0, 30); c.lineTo(x0, base); c.lineTo(x0 + w, base); c.lineTo(x0 + w, 30); c.stroke();
+    const h4 = h0 + (1 / rhoWater(3.98) - 1) * h0 * 2000;
+    c.strokeStyle = '#c92a2a'; c.setLineDash([6, 4]); c.beginPath(); c.moveTo(x0 - 30, base - h4); c.lineTo(x0 + w + 30, base - h4); c.stroke(); c.setLineDash([]);
+    c.fillStyle = '#c92a2a'; c.font = `16px ${FONT}`; c.textBaseline = 'middle'; c.fillText('4℃ 的液面', x0 + w + 34, base - h4);
+    c.fillStyle = '#343a40'; c.font = `bold 22px ${FONT}`; c.textAlign = 'center'; c.fillText(`${T.toFixed(1)}℃`, x0 + w / 2, base + 22); c.textAlign = 'left';
+  }
+  { // 曲線
+    const { c, W, H } = ag; c.clearRect(0, 0, W, H);
+    const P = { l: 78, r: 16, t: 30, b: 36 };
+    const { X: Xp, Y } = axes(c, W, H, 0, 10, 1.00000, 1.00030, '溫度（℃）', '體積（cm³）', P);
+    c.strokeStyle = '#1c7ed6'; c.lineWidth = 3; c.beginPath();
+    for (let t = 0; t <= 10.001; t += 0.1) { const x = Xp(t), y = Y(1 / rhoWater(t)); t ? c.lineTo(x, y) : c.moveTo(x, y); }
+    c.stroke();
+    c.fillStyle = '#d9480f'; c.beginPath(); c.arc(Xp(T), Y(V), 7, 0, 7); c.fill();
+  }
+}
+
+/* ---------- 氣液固膨脹 ---------- */
+function drawExp() {
+  const T = +$('#eT').value; $('#eTv').textContent = T + '℃';
+  const air = 100 * ((T + 273.15) / 293.15 - 1), water = 100 * (rhoWater(20) / rhoWater(T) - 1), iron = 100 * 3.5e-5 * (T - 20);
+  const { c, W, H } = es; c.clearRect(0, 0, W, H);
+  const rows = [['空氣', air, 1, '#868e96'], ['水', water, 5, '#1c7ed6'], ['鐵', iron, 100, '#495057']];
+  const x0 = 64, scale = (W - x0 - 20) / 25; // 25 cm³ 撐滿
+  c.font = `bold 20px ${FONT}`; c.textBaseline = 'middle';
+  rows.forEach(([n, v, mag, col], i) => {
+    const y = 50 + i * 105;
+    c.fillStyle = '#343a40'; c.textAlign = 'right'; c.fillText(n, x0 - 16, y);
+    c.fillStyle = col; c.fillRect(x0, y - 22, Math.max(1, v * mag * scale), 44);
+    c.strokeStyle = '#ced4da'; c.lineWidth = 1; c.strokeRect(x0, y - 22, 25 * scale, 44);
+    c.textAlign = 'left'; c.fillStyle = '#212529';
+    c.fillText(`＋${v.toFixed(v < 1 ? 3 : 2)} cm³`, x0, y + 40);
+    c.font = `16px ${FONT}`; c.fillStyle = '#5f6b76'; c.textAlign = 'right'; c.fillText(mag > 1 ? `長條放大 ×${mag}` : '實際比例', x0 + 25 * scale, y + 40); c.textAlign = 'left';
+    c.font = `bold 20px ${FONT}`;
+  });
+}
+
+/* ---------- 介面 ---------- */
+seg('#mode', v => { S.mode = v; ['curve', 'anom', 'exp'].forEach(k => $('#m-' + k).hidden = k !== v); if (v === 'anom') { fit(ag); drawAnom(); } if (v === 'exp') { fit(es); drawExp(); } if (v === 'curve') fit(gr); });
+seg('#fire', v => { S.fire = v; resetCurve(); });
+seg('#speed', v => { S.speed = v; });
+$('#go').addEventListener('click', () => { if (S.Q >= Q5) return; S.run = !S.run; $('#go').textContent = S.run ? '暫停' : '繼續加熱'; });
+$('#reset').addEventListener('click', resetCurve);
+$('#aT').addEventListener('input', drawAnom);
+$('#eT').addEventListener('input', drawExp);
+function applyAdv() { $('#adv').checked = S.adv; document.querySelectorAll('.advonly').forEach(el => el.hidden = !S.adv); }
+$('#adv').addEventListener('change', e => { S.adv = e.target.checked; store.set('adv', S.adv); applyAdv(); });
+applyAdv(); resetCurve(); drawAnom(); drawExp();
+
+let last = performance.now();
+function frame(now) {
+  const real = Math.min(0.1, (now - last) / 1000); last = now;
+  if (S.mode === 'curve') {
+    if (S.run) stepCurve(real * S.speed);
+    const st = stateOf(S.Q);
+    moveParts(st, real);
+    drawParts(st); drawCurve(); hpanel();
+    $('#rt').textContent = S.t.toFixed(1); $('#rT').textContent = (st.T < 0 ? '−' : '') + Math.abs(st.T).toFixed(1); $('#rP').textContent = st.p;
+  }
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+})();
+</script>
+</body>
+</html>
