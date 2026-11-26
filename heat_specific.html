@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>5-3 比熱</title>
+<style>
+:root{--ink:#1d2329;--muted:#5f6b76;--line:#d5dce2;--soft:#f3f6f8;--accent:#d9480f;--sel:#1864ab;--sel-soft:#e7f1fb;--water:#1c7ed6;--alc:#e8590c;--cold:#d0ebff;--hot:#ffe3d1;--ok:#2b8a3e}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:#fff;color:var(--ink);font-family:system-ui,-apple-system,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;font-size:18px;line-height:1.55}
+.wrap{max-width:1180px;margin:0 auto;padding:0 max(16px,env(safe-area-inset-left,0px)) 40px max(16px,env(safe-area-inset-right,0px))}
+header{padding:14px 0 8px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.top{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between}
+h1{font-size:26px;margin:0}
+h2{font-size:21px;margin:22px 0 8px}
+.nav{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.nav a{font-size:16px;text-decoration:none;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:8px 12px;min-height:44px;display:inline-flex;align-items:center}
+.nav a[aria-current]{background:var(--sel);color:#fff;border-color:var(--sel)}
+.bar{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;margin:8px 0}
+.grp{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.grp>.lab{font-size:16px;color:var(--muted);margin-right:2px}
+.seg{display:inline-flex;flex-wrap:wrap;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.seg button{border:0;border-right:1px solid var(--line);background:#fff;font:inherit;font-size:17px;min-height:44px;min-width:44px;padding:6px 12px;cursor:pointer;color:var(--ink)}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--sel);color:#fff}
+.btn{font:inherit;font-size:17px;min-height:44px;padding:6px 14px;border:1px solid var(--line);border-radius:10px;background:#fff;cursor:pointer;color:var(--ink)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn:disabled{opacity:.45}
+.switch{display:inline-flex;align-items:center;gap:8px;min-height:44px;font-size:17px;cursor:pointer;user-select:none}
+.switch input{width:22px;height:22px;accent-color:var(--sel)}
+input[type=range]{width:180px;height:44px;accent-color:var(--sel)}
+.stage{display:grid;grid-template-columns:minmax(0,440px) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:860px){.stage{grid-template-columns:minmax(0,1fr)}}
+canvas{display:block;width:100%;height:auto;max-width:100%;border:1px solid var(--line);border-radius:12px;background:#fff;touch-action:manipulation}
+.reads{display:flex;flex-wrap:wrap;gap:8px 22px;margin:8px 0;font-size:18px}
+.reads b{font-variant-numeric:tabular-nums;font-size:22px}
+.note{font-size:16px;color:var(--muted);margin:6px 0}
+.panel{border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin:10px 0;background:var(--soft)}
+.ans{font-weight:700;color:var(--accent)}
+.tbl{border-collapse:collapse;margin:12px 0;font-size:17px;font-variant-numeric:tabular-nums}
+.tbl th,.tbl td{border:1px solid var(--line);padding:6px 10px;text-align:center;white-space:nowrap}
+@media (max-width:480px){.tbl th,.tbl td{padding:6px 6px}}
+.tbl th{background:var(--soft);font-weight:600}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="top">
+    <h1>5-3 比熱</h1>
+    <div class="grp">
+      <label class="switch"><input type="checkbox" id="adv">進階</label>
+    </div>
+  </div>
+  <nav class="nav" aria-label="第五章各站">
+    <a href="heat_thermometer.html">1 溫度計</a>
+    <a href="heat_rise.html">2 水溫上升</a>
+    <a href="heat_equilibrium.html">3 熱平衡</a>
+    <a href="heat_specific.html" aria-current="page">4 比熱</a>
+    <a href="heat_matter.html">5 體積與三態</a>
+    <a href="heat_transfer.html">6 熱的傳播</a>
+  </nav>
+</header>
+<div class="bar">
+  <div class="grp"><span class="lab">A</span>
+    <div class="seg" id="sA"><button data-v="water" aria-pressed="true">水</button><button data-v="gly">甘油</button><button data-v="alc">酒精</button><button data-v="al">鋁</button><button data-v="fe">鐵</button><button data-v="cu">銅</button></div>
+  </div>
+  <div class="grp"><span class="lab">B</span>
+    <div class="seg" id="sB"><button data-v="water">水</button><button data-v="gly" aria-pressed="true">甘油</button><button data-v="alc">酒精</button><button data-v="al">鋁</button><button data-v="fe">鐵</button><button data-v="cu">銅</button></div>
+  </div>
+</div>
+<div class="bar">
+  <div class="grp"><span class="lab">A 質量</span><div class="seg" id="mA"><button data-v="50" aria-pressed="true">50 g</button><button data-v="100">100 g</button></div></div>
+  <div class="grp"><span class="lab">B 質量</span><div class="seg" id="mB"><button data-v="50" aria-pressed="true">50 g</button><button data-v="100">100 g</button></div></div>
+  <button class="btn primary" id="go">開始加熱</button>
+  <button class="btn" id="reset">重新開始</button>
+  <div class="grp"><span class="lab">時間快轉</span>
+    <div class="seg" id="speed"><button data-v="1">×1</button><button data-v="5" aria-pressed="true">×5</button><button data-v="10">×10</button></div>
+  </div>
+</div>
+<div class="bar advonly" hidden>
+  <label class="switch"><input type="checkbox" id="xBeaker" checked>燒杯也會吸熱</label>
+</div>
+
+<div class="stage">
+  <div>
+    <canvas id="scene" width="440" height="380" style="max-width:440px" aria-label="兩種物質加熱"></canvas>
+    <div class="reads"><span>加熱時間 <b id="rt">0.0</b> 分</span></div>
+    <p class="note">兩邊用相同的穩定熱源加熱，初溫都是 25℃，每 0.5 分鐘自動記錄一次。假設熱源的熱全部被物質吸收。</p>
+  </div>
+  <div>
+    <canvas id="graph" width="640" height="340" aria-label="上升溫度與加熱時間"></canvas>
+    <div class="panel advonly" id="calc" hidden></div>
+  </div>
+</div>
+<div style="overflow-x:auto"><table class="tbl" id="tbl"></table></div>
+<details class="panel">
+  <summary style="min-height:44px;cursor:pointer;font-weight:600;display:flex;align-items:center">常見物質的比熱（卡／公克·℃）</summary>
+  <div style="overflow-x:auto"><table class="tbl">
+    <tr><th>銅</th><th>鐵</th><th>鋁</th><th>冰</th><th>酒精</th><th>甘油</th><th>水</th></tr>
+    <tr><td>0.093</td><td>0.113</td><td>0.217</td><td>0.50*</td><td>0.57</td><td>0.58</td><td>1.0</td></tr>
+  </table></div>
+  <p class="note">* 課本表 5-1 寫 0.55；冰在 0℃ 附近的實測值約 0.50。</p>
+</details>
+
+
+</div>
+<script>
+(() => {
+'use strict';
+const $ = s => document.querySelector(s);
+const PFX = 'heatsh-';
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(PFX + k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(PFX + k, JSON.stringify(v)); } catch (e) {} }
+};
+const FONT = 'system-ui,-apple-system,"PingFang TC","Noto Sans TC",sans-serif';
+// 畫布：fixed=true 時固定邏輯尺寸、整張縮放；否則依實際寬度重設（文字維持原大小）
+function setup(cv, fixed, hOf) {
+  const o = { cv, c: cv.getContext('2d'), W: cv.width, H: cv.height, fixed, hOf };
+  fit(o); return o;
+}
+function fit(o) {
+  const dpr = Math.min(window.devicePixelRatio || 1, 3);
+  if (!o.fixed) { const w = Math.round(o.cv.getBoundingClientRect().width) || o.W; o.W = w; o.H = o.hOf(w); }
+  o.cv.width = o.W * dpr; o.cv.height = o.H * dpr;
+  if (!o.fixed) o.cv.style.height = o.H + 'px';
+  o.c.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+function seg(id, cb) {
+  const el = $(id);
+  el.addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b || !el.contains(b)) return;
+    el.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b));
+    const v = b.dataset.v; cb(isNaN(+v) ? v : +v);
+  });
+}
+function setSeg(id, v) { $(id).querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x.dataset.v) === String(v))); }
+function axes(c, W, H, x0, x1, y0, y1, xl, yl, P) {
+  c.strokeStyle = '#adb5bd'; c.lineWidth = 1; c.fillStyle = '#5f6b76'; c.font = `16px ${FONT}`;
+  const X = x => P.l + (x - x0) / (x1 - x0) * (W - P.l - P.r), Y = y => H - P.b - (y - y0) / (y1 - y0) * (H - P.t - P.b);
+  const nice = r => { const e = Math.pow(10, Math.floor(Math.log10(r / 5))), m = r / 5 / e; return (m < 1.5 ? 1 : m < 3.5 ? 2 : m < 7.5 ? 5 : 10) * e; };
+  const dx = nice(x1 - x0), dy = nice(y1 - y0);
+  c.textAlign = 'center'; c.textBaseline = 'top';
+  for (let x = Math.ceil(x0 / dx) * dx; x <= x1 + 1e-9; x += dx) { c.globalAlpha = .4; c.beginPath(); c.moveTo(X(x), P.t); c.lineTo(X(x), H - P.b); c.stroke(); c.globalAlpha = 1; c.fillText(+x.toFixed(6) + '', X(x), H - P.b + 5); }
+  c.textAlign = 'right'; c.textBaseline = 'middle';
+  for (let y = Math.ceil(y0 / dy) * dy; y <= y1 + 1e-9; y += dy) { c.globalAlpha = .4; c.beginPath(); c.moveTo(P.l, Y(y)); c.lineTo(W - P.r, Y(y)); c.stroke(); c.globalAlpha = 1; c.fillText(+y.toFixed(6) + '', P.l - 6, Y(y)); }
+  c.strokeStyle = '#495057'; c.lineWidth = 1.5; c.beginPath(); c.moveTo(P.l, P.t); c.lineTo(P.l, H - P.b); c.lineTo(W - P.r, H - P.b); c.stroke();
+  c.font = `16px ${FONT}`; c.fillStyle = '#343a40';
+  c.textAlign = 'right'; c.textBaseline = 'bottom'; c.fillText(xl, W - P.r, H - P.b - 4);
+  c.textAlign = 'left'; c.textBaseline = 'top'; c.fillText(yl, P.l + 6, 4);
+  return { X, Y };
+}
+
+// 比熱（卡／公克·℃）；冰依老師決定用實測值 0.50
+const MAT = {
+  water: { n: '水', s: 1.0, bp: 100, col: '#1c7ed6', liq: true },
+  gly: { n: '甘油', s: 0.58, bp: 290, col: '#c2255c', liq: true },
+  alc: { n: '酒精', s: 0.57, bp: 78, col: '#e8590c', liq: true },
+  al: { n: '鋁', s: 0.217, bp: 1e9, col: '#868e96', liq: false },
+  fe: { n: '鐵', s: 0.113, bp: 1e9, col: '#495057', liq: false },
+  cu: { n: '銅', s: 0.093, bp: 1e9, col: '#d9480f', liq: false }
+};
+const POWER = 360, T0 = 25, BEAKER_EQ = 20, TEND = 150;
+const S = { sA: 'water', sB: 'gly', mA: 50, mB: 50, speed: 5, run: false, t: 0, A: T0, B: T0, recs: [], adv: store.get('adv', false) };
+const opt = id => S.adv && $(id).checked;
+const capA = () => S.A, colOf = k => MAT[S['s' + k]].col === MAT[S[k === 'A' ? 'sB' : 'sA']].col ? (k === 'A' ? '#1c7ed6' : '#e8590c') : MAT[S['s' + k]].col;
+
+function reset() { S.run = false; S.t = 0; S.A = T0; S.B = T0; S.recs = [{ t: 0, A: T0, B: T0 }]; $('#go').textContent = '開始加熱'; table(); calc(); }
+function heatCap(k) { const m = MAT[S['s' + k]]; return S['m' + k] * m.s + (m.liq && opt('#xBeaker') ? BEAKER_EQ : 0); }
+function step(dt) {
+  let left = dt;
+  while (left > 1e-9 && S.t < TEND) {
+    const next = (Math.floor(S.t / 30 + 1e-9) + 1) * 30, h = Math.min(0.2, left, next - S.t);
+    for (const k of ['A', 'B']) S[k] = Math.min(MAT[S['s' + k]].bp, S[k] + POWER / 60 * h / heatCap(k));
+    S.t += h; left -= h;
+    if (Math.abs(S.t - next) < 1e-6) { S.t = next; S.recs.push({ t: next, A: Math.round(S.A * 10) / 10, B: Math.round(S.B * 10) / 10 }); table(); }
+  }
+  if (S.t >= TEND) { S.run = false; $('#go').textContent = '已到 2.5 分鐘'; calc(); }
+}
+
+const sc = setup($('#scene'), true);
+const gH = w => w < 520 ? 280 : 340;
+const gr = setup($('#graph'), false, gH);
+window.addEventListener('resize', () => fit(gr));
+function drawOne(c, x, k) {
+  const m = MAT[S['s' + k]], T = S[k], col = colOf(k);
+  // 熱源
+  c.fillStyle = '#e9ecef'; c.strokeStyle = '#868e96'; c.lineWidth = 2;
+  c.beginPath(); c.ellipse(x, 350, 34, 20, 0, 0, 7); c.fill(); c.stroke();
+  c.fillStyle = '#868e96'; c.fillRect(x - 5, 318, 10, 14);
+  if (S.run) { const fh = 38 * (0.92 + Math.random() * .12); c.fillStyle = 'rgba(255,146,43,.85)'; c.beginPath(); c.moveTo(x - 8, 318); c.quadraticCurveTo(x - 10, 318 - fh * .5, x, 318 - fh); c.quadraticCurveTo(x + 10, 318 - fh * .5, x + 8, 318); c.fill(); }
+  c.strokeStyle = '#495057'; c.lineWidth = 3; c.beginPath(); c.moveTo(x - 80, 266); c.lineTo(x + 80, 266); c.stroke();
+  c.fillStyle = '#ced4da'; c.fillRect(x - 78, 262, 156, 6);
+  const hot = Math.max(0, Math.min(1, (T - 25) / 75));
+  if (m.liq) {
+    const w = 110, top = 130, bot = 260, wh = (bot - top) * 0.45 * S['m' + k] / 50 * 0.8;
+    c.fillStyle = col + '55'; c.fillRect(x - w / 2, bot - wh, w, wh);
+    c.strokeStyle = '#495057'; c.lineWidth = 2.5; c.beginPath(); c.moveTo(x - w / 2, top); c.lineTo(x - w / 2, bot); c.lineTo(x + w / 2, bot); c.lineTo(x + w / 2, top); c.stroke();
+    if (T >= m.bp - 0.05) { c.fillStyle = '#fff'; c.strokeStyle = col; for (let i = 0; i < 6; i++) { c.beginPath(); c.arc(x - 40 + Math.random() * 80, bot - Math.random() * wh, 3 + Math.random() * 3, 0, 7); c.fill(); c.stroke(); } }
+  } else {
+    const side = 46 * Math.cbrt(S['m' + k] / 50);
+    c.fillStyle = col; c.globalAlpha = .75; c.fillRect(x - side / 2 - 10, 262 - side, side + 20, side); c.globalAlpha = 1;
+    c.fillStyle = `rgba(255,80,0,${hot * .5})`; c.fillRect(x - side / 2 - 10, 262 - side, side + 20, side);
+  }
+  c.fillStyle = col; c.font = `bold 20px ${FONT}`; c.textAlign = 'center'; c.textBaseline = 'alphabetic';
+  c.fillText(`${k}：${m.n} ${S['m' + k]} g`, x, 30);
+  c.fillStyle = '#212529'; c.font = `bold 26px ${FONT}`; c.fillText(`${T.toFixed(1)}℃`, x, 100);
+  if (T >= m.bp - 0.05) { c.fillStyle = col; c.font = `bold 17px ${FONT}`; c.fillText('沸騰中', x, 122); }
+  c.textAlign = 'left';
+}
+function drawScene() { const { c, W, H } = sc; c.clearRect(0, 0, W, H); drawOne(c, 110, 'A'); drawOne(c, 330, 'B'); }
+function drawGraph() {
+  const { c, W, H } = gr; c.clearRect(0, 0, W, H);
+  const P = { l: 52, r: 16, t: 30, b: 36 };
+  const ymax = Math.max(10, ...S.recs.flatMap(r => [r.A - T0, r.B - T0]), S.A - T0, S.B - T0) * 1.1;
+  const { X: Xp, Y } = axes(c, W, H, 0, 2.5, 0, ymax, '加熱時間（分）', '上升溫度 T−T₀（℃）', P);
+  const dot = (t, v, col) => { c.fillStyle = col; c.beginPath(); c.arc(Xp(t / 60), Y(v), 6, 0, 7); c.fill(); };
+  S.recs.forEach(r => { dot(r.t, r.A - T0, colOf('A')); dot(r.t, r.B - T0, colOf('B')); });
+  if (S.t > 0 && S.t < TEND) for (const k of ['A', 'B']) { c.strokeStyle = colOf(k); c.lineWidth = 2; c.beginPath(); c.arc(Xp(S.t / 60), Y(S[k] - T0), 7, 0, 7); c.stroke(); }
+  c.font = `bold 16px ${FONT}`; c.textAlign = 'left'; c.textBaseline = 'top';
+  c.fillStyle = colOf('A'); c.fillText(`● A ${MAT[S.sA].n}`, P.l + 12, P.t + 4);
+  c.fillStyle = colOf('B'); c.fillText(`● B ${MAT[S.sB].n}`, P.l + 12, P.t + 26);
+}
+function table() {
+  const nA = MAT[S.sA].n, nB = MAT[S.sB].n;
+  const rows = S.recs.map(r => `<tr><td>${(r.t / 60).toFixed(1)}</td><td>${r.A.toFixed(1)}</td><td>${(r.A - T0).toFixed(1)}</td><td>${r.B.toFixed(1)}</td><td>${(r.B - T0).toFixed(1)}</td></tr>`).join('');
+  $('#tbl').innerHTML = `<thead><tr><th rowspan="2">時間（分）</th><th colspan="2" style="color:${colOf('A')}">A ${nA} ${S.mA} g</th><th colspan="2" style="color:${colOf('B')}">B ${nB} ${S.mB} g</th></tr>
+  <tr><th>T（℃）</th><th>T−T₀</th><th>T（℃）</th><th>T−T₀</th></tr></thead><tbody>${rows}</tbody>`;
+}
+// 進階：用 1 分鐘的上升溫度推算 B 的比熱（以 A 為參考）
+function calc() {
+  const el = $('#calc'); el.hidden = !S.adv; if (!S.adv) return;
+  const r = S.recs.find(x => x.t === 60);
+  if (!r) { el.innerHTML = '加熱滿 1 分鐘後，可以用數據推算比熱。'; return; }
+  const a = MAT[S.sA], b = MAT[S.sB], dA = r.A - T0, dB = r.B - T0;
+  const est = a.s * (S.mA * dA) / (S.mB * dB);
+  el.innerHTML = `1 分鐘內兩邊吸收的熱量相同：<br>${S.mA} × ${a.s} × ${dA.toFixed(1)} ＝ ${S.mB} × S<sub>B</sub> × ${dB.toFixed(1)}（以 A 的比熱 ${a.s} 為已知）<br><button class="btn" id="showS">算出 B 的比熱</button> <span class="ans" id="sAns" hidden>S<sub>B</sub> ≈ ${est.toFixed(3)} 卡／公克·℃（表列 ${b.s}）</span>`;
+  $('#showS').onclick = () => { $('#sAns').hidden = false; };
+}
+seg('#sA', v => { S.sA = v; reset(); }); seg('#sB', v => { S.sB = v; reset(); });
+seg('#mA', v => { S.mA = v; reset(); }); seg('#mB', v => { S.mB = v; reset(); });
+seg('#speed', v => { S.speed = v; });
+$('#go').addEventListener('click', () => { if (S.t >= TEND) return; S.run = !S.run; $('#go').textContent = S.run ? '暫停' : '繼續加熱'; });
+$('#reset').addEventListener('click', reset);
+$('#xBeaker').addEventListener('change', reset);
+function applyAdv() { $('#adv').checked = S.adv; document.querySelectorAll('.advonly').forEach(el => el.hidden = !S.adv); calc(); }
+$('#adv').addEventListener('change', e => { S.adv = e.target.checked; store.set('adv', S.adv); applyAdv(); reset(); });
+applyAdv(); reset();
+let last = performance.now();
+function frame(now) {
+  const dt = Math.min(0.1, (now - last) / 1000) * S.speed; last = now;
+  if (S.run) step(dt);
+  $('#rt').textContent = (S.t / 60).toFixed(1);
+  drawScene(); drawGraph();
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+})();
+</script>
+</body>
+</html>
