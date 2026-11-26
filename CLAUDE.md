@@ -24,12 +24,7 @@
    | `soundlab-` | sound_lab.html |
    | `optics-`、`optlab-` | optics_lab.html |
    | `colorlab-` | color_lab.html |
-   | `heatthermo-` | heat_thermometer.html |
-   | `heatrise-` | heat_rise.html |
-   | `heateq-` | heat_equilibrium.html |
-   | `heatsh-` | heat_specific.html |
-   | `heatmatter-` | heat_matter.html |
-   | `heattx-` | heat_transfer.html |
+   | `heatlab-` | heat_lab.html |
    | `pc-` | 另一個 repo：課程站（同一個來源，不要用這個前綴） |
    | `periodic_game_scores`（舊，未加前綴） | game_periodtable.html |
    | `sciUltraS…`（舊，未加前綴） | students/student_kai_game_202601012.html |
