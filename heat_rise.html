@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>5-2 影響水溫上升的因素</title>
+<style>
+:root{--ink:#1d2329;--muted:#5f6b76;--line:#d5dce2;--soft:#f3f6f8;--accent:#d9480f;--sel:#1864ab;--sel-soft:#e7f1fb;--water:#1c7ed6;--alc:#e8590c;--cold:#d0ebff;--hot:#ffe3d1;--ok:#2b8a3e}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:#fff;color:var(--ink);font-family:system-ui,-apple-system,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;font-size:18px;line-height:1.55}
+.wrap{max-width:1180px;margin:0 auto;padding:0 max(16px,env(safe-area-inset-left,0px)) 40px max(16px,env(safe-area-inset-right,0px))}
+header{padding:14px 0 8px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.top{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between}
+h1{font-size:26px;margin:0}
+h2{font-size:21px;margin:22px 0 8px}
+.nav{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.nav a{font-size:16px;text-decoration:none;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:8px 12px;min-height:44px;display:inline-flex;align-items:center}
+.nav a[aria-current]{background:var(--sel);color:#fff;border-color:var(--sel)}
+.bar{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;margin:8px 0}
+.grp{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.grp>.lab{font-size:16px;color:var(--muted);margin-right:2px}
+.seg{display:inline-flex;flex-wrap:wrap;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.seg button{border:0;border-right:1px solid var(--line);background:#fff;font:inherit;font-size:17px;min-height:44px;min-width:44px;padding:6px 12px;cursor:pointer;color:var(--ink)}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--sel);color:#fff}
+.btn{font:inherit;font-size:17px;min-height:44px;padding:6px 14px;border:1px solid var(--line);border-radius:10px;background:#fff;cursor:pointer;color:var(--ink)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn:disabled{opacity:.45}
+.switch{display:inline-flex;align-items:center;gap:8px;min-height:44px;font-size:17px;cursor:pointer;user-select:none}
+.switch input{width:22px;height:22px;accent-color:var(--sel)}
+input[type=range]{width:180px;height:44px;accent-color:var(--sel)}
+.stage{display:grid;grid-template-columns:minmax(0,440px) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:860px){.stage{grid-template-columns:minmax(0,1fr)}}
+canvas{display:block;width:100%;height:auto;max-width:100%;border:1px solid var(--line);border-radius:12px;background:#fff;touch-action:manipulation}
+.reads{display:flex;flex-wrap:wrap;gap:8px 22px;margin:8px 0;font-size:18px}
+.reads b{font-variant-numeric:tabular-nums;font-size:22px}
+.note{font-size:16px;color:var(--muted);margin:6px 0}
+.panel{border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin:10px 0;background:var(--soft)}
+.ans{font-weight:700;color:var(--accent)}
+.tbl{border-collapse:collapse;margin:12px 0;font-size:17px;font-variant-numeric:tabular-nums}
+.tbl th,.tbl td{border:1px solid var(--line);padding:6px 10px;text-align:center;white-space:nowrap}
+@media (max-width:480px){.tbl th,.tbl td{padding:6px 6px}}
+.tbl th{background:var(--soft);font-weight:600}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="top">
+    <h1>5-2 影響水溫上升的因素</h1>
+    <div class="grp">
+      <label class="switch"><input type="checkbox" id="adv">進階</label>
+    </div>
+  </div>
+  <nav class="nav" aria-label="第五章各站">
+    <a href="heat_thermometer.html">1 溫度計</a>
+    <a href="heat_rise.html" aria-current="page">2 水溫上升</a>
+    <a href="heat_equilibrium.html">3 熱平衡</a>
+    <a href="heat_specific.html">4 比熱</a>
+    <a href="heat_matter.html">5 體積與三態</a>
+    <a href="heat_transfer.html">6 熱的傳播</a>
+  </nav>
+</header>
+<div class="bar">
+  <div class="grp"><span class="lab">燒杯 A 水量</span>
+    <div class="seg" id="mA"><button data-v="50" aria-pressed="true">50 g</button><button data-v="100">100 g</button><button data-v="150">150 g</button><button data-v="200">200 g</button></div>
+  </div>
+  <div class="grp"><span class="lab">燒杯 B 水量</span>
+    <div class="seg" id="mB"><button data-v="50">50 g</button><button data-v="100" aria-pressed="true">100 g</button><button data-v="150">150 g</button><button data-v="200">200 g</button></div>
+  </div>
+  <div class="grp"><span class="lab">火力（兩杯相同）</span>
+    <div class="seg" id="fire"><button data-v="1">小</button><button data-v="2" aria-pressed="true">中</button><button data-v="3">大</button></div>
+  </div>
+</div>
+<div class="bar">
+  <button class="btn primary" id="go">開始加熱</button>
+  <button class="btn" id="reset">重新開始</button>
+  <label class="switch"><input type="checkbox" id="keep" checked>保留上一次的數據點</label>
+  <div class="grp"><span class="lab">時間快轉</span>
+    <div class="seg" id="speed"><button data-v="1">×1</button><button data-v="5" aria-pressed="true">×5</button><button data-v="10">×10</button></div>
+  </div>
+</div>
+<div class="bar advonly" hidden>
+  <label class="switch"><input type="checkbox" id="xBeaker" checked>燒杯和陶瓷纖維網也會吸熱</label>
+  <label class="switch"><input type="checkbox" id="xLoss" checked>散熱到空氣</label>
+  <label class="switch"><input type="checkbox" id="xNoise" checked>讀數誤差</label>
+</div>
+
+<div class="stage">
+  <div>
+    <canvas id="scene" width="440" height="380" style="max-width:440px" aria-label="兩個燒杯加熱"></canvas>
+    <div class="reads"><span>加熱時間 <b id="rt">0.0</b> 分</span></div>
+    <p class="note">兩杯初溫都是 25℃，酒精燈火力穩定。每 0.5 分鐘自動記錄一次溫度。</p>
+  </div>
+  <div>
+    <canvas id="graph" width="640" height="340" aria-label="上升溫度與加熱時間"></canvas>
+    <p class="note">● 是記錄到的數據點。請在學習單上自己畫出通過原點的直線。</p>
+  </div>
+</div>
+<div style="overflow-x:auto">
+<table class="tbl" id="tbl"></table>
+</div>
+
+
+</div>
+<script>
+(() => {
+'use strict';
+const $ = s => document.querySelector(s);
+const PFX = 'heatrise-';
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(PFX + k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(PFX + k, JSON.stringify(v)); } catch (e) {} }
+};
+const FONT = 'system-ui,-apple-system,"PingFang TC","Noto Sans TC",sans-serif';
+// 畫布：fixed=true 時固定邏輯尺寸、整張縮放；否則依實際寬度重設（文字維持原大小）
+function setup(cv, fixed, hOf) {
+  const o = { cv, c: cv.getContext('2d'), W: cv.width, H: cv.height, fixed, hOf };
+  fit(o); return o;
+}
+function fit(o) {
+  const dpr = Math.min(window.devicePixelRatio || 1, 3);
+  if (!o.fixed) { const w = Math.round(o.cv.getBoundingClientRect().width) || o.W; o.W = w; o.H = o.hOf(w); }
+  o.cv.width = o.W * dpr; o.cv.height = o.H * dpr;
+  if (!o.fixed) o.cv.style.height = o.H + 'px';
+  o.c.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+function seg(id, cb) {
+  const el = $(id);
+  el.addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b || !el.contains(b)) return;
+    el.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b));
+    const v = b.dataset.v; cb(isNaN(+v) ? v : +v);
+  });
+}
+function setSeg(id, v) { $(id).querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x.dataset.v) === String(v))); }
+function axes(c, W, H, x0, x1, y0, y1, xl, yl, P) {
+  c.strokeStyle = '#adb5bd'; c.lineWidth = 1; c.fillStyle = '#5f6b76'; c.font = `16px ${FONT}`;
+  const X = x => P.l + (x - x0) / (x1 - x0) * (W - P.l - P.r), Y = y => H - P.b - (y - y0) / (y1 - y0) * (H - P.t - P.b);
+  const nice = r => { const e = Math.pow(10, Math.floor(Math.log10(r / 5))), m = r / 5 / e; return (m < 1.5 ? 1 : m < 3.5 ? 2 : m < 7.5 ? 5 : 10) * e; };
+  const dx = nice(x1 - x0), dy = nice(y1 - y0);
+  c.textAlign = 'center'; c.textBaseline = 'top';
+  for (let x = Math.ceil(x0 / dx) * dx; x <= x1 + 1e-9; x += dx) { c.globalAlpha = .4; c.beginPath(); c.moveTo(X(x), P.t); c.lineTo(X(x), H - P.b); c.stroke(); c.globalAlpha = 1; c.fillText(+x.toFixed(6) + '', X(x), H - P.b + 5); }
+  c.textAlign = 'right'; c.textBaseline = 'middle';
+  for (let y = Math.ceil(y0 / dy) * dy; y <= y1 + 1e-9; y += dy) { c.globalAlpha = .4; c.beginPath(); c.moveTo(P.l, Y(y)); c.lineTo(W - P.r, Y(y)); c.stroke(); c.globalAlpha = 1; c.fillText(+y.toFixed(6) + '', P.l - 6, Y(y)); }
+  c.strokeStyle = '#495057'; c.lineWidth = 1.5; c.beginPath(); c.moveTo(P.l, P.t); c.lineTo(P.l, H - P.b); c.lineTo(W - P.r, H - P.b); c.stroke();
+  c.font = `16px ${FONT}`; c.fillStyle = '#343a40';
+  c.textAlign = 'right'; c.textBaseline = 'bottom'; c.fillText(xl, W - P.r, H - P.b - 4);
+  c.textAlign = 'left'; c.textBaseline = 'top'; c.fillText(yl, P.l + 6, 4);
+  return { X, Y };
+}
+
+const POWER = { 1: 240, 2: 360, 3: 480 };   // 卡／分（酒精燈實際傳給水的熱量）
+const T0 = 25, ROOM = 25;
+const BEAKER_EQ = 20;     // 燒杯（約 100 g 玻璃，比熱約 0.2）相當於 20 g 水
+const LAG = 25;           // 陶瓷纖維網預熱的時間常數（秒）
+const LOSS = 1.5;         // 散熱係數：卡／(分·℃)
+const TEND = 300;         // 最長 5 分鐘
+const COL = { A: '#1c7ed6', B: '#e8590c' };
+
+const S = { mA: 50, mB: 100, fire: 2, speed: 5, run: false, t: 0, A: T0, B: T0, recs: [], ghosts: [], adv: store.get('adv', false) };
+const X = () => S.adv;
+function opt(id) { return X() && $(id).checked; }
+
+function reset(keepGhost) {
+  if (keepGhost && $('#keep').checked && S.recs.length > 1) {
+    S.ghosts.push({ A: S.recs.map(r => [r.t, r.A - T0]), B: S.recs.map(r => [r.t, r.B - T0]) });
+    if (S.ghosts.length > 4) S.ghosts.shift();
+  }
+  if (!$('#keep').checked) S.ghosts = [];
+  S.run = false; S.t = 0; S.A = T0; S.B = T0; S.recs = [];
+  record();
+  $('#go').textContent = '開始加熱';
+  table();
+}
+function reading(T) {
+  let v = T;
+  if (opt('#xNoise')) v += (Math.random() + Math.random() + Math.random() - 1.5) * 0.25;
+  return Math.round(v * 10) / 10;
+}
+function record() { S.recs.push({ t: Math.round(S.t), A: S.recs.length ? reading(S.A) : T0, B: S.recs.length ? reading(S.B) : T0 }); }
+
+function step(dt) {
+  let left = dt;
+  while (left > 1e-9 && S.t < TEND) {
+    const next = (Math.floor(S.t / 30 + 1e-9) + 1) * 30;      // 下一個記錄時刻
+    const h = Math.min(0.2, left, next - S.t);
+    let p = POWER[S.fire] / 60; // 卡／秒
+    const eq = opt('#xBeaker') ? BEAKER_EQ : 0;
+    if (opt('#xBeaker')) p *= 1 - Math.exp(-(S.t + h / 2) / LAG);
+    for (const k of ['A', 'B']) {
+      let q = p;
+      if (opt('#xLoss')) q -= LOSS / 60 * (S[k] - ROOM);
+      S[k] = Math.min(100, S[k] + q * h / (S['m' + k] + eq));
+    }
+    S.t += h; left -= h;
+    if (Math.abs(S.t - next) < 1e-6) { S.t = next; record(); table(); }
+  }
+  if (S.t >= TEND) { S.run = false; $('#go').textContent = '已到 5 分鐘'; }
+}
+
+/* ---------- 畫面 ---------- */
+const sc = setup($('#scene'), true);
+const gH = w => w < 520 ? 280 : 340;
+const gr = setup($('#graph'), false, gH);
+window.addEventListener('resize', () => fit(gr));
+
+function drawBeaker(c, x, m, T, label, col) {
+  const w = 120, h = 140, top = 120, bot = top + h;
+  // 鐵架與陶瓷纖維網
+  c.strokeStyle = '#495057'; c.lineWidth = 3;
+  c.beginPath(); c.moveTo(x - 80, bot + 6); c.lineTo(x + 80, bot + 6); c.stroke();
+  c.beginPath(); c.moveTo(x - 70, bot + 6); c.lineTo(x - 80, 370); c.moveTo(x + 70, bot + 6); c.lineTo(x + 80, 370); c.stroke();
+  c.fillStyle = '#ced4da'; c.fillRect(x - 78, bot + 2, 156, 6);
+  // 酒精燈與火焰
+  c.fillStyle = '#e9ecef'; c.strokeStyle = '#868e96'; c.lineWidth = 2;
+  c.beginPath(); c.ellipse(x, 350, 34, 20, 0, 0, 7); c.fill(); c.stroke();
+  c.fillStyle = '#868e96'; c.fillRect(x - 5, 318, 10, 14);
+  const fh = (S.run ? 1 : 0.0) * (18 + S.fire * 10) * (0.92 + Math.random() * 0.12);
+  if (fh > 0) {
+    c.fillStyle = 'rgba(255,146,43,.85)';
+    c.beginPath(); c.moveTo(x - 8, 318); c.quadraticCurveTo(x - 10, 318 - fh * .5, x, 318 - fh); c.quadraticCurveTo(x + 10, 318 - fh * .5, x + 8, 318); c.fill();
+    c.fillStyle = 'rgba(77,171,247,.8)';
+    c.beginPath(); c.moveTo(x - 4, 318); c.quadraticCurveTo(x - 4, 318 - fh * .3, x, 318 - fh * .45); c.quadraticCurveTo(x + 4, 318 - fh * .3, x + 4, 318); c.fill();
+  }
+  // 燒杯（250 mL）與水
+  const wh = h * m / 250;
+  const k = Math.max(0, Math.min(1, (T - 20) / 70));
+  c.fillStyle = `rgba(${Math.round(165 + 90 * k)},${Math.round(216 - 20 * k)},${Math.round(255 - 95 * k)},.75)`;
+  c.fillRect(x - w / 2, bot - wh, w, wh);
+  c.strokeStyle = '#495057'; c.lineWidth = 2.5;
+  c.beginPath(); c.moveTo(x - w / 2 - 4, top); c.lineTo(x - w / 2, top + 4); c.lineTo(x - w / 2, bot); c.lineTo(x + w / 2, bot); c.lineTo(x + w / 2, top + 4); c.lineTo(x + w / 2 + 4, top); c.stroke();
+  // 溫度計
+  const tx = x + 30, ty0 = 40, ty1 = bot - 8;
+  c.fillStyle = '#fff'; c.strokeStyle = '#868e96'; c.lineWidth = 1.5;
+  c.beginPath(); c.roundRect ? c.roundRect(tx - 4, ty0, 8, ty1 - ty0, 4) : c.rect(tx - 4, ty0, 8, ty1 - ty0); c.fill(); c.stroke();
+  const ly = ty1 - (T - 0) / 110 * (ty1 - ty0 - 10);
+  c.fillStyle = '#e03131'; c.fillRect(tx - 2, ly, 4, ty1 - ly);
+  c.beginPath(); c.arc(tx, ty1, 6, 0, 7); c.fill();
+  // 標籤
+  c.fillStyle = col; c.font = `bold 20px ${FONT}`; c.textAlign = 'center'; c.textBaseline = 'alphabetic';
+  c.fillText(`${label}：${m} g`, x - 10, 26);
+  c.fillStyle = '#212529'; c.font = `bold 24px ${FONT}`;
+  c.fillText(`${reading0(T)}℃`, x - 18, top - 14);
+  c.textAlign = 'left';
+}
+function reading0(T) { return T.toFixed(1); }
+function drawScene() {
+  const { c, W, H } = sc; c.clearRect(0, 0, W, H);
+  drawBeaker(c, 110, S.mA, S.A, 'A', COL.A);
+  drawBeaker(c, 330, S.mB, S.B, 'B', COL.B);
+}
+function drawGraph() {
+  const { c, W, H } = gr; c.clearRect(0, 0, W, H);
+  const P = { l: 52, r: 16, t: 30, b: 36 };
+  let ymax = 10;
+  const all = [S.recs.map(r => r.A - T0), S.recs.map(r => r.B - T0), [S.A - T0, S.B - T0]].flat();
+  S.ghosts.forEach(g => g.A.concat(g.B).forEach(p => all.push(p[1])));
+  ymax = Math.max(ymax, ...all) * 1.1;
+  const tm = Math.max(3, Math.ceil(S.t / 60 + 0.01));
+  const { X: Xp, Y } = axes(c, W, H, 0, Math.min(5, tm), 0, ymax, '加熱時間（分）', '上升溫度 T−T₀（℃）', P);
+  const dot = (t, v, col, r) => { c.fillStyle = col; c.beginPath(); c.arc(Xp(t / 60), Y(v), r, 0, 7); c.fill(); };
+  S.ghosts.forEach(g => { g.A.forEach(p => dot(p[0], p[1], 'rgba(28,126,214,.25)', 5)); g.B.forEach(p => dot(p[0], p[1], 'rgba(232,89,12,.25)', 5)); });
+  S.recs.forEach(r => { dot(r.t, r.A - T0, COL.A, 6); dot(r.t, r.B - T0, COL.B, 6); });
+  // 目前位置（空心）
+  if (S.t > 0) for (const k of ['A', 'B']) { c.strokeStyle = COL[k]; c.lineWidth = 2; c.beginPath(); c.arc(Xp(S.t / 60), Y(S[k] - T0), 7, 0, 7); c.stroke(); }
+  c.font = `bold 16px ${FONT}`; c.textAlign = 'left'; c.textBaseline = 'top';
+  c.fillStyle = COL.A; c.fillText(`● A ${S.mA} g`, P.l + 12, P.t + 4);
+  c.fillStyle = COL.B; c.fillText(`● B ${S.mB} g`, P.l + 12, P.t + 26);
+}
+function table() {
+  const rows = S.recs.map(r => `<tr><td>${(r.t / 60).toFixed(1)}</td><td>${r.A.toFixed(1)}</td><td>${(r.A - T0).toFixed(1)}</td><td>${r.B.toFixed(1)}</td><td>${(r.B - T0).toFixed(1)}</td></tr>`).join('');
+  $('#tbl').innerHTML = `<thead><tr><th rowspan="2">時間（分）</th><th colspan="2" style="color:${COL.A}">A ${S.mA} g</th><th colspan="2" style="color:${COL.B}">B ${S.mB} g</th></tr>
+  <tr><th>T（℃）</th><th>T−T₀</th><th>T（℃）</th><th>T−T₀</th></tr></thead><tbody>${rows}</tbody>`;
+}
+
+/* ---------- 介面 ---------- */
+seg('#mA', v => { S.mA = v; reset(true); });
+seg('#mB', v => { S.mB = v; reset(true); });
+seg('#fire', v => { S.fire = v; reset(true); });
+seg('#speed', v => { S.speed = v; });
+$('#go').addEventListener('click', () => {
+  if (S.t >= TEND) return;
+  S.run = !S.run; $('#go').textContent = S.run ? '暫停' : '繼續加熱';
+});
+$('#reset').addEventListener('click', () => reset(true));
+$('#keep').addEventListener('change', () => { if (!$('#keep').checked) S.ghosts = []; });
+['#xBeaker', '#xLoss', '#xNoise'].forEach(id => $(id).addEventListener('change', () => reset(true)));
+function applyAdv() {
+  $('#adv').checked = S.adv;
+  document.querySelectorAll('.advonly').forEach(el => el.hidden = !S.adv);
+}
+$('#adv').addEventListener('change', e => { S.adv = e.target.checked; store.set('adv', S.adv); applyAdv(); reset(true); });
+applyAdv(); reset(false);
+
+let last = performance.now();
+function frame(now) {
+  const dt = Math.min(0.1, (now - last) / 1000) * S.speed; last = now;
+  if (S.run) step(dt);
+  $('#rt').textContent = (S.t / 60).toFixed(1);
+  drawScene(); drawGraph();
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+})();
+</script>
+</body>
+</html>
