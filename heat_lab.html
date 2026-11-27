@@ -275,7 +275,7 @@ details.panel summary{min-height:44px}
 <section class="sec" id="s4" role="tabpanel" hidden>
 <div class="bar">
   <div class="grp"><span class="lab">實驗</span>
-    <div class="seg" id="mode"><button data-v="curve" aria-pressed="true">冰的加熱</button><button data-v="anom">0～10℃ 的水</button><button data-v="exp">氣、液、固的膨脹</button></div>
+    <div class="seg" id="mode"><button data-v="curve" aria-pressed="true">冰的加熱</button><button data-v="anom">0～10℃ 的水</button><button data-v="exp">氣、液、固的膨脹</button><button data-v="lake">湖面結冰</button></div>
   </div>
 </div>
 
@@ -294,6 +294,7 @@ details.panel summary{min-height:44px}
   <div>
     <canvas id="graph" width="640" height="340" aria-label="溫度與加熱時間"></canvas>
     <p class="note">100 g 的冰，從 −20℃ 開始用穩定熱源加熱，在 1 大氣壓的密閉容器中，熱量全部被吸收。</p>
+    <p class="note">想一想：真實的杯子沒有蓋，還沒沸騰時水面就會蒸發。每 1 g 水汽化要吸收約 540 卡，所以敞口的熱水降溫比較快，熱平衡實驗量到的溫度也會因此偏低。</p>
     <div class="panel advonly" id="hpanel" hidden></div>
   </div>
 </div>
@@ -316,6 +317,23 @@ details.panel summary{min-height:44px}
 <canvas id="escene" width="900" height="330" style="max-width:900px" aria-label="空氣、水、鐵的膨脹"></canvas>
 <p class="note">三種物質在 20℃ 時都是 100 cm³，加熱後增加的體積。空氣在定壓下膨脹；水和鐵的長條各放大了 5 倍和 100 倍。框線長度代表 25 cm³。</p>
 </section>
+<section id="m-lake" hidden>
+<div class="bar">
+  <button class="btn primary" id="lgo">開始降溫</button>
+  <button class="btn" id="lreset">重新開始</button>
+  <div class="grp"><span class="lab">每秒經過</span><div class="seg" id="lspeed"><button data-v="0.5">半天</button><button data-v="2" aria-pressed="true">2 天</button><button data-v="6">6 天</button></div></div>
+</div>
+<div class="bar advonly" hidden><label class="switch"><input type="checkbox" id="xNoAnom">假如水沒有 4℃ 密度最大的特性</label></div>
+<div class="stage">
+  <div><canvas id="lscene" width="440" height="400" style="max-width:440px" aria-label="湖的剖面"></canvas>
+    <div class="reads" id="lreads"></div>
+  </div>
+  <div><canvas id="lgraph" width="640" height="340" aria-label="水溫與深度"></canvas>
+    <p class="note">10 m 深的湖，秋末時整湖都是 10℃。冬天的冷空氣讓水面持續散熱（假設每平方公尺 100 W，不考慮風、日照與冰層的保溫）。顏色越藍表示越冷。</p>
+  </div>
+</div>
+</section>
+
 
 </section>
 <section class="sec" id="s5" role="tabpanel" hidden>
@@ -1043,8 +1061,8 @@ function drawGraph() {
   const ys = S.hist.flatMap(p => [p[1], p[2]]).concat(S.pred != null && !coffee ? [S.pred] : []);
   const lo = Math.max(0, Math.floor((Math.min(...ys, ROOM) - 5) / 5) * 5), hi = Math.ceil((Math.max(...ys, ROOM) + 5) / 5) * 5;
   const { X: Xp, Y } = axes(c, W, H, 0, tmax, lo, hi, coffee ? '時間（分）' : '混合後的時間（秒）', '溫度（℃）', P);
-  const hline = (v, col, txt) => { c.strokeStyle = col; c.setLineDash([6, 5]); c.lineWidth = 2; c.beginPath(); c.moveTo(P.l, Y(v)); c.lineTo(W - P.r, Y(v)); c.stroke(); c.setLineDash([]); c.fillStyle = col; c.font = `16px ${FONT}`; c.textAlign = 'right'; c.textBaseline = 'bottom'; c.fillText(txt, W - P.r - 4, Y(v) - 2); };
-  hline(ROOM, COL.air, '室溫');
+  const hline = (v, col, txt, left) => { c.strokeStyle = col; c.setLineDash([6, 5]); c.lineWidth = 2; c.beginPath(); c.moveTo(P.l, Y(v)); c.lineTo(W - P.r, Y(v)); c.stroke(); c.setLineDash([]); c.fillStyle = col; c.font = `16px ${FONT}`; c.textAlign = left ? 'left' : 'right'; c.textBaseline = 'bottom'; c.fillText(txt, left ? P.l + 6 : W - P.r - 4, Y(v) - 2); };
+  hline(ROOM, COL.air, '室溫', true);
   if (!coffee) {
     if (S.pred != null) hline(S.pred, '#1f2328', `我的預測 ${S.pred}℃`);
     if (S.showIdeal) hline(ideal(), '#c2410c', `不計杯子與散熱 ${ideal().toFixed(1)}℃`);
@@ -1347,7 +1365,7 @@ const sc = setup($('#scene'), true);
 const gH = w => w < 520 ? 280 : 340;
 const gr = setup($('#graph'), false, gH);
 const as = setup($('#ascene'), true), ag = setup($('#agraph'), false, gH), es = setup($('#escene'), false, () => 330);
-window.addEventListener('resize', () => { [gr, ag, es].forEach(fit); drawAnom(); drawExp(); });
+window.addEventListener('resize', () => { [gr, ag, es].forEach(fit); if (typeof lg !== 'undefined') fit(lg); drawAnom(); drawExp(); });
 
 /* ---------- 粒子 ---------- */
 const N = 42, parts = [];
@@ -1451,8 +1469,72 @@ function drawExp() {
   });
 }
 
+/* ---------- 湖面結冰 ---------- */
+// 10 m 深的湖分成 40 層；冬天水面每平方公尺固定散熱 100 W（假設），水溫依密度自然對流
+const LN = 40, LDEPTH = 10, LDZ = LDEPTH / LN, LQ = 100, LRC = 1000 * 4186 * LDZ, LKAPPA = 1.4e-7, LICE = 917 * 334000, LDAYS = 60;
+const L = { T: [], ice: 0, t: 0, run: false, speed: 2, noAnom: false, hist: [], iceDay: null };
+const rhoL = T => L.noAnom ? 1 - 2e-4 * T : rhoWater(T);   // 假想：沒有 4℃ 特性的「普通液體」
+function lakeReset() { L.T = Array(LN).fill(10); L.ice = 0; L.t = 0; L.run = false; L.iceDay = null; $('#lgo').textContent = '開始降溫'; }
+function lakeMix() {   // 上層比下層重就混合（對流），直到整柱穩定
+  for (let pass = 0; pass < LN; pass++) {
+    let moved = false;
+    for (let i = 0; i < LN - 1; i++) if (rhoL(L.T[i]) > rhoL(L.T[i + 1]) + 1e-12) {
+      let j = i + 1, sum = L.T[i] + L.T[j];
+      while (j + 1 < LN && rhoL(sum / (j - i + 1)) > rhoL(L.T[j + 1]) + 1e-12) { j++; sum += L.T[j]; }
+      for (let k = i; k <= j; k++) L.T[k] = sum / (j - i + 1);
+      moved = true;
+    }
+    if (!moved) break;
+  }
+}
+function lakeStep(sec) {
+  const h = 600, n = Math.ceil(sec / h);
+  for (let s = 0; s < n && L.t < LDAYS * 86400; s++) {
+    if (L.ice > 0 || L.T[0] <= 0.01) { L.T[0] = 0; L.ice += LQ * h / LICE; if (L.iceDay === null) L.iceDay = L.t / 86400; }
+    else L.T[0] = Math.max(0, L.T[0] - LQ * h / LRC);
+    const d = LKAPPA * h / (LDZ * LDZ), T = L.T.slice();
+    for (let i = 0; i < LN; i++) { const up = i ? T[i - 1] : T[i], dn = i < LN - 1 ? T[i + 1] : T[i]; L.T[i] = T[i] + d * (up - 2 * T[i] + dn); }
+    if (L.ice > 0) L.T[0] = 0;
+    lakeMix(); L.t += h;
+  }
+  if (L.t >= LDAYS * 86400) { L.run = false; $('#lgo').textContent = '已結束'; }
+}
+const ls = setup($('#lscene'), true), lg = setup($('#lgraph'), false, gH);
+const lcol = T => { const u = Math.max(0, Math.min(1, T / 10)); return `rgb(${Math.round(40 + 200 * u)},${Math.round(110 + 60 * u)},${Math.round(230 - 150 * u)})`; };
+function drawLake() {
+  const { c, W, H } = ls; c.clearRect(0, 0, W, H);
+  const x0 = 60, x1 = 400, top = 70, bot = 370, dh = (bot - top) / LN;
+  c.fillStyle = '#f1f3f5'; c.fillRect(0, 0, W, top);
+  c.fillStyle = '#495057'; c.font = `18px ${FONT}`; c.textAlign = 'center'; c.textBaseline = 'middle';
+  c.fillText(`冷空氣：水面每平方公尺散熱 ${LQ} W`, W / 2, 24);
+  for (let i = 0; i < LN; i++) { c.fillStyle = lcol(L.T[i]); c.fillRect(x0, top + i * dh, x1 - x0, dh + 0.6); }
+  if (L.ice > 0) { const ih = Math.max(4, L.ice / LDEPTH * (bot - top)); c.fillStyle = '#e7f5ff'; c.strokeStyle = '#74c0fc'; c.lineWidth = 2; c.fillRect(x0, top, x1 - x0, ih); c.strokeRect(x0, top, x1 - x0, ih); c.fillStyle = '#1864ab'; c.fillText(`水面結冰 ${(L.ice * 100).toFixed(1)} cm`, W / 2, 52); }
+  c.strokeStyle = '#495057'; c.lineWidth = 2.5; c.beginPath(); c.moveTo(x0, top); c.lineTo(x0, bot); c.lineTo(x1, bot); c.lineTo(x1, top); c.stroke();
+  c.fillStyle = '#5f6b76'; c.textAlign = 'right'; c.font = `16px ${FONT}`;
+  for (let m = 0; m <= LDEPTH; m += 2) c.fillText(`${m} m`, x0 - 6, top + m / LDEPTH * (bot - top));
+  c.textAlign = 'left'; c.textBaseline = 'alphabetic';
+}
+function drawLakeGraph() {
+  const { c, W, H } = lg; c.clearRect(0, 0, W, H);
+  const P = { l: 52, r: 16, t: 30, b: 36 };
+  const { X, Y } = axes(c, W, H, 0, 10, -LDEPTH, 0, '水溫（℃）', '深度（m）', P);
+  c.strokeStyle = '#c2255c'; c.setLineDash([6, 5]); c.lineWidth = 1.5; c.beginPath(); c.moveTo(X(4), Y(-LDEPTH)); c.lineTo(X(4), Y(0)); c.stroke(); c.setLineDash([]);
+  c.fillStyle = '#c2255c'; c.font = `16px ${FONT}`; c.textAlign = 'left'; c.textBaseline = 'bottom'; c.fillText(L.noAnom ? '4℃' : '4℃（密度最大）', X(4) + 6, Y(-LDEPTH / 2));
+  c.strokeStyle = '#1c7ed6'; c.lineWidth = 3; c.beginPath();
+  L.T.forEach((T, i) => { const x = X(Math.min(10, T)), y = Y(-(i + 0.5) * LDZ); i ? c.lineTo(x, y) : c.moveTo(x, y); }); c.stroke();
+}
+function lakeReads() {
+  const d = L.t / 86400;
+  $('#lreads').innerHTML = `<span>第 <b>${d.toFixed(1)}</b> 天</span><span>水面 <b>${L.T[0].toFixed(1)}</b>℃</span><span>湖底 <b>${L.T[LN - 1].toFixed(1)}</b>℃</span><span>冰厚 <b>${(L.ice * 100).toFixed(1)}</b> cm</span>` + (L.iceDay !== null ? `<span>第 <b>${L.iceDay.toFixed(1)}</b> 天開始結冰</span>` : '');
+}
+$('#lgo').addEventListener('click', () => { if (L.t >= LDAYS * 86400) return; L.run = !L.run; $('#lgo').textContent = L.run ? '暫停' : '繼續'; });
+$('#lreset').addEventListener('click', lakeReset);
+seg('#lspeed', v => { L.speed = v; });
+$('#xNoAnom').addEventListener('change', e => { L.noAnom = e.target.checked; lakeReset(); });
+lakeReset();
+
 /* ---------- 介面 ---------- */
-seg('#mode', v => { S.mode = v; ['curve', 'anom', 'exp'].forEach(k => $('#m-' + k).hidden = k !== v); if (v === 'anom') { fit(ag); drawAnom(); } if (v === 'exp') { fit(es); drawExp(); } if (v === 'curve') fit(gr); });
+seg('#mode', v => { S.mode = v; ['curve', 'anom', 'exp', 'lake'].forEach(k => $('#m-' + k).hidden = k !== v); if (v === 'lake') fit(lg); if (v === 'anom') { fit(ag); drawAnom(); } if (v === 'exp') { fit(es); drawExp(); } if (v === 'curve') fit(gr); });
 seg('#fire', v => { S.fire = v; resetCurve(); });
 seg('#speed', v => { S.speed = v; });
 $('#go').addEventListener('click', () => { if (S.Q >= Q5) return; S.run = !S.run; $('#go').textContent = S.run ? '暫停' : '繼續加熱'; });
@@ -1474,6 +1556,7 @@ function frame(now) {
     drawParts(st); drawCurve(); hpanel();
     $('#rt').textContent = S.t.toFixed(1); $('#rT').textContent = (st.T < 0 ? '−' : '') + Math.abs(st.T).toFixed(1); $('#rP').textContent = st.p;
   }
+  if (S.mode === 'lake') { if (L.run) lakeStep(real * L.speed * 86400); drawLake(); drawLakeGraph(); lakeReads(); }
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
