@@ -123,6 +123,17 @@ details.panel summary{min-height:44px}
 </div>
 
 
+<h2>溫度計多久才穩定？</h2>
+<div class="bar">
+  <div class="seg" id="rtType"><button data-v="alc" aria-pressed="true">酒精溫度計</button><button data-v="dig" aria-pressed="false">電子溫度計</button></div>
+  <button class="btn primary" id="rtGo">插入熱水</button>
+  <button class="btn" id="rtReset">重新開始</button>
+</div>
+<div class="reads"><span>經過 <b id="rtT">0</b> 秒</span><span>讀數 <b id="rtR">25.0</b>℃</span>
+</div>
+<canvas id="rtGraph" width="640" height="320" style="max-width:760px" aria-label="溫度計讀數與時間"></canvas>
+<p class="note">一杯約 90℃ 的熱水放在室溫下，溫度計原本是 25℃。酒精溫度計最小刻度 1℃（估讀到 0.5℃），電子溫度計顯示到 0.1℃。反應快慢是一般值，實際依溫度計粗細、液體有沒有攪動而不同。</p>
+
 <h2>攝氏與華氏</h2>
 <div class="bar"><div class="grp"><span class="lab">溫度</span><input type="range" id="scaleT" min="-40" max="110" step="1" value="25" style="width:260px"><b id="scaleV"></b></div></div>
 <canvas id="scale" width="640" height="300" style="max-width:760px" aria-label="攝氏與華氏溫標對照"></canvas>
@@ -138,7 +149,10 @@ details.panel summary{min-height:44px}
   <div class="grp"><span class="lab">燒杯 B 水量</span>
     <div class="seg" id="mB"><button data-v="50">50 g</button><button data-v="100" aria-pressed="true">100 g</button><button data-v="150">150 g</button><button data-v="200">200 g</button></div>
   </div>
-  <div class="grp"><span class="lab">火力（兩杯相同）</span>
+  <div class="grp"><span class="lab">燒杯 C 水量</span>
+    <div class="seg" id="mC"><button data-v="50">50 g</button><button data-v="100">100 g</button><button data-v="150" aria-pressed="true">150 g</button><button data-v="200">200 g</button></div>
+  </div>
+  <div class="grp"><span class="lab">火力（三杯相同）</span>
     <div class="seg" id="fire"><button data-v="1">小</button><button data-v="2" aria-pressed="true">中</button><button data-v="3">大</button></div>
   </div>
 </div>
@@ -158,9 +172,9 @@ details.panel summary{min-height:44px}
 
 <div class="stage">
   <div>
-    <canvas id="scene" width="440" height="380" style="max-width:440px" aria-label="兩個燒杯加熱"></canvas>
+    <canvas id="scene" width="440" height="380" style="max-width:440px" aria-label="三個燒杯加熱"></canvas>
     <div class="reads"><span>加熱時間 <b id="rt">0.0</b> 分</span></div>
-    <p class="note">兩杯初溫都是 25℃，酒精燈火力穩定。每 0.5 分鐘自動記錄一次溫度。</p>
+    <p class="note">三杯初溫都是 25℃，酒精燈火力穩定。每 0.5 分鐘自動記錄一次溫度。</p>
   </div>
   <div>
     <canvas id="graph" width="640" height="340" aria-label="上升溫度與加熱時間"></canvas>
@@ -175,20 +189,27 @@ details.panel summary{min-height:44px}
 <div class="subpanel" id="s2b" hidden>
 <div class="bar">
   <div class="grp"><span class="lab">情境</span>
-    <div class="seg" id="mode"><button data-v="cup" aria-pressed="true">熱水杯放進冷水</button><button data-v="coffee">熱咖啡與冰咖啡</button></div>
+    <div class="seg" id="mode"><button data-v="mix" aria-pressed="true">熱水加室溫水</button><button data-v="coffee">熱咖啡與冰咖啡</button></div>
   </div>
 </div>
-<div class="bar" id="cupCtl">
-  <div class="grp"><b style="color:#e03131">熱水</b><span class="pair"><span class="lab">質量</span><input type="range" id="mH" min="50" max="300" step="50" value="100"><b id="mHv"></b></span><span class="pair"><span class="lab">溫度</span><input type="range" id="tH" min="40" max="90" step="5" value="80"><b id="tHv"></b></span></div>
-  <div class="grp"><b style="color:#1c7ed6">冷水</b><span class="pair"><span class="lab">質量</span><input type="range" id="mC" min="50" max="300" step="50" value="100"><b id="mCv"></b></span><span class="pair"><span class="lab">溫度</span><input type="range" id="tC" min="5" max="30" step="5" value="20"><b id="tCv"></b></span></div>
+<div id="cupCtl">
+<div class="bar">
+  <div class="grp"><b style="color:#e03131">熱水</b><span class="pair"><span class="lab">質量</span><input type="range" id="mH" min="100" max="300" step="20" value="200"><b id="mHv"></b></span><span class="pair"><span class="lab">溫度</span><input type="range" id="tH" min="60" max="95" step="5" value="90"><b id="tHv"></b></span></div>
+  <div class="grp"><b style="color:#1c7ed6">室溫水</b><span class="pair"><span class="lab">質量</span><input type="range" id="mC" min="20" max="200" step="20" value="40"><b id="mCv"></b></span><span class="pair"><span class="lab">溫度</span><input type="range" id="tC" min="10" max="30" step="5" value="25"><b id="tCv"></b></span></div>
+</div>
+<div class="bar">
+  <div class="grp"><span class="lab">倒進</span><div class="seg" id="cup"><button data-v="foam">保麗龍杯</button><button data-v="glass" aria-pressed="true">玻璃燒杯</button><button data-v="mug">陶瓷馬克杯</button></div></div>
+  <label class="grp"><span class="lab">我的預測</span><input id="pred" type="number" inputmode="decimal" step="0.1" style="width:100px;font:inherit;font-size:18px;min-height:44px;padding:4px 8px;border:1px solid var(--line);border-radius:10px">℃</label>
+</div>
 </div>
 <div class="bar">
   <button class="btn primary" id="go">開始</button>
   <button class="btn" id="reset">重新開始</button>
   <div class="grp"><span class="lab">時間快轉</span>
-    <div class="seg" id="speed"><button data-v="1">×1</button><button data-v="10" aria-pressed="true">×10</button><button data-v="60">×60</button></div>
+    <div class="seg" id="speed"><button data-v="1" aria-pressed="true">×1</button><button data-v="10">×10</button><button data-v="60">×60</button></div>
   </div>
-  <label class="switch advonly" hidden><input type="checkbox" id="xLoss">散熱到空氣</label>
+  <button class="btn" id="idealBtn" hidden>對照「不計杯子與散熱」的結果</button>
+  <span class="ans" id="idealAns" hidden></span>
 </div>
 
 <div class="stage">
@@ -198,7 +219,7 @@ details.panel summary{min-height:44px}
   </div>
   <div>
     <canvas id="graph" width="640" height="340" aria-label="溫度與時間"></canvas>
-    <p class="note" id="gnote">箭頭表示熱量流動的方向，箭頭愈粗表示流得愈快。咖啡情境：兩杯各 250 g，冰咖啡不含冰塊。</p>
+    <p class="note" id="gnote">箭頭表示熱量流動的方向，箭頭愈粗表示流得愈快。混合時一直攪拌；杯子原本是室溫。咖啡情境：兩杯各 250 g，冰咖啡不含冰塊。</p>
     <div class="panel advonly" id="calc" hidden></div>
   </div>
 </div>
@@ -226,6 +247,7 @@ details.panel summary{min-height:44px}
 </div>
 <div class="bar advonly" hidden>
   <label class="switch"><input type="checkbox" id="xBeaker" checked>燒杯也會吸熱</label>
+  <label class="switch"><input type="checkbox" id="xStir">甘油不攪拌</label>
 </div>
 
 <div class="stage">
@@ -236,7 +258,7 @@ details.panel summary{min-height:44px}
   </div>
   <div>
     <canvas id="graph" width="640" height="340" aria-label="上升溫度與加熱時間"></canvas>
-    <div class="panel advonly" id="calc" hidden></div>
+    <div class="panel" id="ratio"></div>
   </div>
 </div>
 <div style="overflow-x:auto"><table class="tbl" id="tbl"></table></div>
@@ -714,19 +736,21 @@ const BEAKER_EQ = 20;     // 燒杯（約 100 g 玻璃，比熱約 0.2）相當�
 const LAG = 25;           // 陶瓷纖維網預熱的時間常數（秒）
 const LOSS = 1.5;         // 散熱係數：卡／(分·℃)
 const TEND = 300;         // 最長 5 分鐘
-const COL = { A: '#1c7ed6', B: '#e8590c' };
+const COL = { A: '#1c7ed6', B: '#e8590c', C: '#2f9e44' };
+const KS = ['A', 'B', 'C'];
+const GHOST = { A: 'rgba(28,126,214,.25)', B: 'rgba(232,89,12,.25)', C: 'rgba(47,158,68,.25)' };
 
-const S = { mA: 50, mB: 100, fire: 2, speed: 5, run: false, t: 0, A: T0, B: T0, recs: [], ghosts: [], adv: store.get('adv', false) };
+const S = { mA: 50, mB: 100, mC: 150, C: T0, fire: 2, speed: 5, run: false, t: 0, A: T0, B: T0, recs: [], ghosts: [], adv: store.get('adv', false) };
 const X = () => S.adv;
 function opt(id) { return X() && $(id).checked; }
 
 function reset(keepGhost) {
   if (keepGhost && $('#keep').checked && S.recs.length > 1) {
-    S.ghosts.push({ A: S.recs.map(r => [r.t, r.A - T0]), B: S.recs.map(r => [r.t, r.B - T0]) });
+    const g = {}; KS.forEach(k => { g[k] = S.recs.map(r => [r.t, r[k] - T0]); }); S.ghosts.push(g);
     if (S.ghosts.length > 4) S.ghosts.shift();
   }
   if (!$('#keep').checked) S.ghosts = [];
-  S.run = false; S.t = 0; S.A = T0; S.B = T0; S.recs = [];
+  S.run = false; S.t = 0; KS.forEach(k => { S[k] = T0; }); S.recs = [];
   record();
   $('#go').textContent = '開始加熱';
   table();
@@ -736,7 +760,7 @@ function reading(T) {
   if (opt('#xNoise')) v += (Math.random() + Math.random() + Math.random() - 1.5) * 0.25;
   return Math.round(v * 10) / 10;
 }
-function record() { S.recs.push({ t: Math.round(S.t), A: S.recs.length ? reading(S.A) : T0, B: S.recs.length ? reading(S.B) : T0 }); }
+function record() { const r = { t: Math.round(S.t) }; KS.forEach(k => { r[k] = S.recs.length ? reading(S[k]) : T0; }); S.recs.push(r); }
 
 function step(dt) {
   let left = dt;
@@ -746,7 +770,7 @@ function step(dt) {
     let p = POWER[S.fire] / 60; // 卡／秒
     const eq = opt('#xBeaker') ? BEAKER_EQ : 0;
     if (opt('#xBeaker')) p *= 1 - Math.exp(-(S.t + h / 2) / LAG);
-    for (const k of ['A', 'B']) {
+    for (const k of KS) {
       let q = p;
       if (opt('#xLoss')) q -= LOSS / 60 * (S[k] - ROOM);
       S[k] = Math.min(100, S[k] + q * h / (S['m' + k] + eq));
@@ -796,45 +820,46 @@ function drawBeaker(c, x, m, T, label, col) {
   c.fillStyle = '#e03131'; c.fillRect(tx - 2, ly, 4, ty1 - ly);
   c.beginPath(); c.arc(tx, ty1, 6, 0, 7); c.fill();
   // 標籤
-  c.fillStyle = col; c.font = `bold 20px ${FONT}`; c.textAlign = 'center'; c.textBaseline = 'alphabetic';
-  c.fillText(`${label}：${m} g`, x - 10, 26);
-  c.fillStyle = '#212529'; c.font = `bold 24px ${FONT}`;
-  c.fillText(`${reading0(T)}℃`, x - 18, top - 14);
+  c.fillStyle = col; c.font = `bold 30px ${FONT}`; c.textAlign = 'center'; c.textBaseline = 'alphabetic';
+  c.fillText(`${label}：${m} g`, x, 34);
+  c.fillStyle = '#212529'; c.font = `bold 34px ${FONT}`;
+  c.fillText(`${reading0(T)}℃`, x - 14, top - 18);
   c.textAlign = 'left';
 }
 function reading0(T) { return T.toFixed(1); }
 function drawScene() {
   const { c, W, H } = sc; c.clearRect(0, 0, W, H);
-  drawBeaker(c, 110, S.mA, S.A, 'A', COL.A);
-  drawBeaker(c, 330, S.mB, S.B, 'B', COL.B);
+  c.save(); c.scale(W / 660, W / 660);          // 三杯並排：整體縮小，文字另外放大
+  KS.forEach((k, i) => drawBeaker(c, 110 + i * 220, S['m' + k], S[k], k, COL[k]));
+  c.restore();
 }
 function drawGraph() {
   const { c, W, H } = gr; c.clearRect(0, 0, W, H);
   const P = { l: 52, r: 16, t: 30, b: 36 };
   let ymax = 10;
-  const all = [S.recs.map(r => r.A - T0), S.recs.map(r => r.B - T0), [S.A - T0, S.B - T0]].flat();
-  S.ghosts.forEach(g => g.A.concat(g.B).forEach(p => all.push(p[1])));
+  const all = KS.flatMap(k => S.recs.map(r => r[k] - T0).concat([S[k] - T0]));
+  S.ghosts.forEach(g => KS.forEach(k => (g[k] || []).forEach(p => all.push(p[1]))));
   ymax = Math.max(ymax, ...all) * 1.1;
   const tm = Math.max(3, Math.ceil(S.t / 60 + 0.01));
   const { X: Xp, Y } = axes(c, W, H, 0, Math.min(5, tm), 0, ymax, '加熱時間（分）', '上升溫度 T−T₀（℃）', P);
   const dot = (t, v, col, r) => { c.fillStyle = col; c.beginPath(); c.arc(Xp(t / 60), Y(v), r, 0, 7); c.fill(); };
-  S.ghosts.forEach(g => { g.A.forEach(p => dot(p[0], p[1], 'rgba(28,126,214,.25)', 5)); g.B.forEach(p => dot(p[0], p[1], 'rgba(232,89,12,.25)', 5)); });
-  S.recs.forEach(r => { dot(r.t, r.A - T0, COL.A, 6); dot(r.t, r.B - T0, COL.B, 6); });
+  S.ghosts.forEach(g => KS.forEach(k => (g[k] || []).forEach(p => dot(p[0], p[1], GHOST[k], 5))));
+  S.recs.forEach(r => KS.forEach(k => dot(r.t, r[k] - T0, COL[k], 6)));
   // 目前位置（空心）
-  if (S.t > 0) for (const k of ['A', 'B']) { c.strokeStyle = COL[k]; c.lineWidth = 2; c.beginPath(); c.arc(Xp(S.t / 60), Y(S[k] - T0), 7, 0, 7); c.stroke(); }
+  if (S.t > 0) for (const k of KS) { c.strokeStyle = COL[k]; c.lineWidth = 2; c.beginPath(); c.arc(Xp(S.t / 60), Y(S[k] - T0), 7, 0, 7); c.stroke(); }
   c.font = `bold 16px ${FONT}`; c.textAlign = 'left'; c.textBaseline = 'top';
-  c.fillStyle = COL.A; c.fillText(`● A ${S.mA} g`, P.l + 12, P.t + 4);
-  c.fillStyle = COL.B; c.fillText(`● B ${S.mB} g`, P.l + 12, P.t + 26);
+  KS.forEach((k, i) => { c.fillStyle = COL[k]; c.fillText(`● ${k} ${S['m' + k]} g`, P.l + 12, P.t + 4 + i * 22); });
 }
 function table() {
-  const rows = S.recs.map(r => `<tr><td>${(r.t / 60).toFixed(1)}</td><td>${r.A.toFixed(1)}</td><td>${(r.A - T0).toFixed(1)}</td><td>${r.B.toFixed(1)}</td><td>${(r.B - T0).toFixed(1)}</td></tr>`).join('');
-  $('#tbl').innerHTML = `<thead><tr><th rowspan="2">時間（分）</th><th colspan="2" style="color:${COL.A}">A ${S.mA} g</th><th colspan="2" style="color:${COL.B}">B ${S.mB} g</th></tr>
-  <tr><th>T（℃）</th><th>T−T₀</th><th>T（℃）</th><th>T−T₀</th></tr></thead><tbody>${rows}</tbody>`;
+  const rows = S.recs.map(r => `<tr><td>${(r.t / 60).toFixed(1)}</td>${KS.map(k => `<td>${r[k].toFixed(1)}</td><td>${(r[k] - T0).toFixed(1)}</td>`).join('')}</tr>`).join('');
+  $('#tbl').innerHTML = `<thead><tr><th rowspan="2">時間（分）</th>${KS.map(k => `<th colspan="2" style="color:${COL[k]}">${k} ${S['m' + k]} g</th>`).join('')}</tr>
+  <tr>${KS.map(() => '<th>T（℃）</th><th>T−T₀</th>').join('')}</tr></thead><tbody>${rows}</tbody>`;
 }
 
 /* ---------- 介面 ---------- */
 seg('#mA', v => { S.mA = v; reset(true); });
 seg('#mB', v => { S.mB = v; reset(true); });
+seg('#mC', v => { S.mC = v; reset(true); });
 seg('#fire', v => { S.fire = v; reset(true); });
 seg('#speed', v => { S.speed = v; });
 $('#go').addEventListener('click', () => {
@@ -914,41 +939,48 @@ function axes(c, W, H, x0, x1, y0, y1, xl, yl, P) {
 }
 
 const ROOM = 25;
-const K_CUP = 1.5;       // 金屬杯壁的傳熱：卡／(秒·℃)
-const K_AIR = 0.08;      // 水面與杯壁散熱到空氣：卡／(秒·℃)
+// 混合用的杯子：水當量（g，相當於多少公克水的熱容量）與杯壁跟上水溫的時間常數（秒）
+const CUPS = { foam: { n: '保麗龍杯', eq: 2, tau: 2 }, glass: { n: '玻璃燒杯', eq: 22, tau: 8 }, mug: { n: '陶瓷馬克杯', eq: 60, tau: 20 } };
+const K_MIX_AIR = 0.14;  // 混合後整杯散熱到空氣：卡／(秒·℃)（約每分鐘 3.5% 的溫差）
 const K_COFFEE = 0.15;   // 一杯咖啡和空氣之間：卡／(秒·℃)
 const COFFEE_M = 250;
-const COL = { h: '#e03131', c: '#1c7ed6', air: '#868e96' };
-const S = { mode: 'cup', run: false, t: 0, speed: 10, mH: 100, mC: 100, tH: 80, tC: 20, Th: 80, Tc: 20, hist: [], qOut: 0, qIn: 0, adv: store.get('adv', false) };
+const COL = { h: '#e03131', c: '#1c7ed6', air: '#868e96', mix: '#7048e8' };
+const TAU_TH = 5; // 溫度計從室溫開始升溫的時間常數（秒）
+const S = { mode: 'mix', run: false, t: 0, speed: 1, mH: 200, mC: 40, tH: 90, tC: 25, cup: 'glass', Tm: 0, Tcup: ROOM, Tth: ROOM, Th: 80, Tc: 5, peak: 0, hist: [], pred: null, showIdeal: false, adv: store.get('adv', false) };
+const ideal = () => (S.mH * S.tH + S.mC * S.tC) / (S.mH + S.mC);
 
 function reset() {
-  S.run = false; S.t = 0; S.hist = []; S.qOut = 0; S.qIn = 0;
-  if (S.mode === 'cup') { S.Th = S.tH; S.Tc = S.tC; } else { S.Th = 80; S.Tc = 5; }
-  S.hist.push([0, S.Th, S.Tc]);
-  $('#go').textContent = '開始';
+  S.run = false; S.t = 0; S.hist = []; S.showIdeal = false;
+  if (S.mode === 'mix') { S.Tm = ideal(); S.Tcup = ROOM; S.Tth = ROOM; S.peak = -1; S.hist.push([0, S.Tth, S.Tcup]); }
+  else { S.Th = 80; S.Tc = 5; S.hist.push([0, S.Th, S.Tc]); }
+  $('#go').textContent = S.mode === 'mix' ? '倒在一起，開始量' : '開始';
+  $('#idealBtn').hidden = true; $('#idealAns').hidden = true;
 }
 function flows() {
-  if (S.mode === 'cup') {
-    const loss = S.adv && $('#xLoss').checked;
-    return { hc: K_CUP * (S.Th - S.Tc), ha: 0, ca: loss ? K_AIR * (S.Tc - ROOM) : 0 };
+  if (S.mode === 'mix') {
+    const c = CUPS[S.cup];
+    return { cup: c.eq / c.tau * (S.Tm - S.Tcup), air: K_MIX_AIR * (S.Tm - ROOM) };
   }
-  return { hc: 0, ha: K_COFFEE * (S.Th - ROOM), ca: K_COFFEE * (S.Tc - ROOM) };
+  return { ha: K_COFFEE * (S.Th - ROOM), ca: K_COFFEE * (S.Tc - ROOM) };
 }
 function step(dt) {
-  const n = Math.ceil(dt / 0.25), h = dt / n;
-  const mh = S.mode === 'cup' ? S.mH : COFFEE_M, mc = S.mode === 'cup' ? S.mC : COFFEE_M;
+  const n = Math.ceil(dt / 0.05), h = dt / n;
   for (let i = 0; i < n; i++) {
     const f = flows();
-    const outH = (f.hc + f.ha) * h, inC = (f.hc - f.ca) * h;
-    S.Th -= outH / mh; S.Tc += inC / mc;
-    S.qOut += outH; S.qIn += f.hc * h;
+    if (S.mode === 'mix') {
+      const m = S.mH + S.mC, c = CUPS[S.cup];
+      S.Tm -= (f.cup + f.air) * h / m;
+      S.Tcup += f.cup * h / c.eq;
+      S.Tth += (S.Tm - S.Tth) * h / TAU_TH;
+    } else { S.Th -= f.ha * h / COFFEE_M; S.Tc -= f.ca * h / COFFEE_M; }
     S.t += h;
   }
+  if (S.mode === 'mix') S.peak = Math.max(S.peak, Math.round(S.Tth * 10) / 10);
   const lastT = S.hist.length ? S.hist[S.hist.length - 1][0] : -1;
-  if (S.t - lastT >= tEnd() / 400) S.hist.push([S.t, S.Th, S.Tc]);
-  if (S.t >= tEnd()) { S.run = false; $('#go').textContent = '已結束'; }
+  if (S.t - lastT >= tEnd() / 400) S.hist.push([S.t, S.mode === 'mix' ? S.Tth : S.Th, S.mode === 'mix' ? S.Tcup : S.Tc]);
+  if (S.t >= tEnd()) { S.run = false; $('#go').textContent = '已結束'; if (S.mode === 'mix') $('#idealBtn').hidden = false; calc(); }
 }
-function tEnd() { return S.mode === 'cup' ? (S.adv && $('#xLoss').checked ? 1200 : 300) : 7200; }
+function tEnd() { return S.mode === 'mix' ? 120 : 7200; }
 
 /* ---------- 畫面 ---------- */
 const sc = setup($('#scene'), true);
@@ -968,37 +1000,36 @@ const aw = q => Math.min(12, Math.abs(q) * 0.35);  // 箭頭粗細
 function drawScene() {
   const { c, W, H } = sc; c.clearRect(0, 0, W, H);
   const f = flows();
-  if (S.mode === 'cup') {
-    // 外杯（冷水）
-    const ox0 = 60, ox1 = 380, ot = 110, ob = 350;
-    const cl = ob - (ob - ot - 20) * Math.min(1, (S.mC + S.mH * 0.6) / 600) - 20;
-    c.fillStyle = tint(S.Tc); c.fillRect(ox0, cl, ox1 - ox0, ob - cl);
-    c.strokeStyle = '#495057'; c.lineWidth = 3; c.beginPath(); c.moveTo(ox0, ot); c.lineTo(ox0, ob); c.lineTo(ox1, ob); c.lineTo(ox1, ot); c.stroke();
-    // 內杯（金屬，熱水）
-    const ix0 = 160, ix1 = 280, it = 70, ib = 320;
-    const hl = ib - (ib - it - 10) * S.mH / 330;
-    c.fillStyle = '#fff'; c.fillRect(ix0, it, ix1 - ix0, ib - it);
-    c.fillStyle = tint(S.Th); c.fillRect(ix0, hl, ix1 - ix0, ib - hl);
-    c.strokeStyle = '#868e96'; c.lineWidth = 5; c.beginPath(); c.moveTo(ix0, it); c.lineTo(ix0, ib); c.lineTo(ix1, ib); c.lineTo(ix1, it); c.stroke();
-    label(c, `${S.Th.toFixed(1)}℃`, (ix0 + ix1) / 2, hl + 40, COL.h, 24);
-    label(c, `熱水 ${S.mH} g`, (ix0 + ix1) / 2, 40, COL.h, 18);
-    label(c, `${S.Tc.toFixed(1)}℃`, 105, ob - 40, COL.c, 24);
-    label(c, `冷水 ${S.mC} g`, 330, 85, COL.c, 18);
-    const w = aw(f.hc);
-    const dir = f.hc >= 0 ? 1 : -1;
-    for (const y of [220, 270]) { arrow(c, dir > 0 ? ix0 + 10 : ix0 - 50, y, dir > 0 ? ix0 - 50 : ix0 + 10, y, w, '#f08c00'); arrow(c, dir > 0 ? ix1 - 10 : ix1 + 50, y, dir > 0 ? ix1 + 50 : ix1 - 10, y, w, '#f08c00'); }
-    if (f.ca > 0) arrow(c, 100, cl - 5, 100, cl - 45, aw(f.ca * 6), '#f08c00');
+  if (S.mode === 'mix') {
+    const started = S.t > 0;
+    if (!started) {   // 混合前：兩杯水和空杯
+      const small = (x, m, T, name, col) => { const h = 30 + m / 300 * 120; c.fillStyle = tint(T); c.fillRect(x - 45, 300 - h, 90, h); c.strokeStyle = '#495057'; c.lineWidth = 2.5; c.beginPath(); c.moveTo(x - 45, 140); c.lineTo(x - 45, 300); c.lineTo(x + 45, 300); c.lineTo(x + 45, 140); c.stroke(); label(c, `${name} ${m} g`, x, 120, col, 17); label(c, `${T}℃`, x, 330, col, 20); };
+      small(80, S.mH, S.tH, '熱水', COL.h); small(220, S.mC, S.tC, '室溫水', COL.c);
+      c.strokeStyle = S.cup === 'foam' ? '#ced4da' : S.cup === 'mug' ? '#a1887f' : '#495057'; c.lineWidth = S.cup === 'mug' ? 9 : S.cup === 'foam' ? 6 : 3;
+      c.beginPath(); c.moveTo(310, 180); c.lineTo(315, 300); c.lineTo(405, 300); c.lineTo(410, 180); c.stroke();
+      label(c, CUPS[S.cup].n, 360, 150, '#495057', 17); label(c, '空杯 25℃', 360, 330, '#495057', 17);
+      return;
+    }
+    const x0 = 90, x1 = 350, top = 90, bot = 340, lvl = bot - (bot - top - 30) * Math.min(1, (S.mH + S.mC) / 340);
+    c.fillStyle = tint(S.Tm); c.fillRect(x0, lvl, x1 - x0, bot - lvl);
+    c.strokeStyle = S.cup === 'foam' ? '#ced4da' : S.cup === 'mug' ? '#a1887f' : '#495057'; c.lineWidth = S.cup === 'mug' ? 12 : S.cup === 'foam' ? 8 : 4;
+    c.beginPath(); c.moveTo(x0, top); c.lineTo(x0, bot); c.lineTo(x1, bot); c.lineTo(x1, top); c.stroke();
+    label(c, `${S.Tth.toFixed(1)}℃`, (x0 + x1) / 2, (lvl + bot) / 2, '#212529', 30);
+    label(c, `${CUPS[S.cup].n}（杯壁 ${S.Tcup.toFixed(1)}℃）`, (x0 + x1) / 2, 50, '#495057', 17);
+    const w = aw(f.cup * 0.6);
+    for (const y of [lvl + 40, bot - 40]) { arrow(c, x0 + 40, y, x0 - 6, y, w, '#f08c00'); arrow(c, x1 - 40, y, x1 + 6, y, w, '#f08c00'); }
+    arrow(c, (x0 + x1) / 2, lvl - 6, (x0 + x1) / 2, lvl - 50, aw(f.air * 2), '#f08c00');
   } else {
     c.fillStyle = '#f8f9fa'; c.fillRect(0, 0, W, H);
     label(c, `空氣（室溫 ${ROOM}℃）`, W / 2, 30, '#495057', 18);
-    const cup = (x, T, name, col, ice) => {
+    const cup = (x, T, name, col) => {
       c.fillStyle = tint(T); c.beginPath(); c.moveTo(x - 60, 170); c.lineTo(x - 48, 330); c.lineTo(x + 48, 330); c.lineTo(x + 60, 170); c.closePath(); c.fill();
       c.strokeStyle = '#495057'; c.lineWidth = 3; c.beginPath(); c.moveTo(x - 66, 140); c.lineTo(x - 48, 330); c.lineTo(x + 48, 330); c.lineTo(x + 66, 140); c.stroke();
       label(c, `${T.toFixed(1)}℃`, x, 260, col, 24);
       label(c, name, x, 360, col, 18);
     };
-    cup(120, S.Th, '熱咖啡', COL.h, false);
-    cup(320, S.Tc, '冰咖啡', COL.c, true);
+    cup(120, S.Th, '熱咖啡', COL.h);
+    cup(320, S.Tc, '冰咖啡', COL.c);
     const w1 = aw(f.ha * 3), w2 = aw(f.ca * 3);
     if (f.ha > 0) { arrow(c, 120, 135, 120, 70, w1, '#f08c00'); arrow(c, 185, 200, 215, 170, w1, '#f08c00'); }
     if (f.ca < 0) { arrow(c, 320, 70, 320, 135, w2, '#f08c00'); arrow(c, 235, 170, 255, 200, w2, '#f08c00'); }
@@ -1009,32 +1040,41 @@ function drawGraph() {
   const P = { l: 52, r: 16, t: 30, b: 36 };
   const coffee = S.mode === 'coffee', unit = coffee ? 60 : 1;
   const tmax = coffee ? 120 : tEnd();
-  const ys = S.hist.flatMap(p => [p[1], p[2]]);
+  const ys = S.hist.flatMap(p => [p[1], p[2]]).concat(S.pred != null && !coffee ? [S.pred] : []);
   const lo = Math.max(0, Math.floor((Math.min(...ys, ROOM) - 5) / 5) * 5), hi = Math.ceil((Math.max(...ys, ROOM) + 5) / 5) * 5;
-  const { X: Xp, Y } = axes(c, W, H, 0, tmax, lo, hi, coffee ? '時間（分）' : '時間（秒）', '溫度（℃）', P);
-  if (coffee || (S.adv && $('#xLoss').checked)) { c.strokeStyle = COL.air; c.setLineDash([6, 5]); c.lineWidth = 1.5; c.beginPath(); c.moveTo(P.l, Y(ROOM)); c.lineTo(W - P.r, Y(ROOM)); c.stroke(); c.setLineDash([]); c.fillStyle = COL.air; c.font = `16px ${FONT}`; c.textAlign = 'right'; c.textBaseline = 'bottom'; c.fillText('室溫', W - P.r - 4, Y(ROOM) - 2); }
+  const { X: Xp, Y } = axes(c, W, H, 0, tmax, lo, hi, coffee ? '時間（分）' : '混合後的時間（秒）', '溫度（℃）', P);
+  const hline = (v, col, txt) => { c.strokeStyle = col; c.setLineDash([6, 5]); c.lineWidth = 2; c.beginPath(); c.moveTo(P.l, Y(v)); c.lineTo(W - P.r, Y(v)); c.stroke(); c.setLineDash([]); c.fillStyle = col; c.font = `16px ${FONT}`; c.textAlign = 'right'; c.textBaseline = 'bottom'; c.fillText(txt, W - P.r - 4, Y(v) - 2); };
+  hline(ROOM, COL.air, '室溫');
+  if (!coffee) {
+    if (S.pred != null) hline(S.pred, '#1f2328', `我的預測 ${S.pred}℃`);
+    if (S.showIdeal) hline(ideal(), '#c2410c', `不計杯子與散熱 ${ideal().toFixed(1)}℃`);
+    if (S.t > 0) { c.strokeStyle = COL.mix; c.lineWidth = 3; c.beginPath(); S.hist.forEach((p, j) => { const x = Xp(p[0]), y = Y(p[1]); j ? c.lineTo(x, y) : c.moveTo(x, y); }); c.stroke(); }
+    c.font = `bold 16px ${FONT}`; c.textAlign = 'left'; c.textBaseline = 'top'; c.fillStyle = COL.mix; c.fillText('溫度計讀數', P.l + 12, P.t + 4);
+    return;
+  }
   for (const [i, col] of [[1, COL.h], [2, COL.c]]) {
     c.strokeStyle = col; c.lineWidth = 3; c.beginPath();
     S.hist.forEach((p, j) => { const x = Xp(p[0] / unit), y = Y(p[i]); j ? c.lineTo(x, y) : c.moveTo(x, y); });
     c.stroke();
   }
   c.font = `bold 16px ${FONT}`; c.textAlign = 'left'; c.textBaseline = 'top';
-  c.fillStyle = COL.h; c.fillText(coffee ? '熱咖啡' : '熱水', P.l + 12, P.t + 4);
-  c.fillStyle = COL.c; c.fillText(coffee ? '冰咖啡' : '冷水', P.l + 12, P.t + 26);
+  c.fillStyle = COL.h; c.fillText('熱咖啡', P.l + 12, P.t + 4);
+  c.fillStyle = COL.c; c.fillText('冰咖啡', P.l + 12, P.t + 26);
 }
 function reads() {
-  if (S.mode === 'cup') {
-    $('#reads').innerHTML = `<span>時間 <b>${Math.floor(S.t)}</b> 秒</span><span>熱水放出 <b>${Math.round(S.qOut)}</b> 卡</span><span>冷水吸收 <b>${Math.round(S.qIn)}</b> 卡</span>`;
+  if (S.mode === 'mix') {
+    $('#reads').innerHTML = S.t > 0 ? `<span>時間 <b>${Math.floor(S.t)}</b> 秒</span><span>讀數 <b>${S.Tth.toFixed(1)}</b>℃</span><span>最高讀數 <b>${S.peak.toFixed(1)}</b>℃</span>` : '<span>先在上方寫下預測，再倒在一起。</span>';
   } else {
     $('#reads').innerHTML = `<span>時間 <b>${Math.floor(S.t / 60)}</b> 分</span>`;
   }
 }
+// 進階：用最高讀數反推杯子的水當量
 function calc() {
-  const el = $('#calc'); if (!S.adv || S.mode !== 'cup') { el.hidden = true; return; }
+  const el = $('#calc'); if (!S.adv || S.mode !== 'mix' || S.t < tEnd()) { el.hidden = true; return; }
   el.hidden = false;
-  const Tf = (S.mH * S.tH + S.mC * S.tC) / (S.mH + S.mC);
-  el.innerHTML = `沒有散熱時：熱水放熱 ＝ 冷水吸熱<br>${S.mH} ×（${S.tH} − T）＝ ${S.mC} ×（T − ${S.tC}）<br><button class="btn" id="showTf">算出平衡溫度</button> <span class="ans" id="tf" hidden>T ＝ ${Tf.toFixed(1)}℃</span>`;
-  $('#showTf').onclick = () => { $('#tf').hidden = false; };
+  const T = S.peak, eq = (S.mH * (S.tH - T) - S.mC * (T - S.tC)) / (T - ROOM);
+  el.innerHTML = `熱水放出的熱 − 室溫水吸收的熱 ＝ 杯子吸收的熱（先不計散熱）<br>${S.mH} ×（${S.tH} − ${T.toFixed(1)}）− ${S.mC} ×（${T.toFixed(1)} − ${S.tC}）＝ 杯子相當於 ? g 水 ×（${T.toFixed(1)} − ${ROOM}）<br><button class="btn" id="showEq">算出水當量</button> <span class="ans" id="eqAns" hidden>約 ${eq.toFixed(0)} g。模擬裡杯子實際是 ${CUPS[S.cup].eq} g：散熱會讓估計偏大；厚杯子在最高讀數時還沒完全熱透，又會讓估計偏小。</span>`;
+  $('#showEq').onclick = () => { $('#eqAns').hidden = false; };
 }
 
 /* ---------- 介面 ---------- */
@@ -1044,13 +1084,15 @@ sliders.forEach(([id, k, u]) => {
   const upd = () => { S[k] = +el.value; out.textContent = el.value + u; };
   upd(); el.addEventListener('input', () => { upd(); reset(); calc(); });
 });
-seg('#mode', v => { S.mode = v; $('#cupCtl').hidden = v !== 'cup'; S.speed = v === 'cup' ? 10 : 60; setSeg('#speed', S.speed); reset(); calc(); });
+seg('#mode', v => { S.mode = v; $('#cupCtl').hidden = v !== 'mix'; S.speed = v === 'mix' ? 1 : 60; setSeg('#speed', S.speed); reset(); calc(); });
+seg('#cup', v => { S.cup = v; reset(); calc(); });
 seg('#speed', v => { S.speed = v; });
+$('#pred').addEventListener('input', e => { const v = parseFloat(e.target.value); S.pred = isFinite(v) ? v : null; });
 $('#go').addEventListener('click', () => { if (S.t >= tEnd()) return; S.run = !S.run; $('#go').textContent = S.run ? '暫停' : '繼續'; });
-$('#reset').addEventListener('click', reset);
-$('#xLoss').addEventListener('change', reset);
+$('#reset').addEventListener('click', () => { reset(); calc(); });
+$('#idealBtn').addEventListener('click', () => { S.showIdeal = true; const a = $('#idealAns'); a.hidden = false; a.textContent = `不計杯子吸熱與散熱：${ideal().toFixed(1)}℃；實測最高 ${S.peak.toFixed(1)}℃`; });
 function applyAdv() { ADV.checked = S.adv; ROOT.querySelectorAll('.advonly').forEach(el => el.hidden = !S.adv); calc(); }
-ADV.addEventListener('change', e => { S.adv = e.target.checked; store.set('adv', S.adv); applyAdv(); reset(); });
+ADV.addEventListener('change', e => { S.adv = e.target.checked; store.set('adv', S.adv); applyAdv(); });
 applyAdv(); reset();
 
 let last = performance.now();
@@ -1124,21 +1166,26 @@ const MAT = {
   cu: { n: '銅', s: 0.093, bp: 1e9, col: '#d9480f', liq: false }
 };
 const POWER = 360, T0 = 25, BEAKER_EQ = 20, TEND = 150;
-const S = { sA: 'water', sB: 'gly', mA: 50, mB: 50, speed: 5, run: false, t: 0, A: T0, B: T0, recs: [], adv: store.get('adv', false) };
+const S = { sA: 'water', sB: 'gly', mA: 50, mB: 50, speed: 5, run: false, t: 0, A: T0, B: T0, RA: T0, RB: T0, recs: [], ratioOn: false, adv: store.get('adv', false) };
+const TAU_STILL = 45; // 甘油不攪拌時，溫度計讀數落後真實平均溫度的時間常數（秒）
 const opt = id => S.adv && $(id).checked;
 const capA = () => S.A, colOf = k => MAT[S['s' + k]].col === MAT[S[k === 'A' ? 'sB' : 'sA']].col ? (k === 'A' ? '#1c7ed6' : '#e8590c') : MAT[S['s' + k]].col;
 
-function reset() { S.run = false; S.t = 0; S.A = T0; S.B = T0; S.recs = [{ t: 0, A: T0, B: T0 }]; $('#go').textContent = '開始加熱'; table(); calc(); }
+function reset() { S.run = false; S.t = 0; S.A = T0; S.B = T0; S.RA = T0; S.RB = T0; S.recs = [{ t: 0, A: T0, B: T0 }]; S.ratioOn = false; $('#go').textContent = '開始加熱'; table(); ratio(); }
+const lag = k => S['s' + k] === 'gly' && opt('#xStir') ? TAU_STILL : 0;
 function heatCap(k) { const m = MAT[S['s' + k]]; return S['m' + k] * m.s + (m.liq && opt('#xBeaker') ? BEAKER_EQ : 0); }
 function step(dt) {
   let left = dt;
   while (left > 1e-9 && S.t < TEND) {
     const next = (Math.floor(S.t / 30 + 1e-9) + 1) * 30, h = Math.min(0.2, left, next - S.t);
-    for (const k of ['A', 'B']) S[k] = Math.min(MAT[S['s' + k]].bp, S[k] + POWER / 60 * h / heatCap(k));
+    for (const k of ['A', 'B']) {
+      S[k] = Math.min(MAT[S['s' + k]].bp, S[k] + POWER / 60 * h / heatCap(k));
+      const tau = lag(k); S['R' + k] = tau ? S['R' + k] + (S[k] - S['R' + k]) * h / tau : S[k];
+    }
     S.t += h; left -= h;
-    if (Math.abs(S.t - next) < 1e-6) { S.t = next; S.recs.push({ t: next, A: Math.round(S.A * 10) / 10, B: Math.round(S.B * 10) / 10 }); table(); }
+    if (Math.abs(S.t - next) < 1e-6) { S.t = next; S.recs.push({ t: next, A: Math.round(S.RA * 10) / 10, B: Math.round(S.RB * 10) / 10 }); table(); if (next >= 60 && !S.ratioOn) ratio(); }
   }
-  if (S.t >= TEND) { S.run = false; $('#go').textContent = '已到 2.5 分鐘'; calc(); }
+  if (S.t >= TEND) { S.run = false; $('#go').textContent = '已到 2.5 分鐘'; }
 }
 
 const sc = setup($('#scene'), true);
@@ -1146,7 +1193,7 @@ const gH = w => w < 520 ? 280 : 340;
 const gr = setup($('#graph'), false, gH);
 window.addEventListener('resize', () => fit(gr));
 function drawOne(c, x, k) {
-  const m = MAT[S['s' + k]], T = S[k], col = colOf(k);
+  const m = MAT[S['s' + k]], T = S['R' + k], col = colOf(k);
   // 熱源
   c.fillStyle = '#e9ecef'; c.strokeStyle = '#868e96'; c.lineWidth = 2;
   c.beginPath(); c.ellipse(x, 350, 34, 20, 0, 0, 7); c.fill(); c.stroke();
@@ -1159,7 +1206,7 @@ function drawOne(c, x, k) {
     const w = 110, top = 130, bot = 260, wh = (bot - top) * 0.45 * S['m' + k] / 50 * 0.8;
     c.fillStyle = col + '55'; c.fillRect(x - w / 2, bot - wh, w, wh);
     c.strokeStyle = '#495057'; c.lineWidth = 2.5; c.beginPath(); c.moveTo(x - w / 2, top); c.lineTo(x - w / 2, bot); c.lineTo(x + w / 2, bot); c.lineTo(x + w / 2, top); c.stroke();
-    if (T >= m.bp - 0.05) { c.fillStyle = '#fff'; c.strokeStyle = col; for (let i = 0; i < 6; i++) { c.beginPath(); c.arc(x - 40 + Math.random() * 80, bot - Math.random() * wh, 3 + Math.random() * 3, 0, 7); c.fill(); c.stroke(); } }
+    if (S[k] >= m.bp - 0.05) { c.fillStyle = '#fff'; c.strokeStyle = col; for (let i = 0; i < 6; i++) { c.beginPath(); c.arc(x - 40 + Math.random() * 80, bot - Math.random() * wh, 3 + Math.random() * 3, 0, 7); c.fill(); c.stroke(); } }
   } else {
     const side = 46 * Math.cbrt(S['m' + k] / 50);
     c.fillStyle = col; c.globalAlpha = .75; c.fillRect(x - side / 2 - 10, 262 - side, side + 20, side); c.globalAlpha = 1;
@@ -1168,18 +1215,18 @@ function drawOne(c, x, k) {
   c.fillStyle = col; c.font = `bold 20px ${FONT}`; c.textAlign = 'center'; c.textBaseline = 'alphabetic';
   c.fillText(`${k}：${m.n} ${S['m' + k]} g`, x, 30);
   c.fillStyle = '#212529'; c.font = `bold 26px ${FONT}`; c.fillText(`${T.toFixed(1)}℃`, x, 100);
-  if (T >= m.bp - 0.05) { c.fillStyle = col; c.font = `bold 17px ${FONT}`; c.fillText('沸騰中', x, 122); }
+  if (S[k] >= m.bp - 0.05) { c.fillStyle = col; c.font = `bold 17px ${FONT}`; c.fillText('沸騰中', x, 122); }
   c.textAlign = 'left';
 }
 function drawScene() { const { c, W, H } = sc; c.clearRect(0, 0, W, H); drawOne(c, 110, 'A'); drawOne(c, 330, 'B'); }
 function drawGraph() {
   const { c, W, H } = gr; c.clearRect(0, 0, W, H);
   const P = { l: 52, r: 16, t: 30, b: 36 };
-  const ymax = Math.max(10, ...S.recs.flatMap(r => [r.A - T0, r.B - T0]), S.A - T0, S.B - T0) * 1.1;
+  const ymax = Math.max(10, ...S.recs.flatMap(r => [r.A - T0, r.B - T0]), S.RA - T0, S.RB - T0) * 1.1;
   const { X: Xp, Y } = axes(c, W, H, 0, 2.5, 0, ymax, '加熱時間（分）', '上升溫度 T−T₀（℃）', P);
   const dot = (t, v, col) => { c.fillStyle = col; c.beginPath(); c.arc(Xp(t / 60), Y(v), 6, 0, 7); c.fill(); };
   S.recs.forEach(r => { dot(r.t, r.A - T0, colOf('A')); dot(r.t, r.B - T0, colOf('B')); });
-  if (S.t > 0 && S.t < TEND) for (const k of ['A', 'B']) { c.strokeStyle = colOf(k); c.lineWidth = 2; c.beginPath(); c.arc(Xp(S.t / 60), Y(S[k] - T0), 7, 0, 7); c.stroke(); }
+  if (S.t > 0 && S.t < TEND) for (const k of ['A', 'B']) { c.strokeStyle = colOf(k); c.lineWidth = 2; c.beginPath(); c.arc(Xp(S.t / 60), Y(S['R' + k] - T0), 7, 0, 7); c.stroke(); }
   c.font = `bold 16px ${FONT}`; c.textAlign = 'left'; c.textBaseline = 'top';
   c.fillStyle = colOf('A'); c.fillText(`● A ${MAT[S.sA].n}`, P.l + 12, P.t + 4);
   c.fillStyle = colOf('B'); c.fillText(`● B ${MAT[S.sB].n}`, P.l + 12, P.t + 26);
@@ -1190,15 +1237,22 @@ function table() {
   $('#tbl').innerHTML = `<thead><tr><th rowspan="2">時間（分）</th><th colspan="2" style="color:${colOf('A')}">A ${nA} ${S.mA} g</th><th colspan="2" style="color:${colOf('B')}">B ${nB} ${S.mB} g</th></tr>
   <tr><th>T（℃）</th><th>T−T₀</th><th>T（℃）</th><th>T−T₀</th></tr></thead><tbody>${rows}</tbody>`;
 }
-// 進階：用 1 分鐘的上升溫度推算 B 的比熱（以 A 為參考）
-function calc() {
-  const el = $('#calc'); el.hidden = !S.adv; if (!S.adv) return;
-  const r = S.recs.find(x => x.t === 60);
-  if (!r) { el.innerHTML = '加熱滿 1 分鐘後，可以用數據推算比熱。'; return; }
-  const a = MAT[S.sA], b = MAT[S.sB], dA = r.A - T0, dB = r.B - T0;
-  const est = a.s * (S.mA * dA) / (S.mB * dB);
-  el.innerHTML = `1 分鐘內兩邊吸收的熱量相同：<br>${S.mA} × ${a.s} × ${dA.toFixed(1)} ＝ ${S.mB} × S<sub>B</sub> × ${dB.toFixed(1)}（以 A 的比熱 ${a.s} 為已知）<br><button class="btn" id="showS">算出 B 的比熱</button> <span class="ans" id="sAns" hidden>S<sub>B</sub> ≈ ${est.toFixed(3)} 卡／公克·℃（表列 ${b.s}）</span>`;
-  $('#showS').onclick = () => { $('#sAns').hidden = false; };
+// 時間比：學生自己從圖或表讀出比值，按「檢查」才顯示答案
+function ratio() {
+  const el = $('#ratio');
+  if (!S.recs.some(x => x.t >= 60)) { S.ratioOn = false; el.innerHTML = '加熱滿 1 分鐘後，從圖或表讀數據回答：<b>B 上升相同溫度所需的時間，是 A 的幾倍？</b>'; return; }
+  S.ratioOn = true;
+  el.innerHTML = `<b>B 上升相同溫度所需的時間，是 A 的幾倍？</b><br>提示：圖上的線都通過原點，可以比「升高同樣溫度的時間」，也可以比「同一時間的上升溫度」。<br>
+  <label style="display:inline-flex;align-items:center;gap:8px;margin-top:8px">t<sub>B</sub> ÷ t<sub>A</sub> ≈ <input id="rIn" type="number" inputmode="decimal" step="0.01" min="0" style="width:100px;font:inherit;font-size:18px;min-height:44px;padding:4px 8px;border:1px solid var(--line);border-radius:10px"></label>
+  <button class="btn" id="rChk">檢查</button><div id="rAns" hidden style="margin-top:8px"></div>`;
+  $('#rChk').onclick = () => {
+    const v = parseFloat($('#rIn').value), out = $('#rAns'); out.hidden = false;
+    if (!(v > 0)) { out.textContent = '先填一個大於 0 的數字。'; return; }
+    const r = heatCap('B') / heatCap('A'), a = MAT[S.sA], b = MAT[S.sB], ok = Math.abs(v / r - 1) <= 0.1;
+    const est = a.s * r * S.mA / S.mB;
+    out.innerHTML = `${ok ? '✓ 在 10% 以內。' : '差距超過 10%，回去看圖：同一時間誰升得比較多？'} 參考比值約 <span class="ans">${r.toFixed(2)}</span>。<br>
+    時間比＝熱容量（m × S）比，所以 S<sub>B</sub> ≈ ${a.s} × ${r.toFixed(2)} × ${S.mA} ÷ ${S.mB} ≈ <span class="ans">${est.toFixed(3)}</span> 卡／公克·℃（表列 ${b.s}）`;
+  };
 }
 seg('#sA', v => { S.sA = v; reset(); }); seg('#sB', v => { S.sB = v; reset(); });
 seg('#mA', v => { S.mA = v; reset(); }); seg('#mB', v => { S.mB = v; reset(); });
@@ -1206,7 +1260,8 @@ seg('#speed', v => { S.speed = v; });
 $('#go').addEventListener('click', () => { if (S.t >= TEND) return; S.run = !S.run; $('#go').textContent = S.run ? '暫停' : '繼續加熱'; });
 $('#reset').addEventListener('click', reset);
 $('#xBeaker').addEventListener('change', reset);
-function applyAdv() { ADV.checked = S.adv; ROOT.querySelectorAll('.advonly').forEach(el => el.hidden = !S.adv); calc(); }
+$('#xStir').addEventListener('change', reset);
+function applyAdv() { ADV.checked = S.adv; ROOT.querySelectorAll('.advonly').forEach(el => el.hidden = !S.adv); }
 ADV.addEventListener('change', e => { S.adv = e.target.checked; store.set('adv', S.adv); applyAdv(); reset(); });
 applyAdv(); reset();
 let last = performance.now();
@@ -1717,6 +1772,81 @@ function frame(now) {
 }
 requestAnimationFrame(frame);
 
+})();
+
+// ===== 5-1 溫度計的反應時間 =====
+(() => {
+'use strict';
+const ROOT = document.getElementById('s1');
+const $ = s => ROOT.querySelector(s);
+const FONT = 'system-ui,-apple-system,"PingFang TC","Noto Sans TC",sans-serif';
+function fit(o) {
+  const dpr = Math.min(window.devicePixelRatio || 1, 3);
+  const w = Math.round(o.cv.getBoundingClientRect().width) || o.W; o.W = w; o.H = w < 520 ? 280 : 320;
+  o.cv.width = o.W * dpr; o.cv.height = o.H * dpr; o.cv.style.height = o.H + 'px';
+  o.c.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+function axes(c, W, H, x0, x1, y0, y1, xl, yl, P) {
+  c.strokeStyle = '#adb5bd'; c.lineWidth = 1; c.fillStyle = '#5f6b76'; c.font = `16px ${FONT}`;
+  const X = x => P.l + (x - x0) / (x1 - x0) * (W - P.l - P.r), Y = y => H - P.b - (y - y0) / (y1 - y0) * (H - P.t - P.b);
+  const nice = r => { const e = Math.pow(10, Math.floor(Math.log10(r / 5))), m = r / 5 / e; return (m < 1.5 ? 1 : m < 3.5 ? 2 : m < 7.5 ? 5 : 10) * e; };
+  const dx = nice(x1 - x0), dy = nice(y1 - y0);
+  c.textAlign = 'center'; c.textBaseline = 'top';
+  for (let x = Math.ceil(x0 / dx) * dx; x <= x1 + 1e-9; x += dx) { c.globalAlpha = .4; c.beginPath(); c.moveTo(X(x), P.t); c.lineTo(X(x), H - P.b); c.stroke(); c.globalAlpha = 1; c.fillText(+x.toFixed(6) + '', X(x), H - P.b + 5); }
+  c.textAlign = 'right'; c.textBaseline = 'middle';
+  for (let y = Math.ceil(y0 / dy) * dy; y <= y1 + 1e-9; y += dy) { c.globalAlpha = .4; c.beginPath(); c.moveTo(P.l, Y(y)); c.lineTo(W - P.r, Y(y)); c.stroke(); c.globalAlpha = 1; c.fillText(+y.toFixed(6) + '', P.l - 6, Y(y)); }
+  c.strokeStyle = '#495057'; c.lineWidth = 1.5; c.beginPath(); c.moveTo(P.l, P.t); c.lineTo(P.l, H - P.b); c.lineTo(W - P.r, H - P.b); c.stroke();
+  c.font = `16px ${FONT}`; c.fillStyle = '#343a40';
+  c.textAlign = 'right'; c.textBaseline = 'bottom'; c.fillText(xl, W - P.r, H - P.b - 4);
+  c.textAlign = 'left'; c.textBaseline = 'top'; c.fillText(yl, P.l + 6, 4);
+  return { X, Y };
+}
+
+// 時間常數 τ（秒）：一般值，實際依溫度計粗細與液體是否攪動而不同
+const TYPES = { alc: { n: '酒精溫度計', tau: 15, res: 0.5 }, dig: { n: '電子溫度計（細探針）', tau: 4, res: 0.1 } };
+const ROOM = 25, K_COOL = 0.035 / 60;   // 一杯熱飲每秒降溫比例（約 0.035／分）
+const S = { type: 'alc', run: false, t: 0, Tw: 90, Tth: ROOM, hist: [] };
+const g = { cv: $('#rtGraph'), c: $('#rtGraph').getContext('2d'), W: 640, H: 320 };
+fit(g);
+window.addEventListener('resize', () => fit(g));
+function reset() { S.run = false; S.t = 0; S.Tw = 90; S.Tth = ROOM; S.hist = [[0, ROOM, 90]]; $('#rtGo').textContent = '插入熱水'; }
+function shown() { const r = TYPES[S.type].res; return Math.round(S.Tth / r) * r; }
+$('#rtType').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  $('#rtType').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b));
+  S.type = b.dataset.v; reset();
+});
+$('#rtGo').addEventListener('click', () => { if (S.t >= 120) return; S.run = !S.run; $('#rtGo').textContent = S.run ? '暫停' : '繼續'; });
+$('#rtReset').addEventListener('click', reset);
+reset();
+function draw() {
+  const { c, W, H } = g; c.clearRect(0, 0, W, H);
+  const P = { l: 52, r: 16, t: 30, b: 36 };
+  const { X, Y } = axes(c, W, H, 0, 120, 20, 100, '插入後的時間（秒）', '溫度計讀數（℃）', P);
+  c.strokeStyle = '#1f2328'; c.lineWidth = 3; c.beginPath();
+  S.hist.forEach((p, i) => { const x = X(p[0]), y = Y(p[1]); i ? c.lineTo(x, y) : c.moveTo(x, y); }); c.stroke();
+}
+let last = performance.now();
+function frame(now) {
+  if (ROOT.offsetParent === null) { last = now; requestAnimationFrame(frame); return; }
+  const dt = Math.min(0.1, (now - last) / 1000); last = now;
+  if (S.run) {
+    let left = dt;
+    while (left > 1e-9 && S.t < 120) {
+      const h = Math.min(0.05, left, 120 - S.t);
+      S.Tw = ROOM + (S.Tw - ROOM) * Math.exp(-K_COOL * h);
+      S.Tth += (S.Tw - S.Tth) * (1 - Math.exp(-h / TYPES[S.type].tau));
+      S.t += h; left -= h;
+    }
+    const lt = S.hist[S.hist.length - 1][0]; if (S.t - lt >= 0.25) S.hist.push([S.t, shown(), S.Tw]);
+    if (S.t >= 120) { S.run = false; $('#rtGo').textContent = '已到 2 分鐘'; }
+  }
+  $('#rtT').textContent = Math.floor(S.t);
+  $('#rtR').textContent = shown().toFixed(TYPES[S.type].res < 0.5 ? 1 : 1);
+  draw();
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
 })();
 
 HEATLAB_SHOW(HEATLAB_START);
